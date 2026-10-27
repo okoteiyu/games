@@ -1,4 +1,5 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
+import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS} from './initial-state.js';
 import {currentTimeOfDay} from './world-time.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers} from './equipment-rules.js';
 export {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers} from './equipment-rules.js';
@@ -20,8 +21,8 @@ export const CREATURES=Object.freeze({
 });
 export const PATROL_CALM_COST=2;
 export const PROTOTYPE_CHOICES=Object.freeze({
- initialCharacterLevel:1,initialTechniqueLevel:1,superLevelIncrement:1,
- initialRecovery:'The house director starts the prototype streak at zero; formal initial recovery remains undecided.',
+ initialCharacterLevel:INITIAL_PLAYER_LEVEL,initialTechniqueLevel:1,superLevelIncrement:1,
+ initialRecovery:`A fresh game starts with ${INITIAL_CALM_POINTS} calm points; saved progress retains its stored balance.`,
  unlockedCommandsAfterBattle:true,angerPointsRetainedBetweenBattles:true,
  angerOutcomeAtCap:'Remove capped rewards and draw from the remaining relative weights; no reward when all entries are capped.',
  statOrder:'Base -> equipped aura -> equipment parameter multipliers -> attack and ki super multiplier; truncate resulting stats to one decimal and clamp speed to at least one.',
@@ -85,7 +86,7 @@ export function auraDropPercent(level){integer(level,'opponent level',1,106);ret
 
 function randomValue(rng){const value=Number(rng());if(!Number.isFinite(value))throw new TypeError('The random source must return a finite number.');return Math.min(1-Number.EPSILON,Math.max(0,value));}
 function shuffle(items,rng){const result=[...items];for(let index=result.length-1;index>0;index--){const at=Math.floor(randomValue(rng)*(index+1));[result[index],result[at]]=[result[at],result[index]];}return result;}
-function prototypePlayer(){return {speciesId:'okoteiyu',name:'おこていゆ',level:1,xp:0,superLevel:1,punchLevel:1,energyRayLevel:1,energyRayUnlocked:false,unlockedTechniques:[],techniqueLevels:Object.fromEntries(ADDED_TECHNIQUE_IDS.map(id=>[id,1])),techniqueSlots:['punch',null,null],superConfiguration:'none',equipmentRulesVersion:1,ownedItems:{support:['moai_kun','hard_glove','stored_ki'],defense:['acrylic_shield','iron_shield','aura_shield']},equipment:{support:'moai_kun',defense:'acrylic_shield'},equippedAura:'okoteiyu',auras:{okoteiyu:{speciesId:'okoteiyu',name:'おこていゆのオーラ',level:1,copies:1,progress:0}},journal:{},battlesWon:0,battlesLost:0};}
+function prototypePlayer(){return {speciesId:'okoteiyu',name:'おこていゆ',level:INITIAL_PLAYER_LEVEL,xp:0,superLevel:1,punchLevel:1,energyRayLevel:1,energyRayUnlocked:false,unlockedTechniques:[],techniqueLevels:Object.fromEntries(ADDED_TECHNIQUE_IDS.map(id=>[id,1])),techniqueSlots:['punch',null,null],superConfiguration:'none',equipmentRulesVersion:1,ownedItems:{support:['moai_kun','hard_glove','stored_ki'],defense:['acrylic_shield','iron_shield','aura_shield']},equipment:{support:'moai_kun',defense:'acrylic_shield'},equippedAura:'okoteiyu',auras:{okoteiyu:{speciesId:'okoteiyu',name:'おこていゆのオーラ',level:1,copies:1,progress:0}},journal:{},battlesWon:0,battlesLost:0};}
 export function playerStats(player,{equipment=true}={}){const aura=player.auras?.[player.equippedAura],base=applyAuraStats(creatureStats('okoteiyu',player.level||1),player.equippedAura??null,aura?.level||1);if(!equipment)return base;const factors=equipmentMultipliers(player.equipment);return Object.fromEntries(STAT_KEYS.map(key=>[key,normalizeStat(key,base[key]*factors[key])]));}
 
 /** Existing PatrolState uses bounded color probabilities; preserve the raw formula separately. */

@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three/three.module.js';
+import {INITIAL_CALM_POINTS} from './initial-state.js';
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const smooth=value=>{const t=clamp(value,0,1);return t*t*(3-2*t);};
@@ -111,7 +112,7 @@ export class HouseLifeDirector {
   this.sourceClips=clips;this.master=clips.find(c=>c.name===(life.masterClip||life.clipName||'house_life'))||clips[0];
   this.currentAction=null;this.currentClip=null;this.fading=[];this.plan=[];this.step=null;this.heldPropPose=null;
   this.actionKind='ambient';this.actionSource='ambient';this.phase='idle';this.ambientIndex=0;
-  this.completedRelaxActions=0;this.consecutiveRelaxActions=0;this.relaxEpoch=0;this.actionRelaxEpoch=0;this.actionNonTravelElapsed=0;this.plannedNonTravelDuration=0;this.lastCompletedRelaxation=null;
+  this.completedRelaxActions=0;this.consecutiveRelaxActions=INITIAL_CALM_POINTS;this.relaxEpoch=0;this.actionRelaxEpoch=0;this.actionNonTravelElapsed=0;this.plannedNonTravelDuration=0;this.lastCompletedRelaxation=null;
   this.history=[];this.foodIndex=0;this.currentFood=null;this.mealSource=null;this.heldFood=false;this.reservedTableItem=null;
   this.tableItems=(life.tableItems||[]).map((item,index)=>({...item,id:item.id||item.kind||String(index),amount:clamp(item.amount??1,0,1)}));
   for(const item of this.tableItems){
