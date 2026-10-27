@@ -7,6 +7,7 @@ import {STARTUP_NOTICE} from './notice-popup.js';
 import {COLLECTION_KINDS,collectionThumbnail,CREATURE_NOTES} from './collection-data.js';
 import {CREATURES,CREATURE_CATEGORIES,SUPPORT_ITEMS,DEFENSE_ITEMS} from './game-session.js';
 import { encodeSave, decodeSave, validatePreviewState } from './save-data.js';
+import {describeSaveProgress} from './save-preview.js';
 import { isModalBlocked, tryOpenModal, releaseModal } from './modal-layer.js';
 
 export const OPTION_ITEMS = [
@@ -217,8 +218,19 @@ export class OptionsDialog {
    try{
     if(file.size>1024*1024)throw new Error('ファイルが大きすぎます。');
     const state=await decodeSave(await file.text(),password.value);if(generation!==this.generation)return;this.validateTransfer(state);
-    this.pending=state;const values=this.body.querySelector('#restoreValues');values.replaceChildren();
-    for(const [label,value] of [['ランク',state.rank],['現在位置',state.location],['ランクポイント',state.rankPoints==null?(/^S(?:\d+)?$/.test(state.rank)?'記録なし':'なし'):state.rankPoints+' pt'],['経験値',Math.round(state.gauges.experience*100)+'%']]){const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;row.append(dt,dd);values.append(row);}
+    this.pending=state;const values=this.body.querySelector('#restoreValues'),summary=describeSaveProgress(state);values.replaceChildren();
+    preview.querySelector('.save-inventory')?.remove();preview.querySelector('.save-legacy-note')?.remove();
+    const rows=[...summary.rows,['ランク',state.rank],['現在位置',state.location],['ランクポイント',state.rankPoints==null?(/^S(?:\d+)?$/.test(state.rank)?'記録なし':'なし'):state.rankPoints+' pt'],['経験値',Math.round(state.gauges.experience*100)+'%']];
+    for(const [label,value] of rows){const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;row.append(dt,dd);values.append(row);}
+    if(summary.missingGameData){const note=document.createElement('p');note.className='option-note save-legacy-note';note.textContent='この古いセーブデータには、レベル・所持品・記録帳の情報が含まれていません。';values.after(note);}
+    else{
+     const details=document.createElement('details'),heading=document.createElement('summary');details.className='save-inventory';heading.textContent='もちものの内訳';details.append(heading);
+     for(const group of summary.inventory){const section=document.createElement('section'),title=document.createElement('h4'),list=document.createElement('ul');title.textContent=group.label;section.append(title,list);
+      for(const item of group.items){const row=document.createElement('li'),name=document.createElement('span'),quantity=document.createElement('span');name.textContent=item.name;quantity.textContent=item.quantity;row.append(name,quantity);list.append(row);}
+      if(!group.items.length){const empty=document.createElement('li');empty.textContent='なし';list.append(empty);}details.append(section);
+     }
+     const note=document.createElement('p');note.className='option-note';note.textContent='オーラの個数は、レベルアップに使った分も含む累計取得数です。';details.append(note);values.after(details);
+    }
     preview.hidden=false;notify('内容を確認してから、読み込んでください。');preview.scrollIntoView({block:'nearest'});
    }catch(error){if(generation===this.generation)notify(error.message,true);}
    finally{if(generation===this.generation)busy(false);}
