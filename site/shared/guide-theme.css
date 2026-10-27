@@ -1,0 +1,77 @@
+/* The guide shares the game's pale lime paper and warm brown accents. */
+body.theme-guide {
+  --ink:#4b4033;
+  --muted:#70664f;
+  --green:#526638;
+  --gold:#927047;
+  --line:#d9c9ad;
+  --paper:#fffdf5;
+  --soft:#efe4cf;
+  min-height:100vh;
+  background-color:#eaf1d5;
+  background-image:url('../game/assets/ui-pattern.svg'),radial-gradient(ellipse at 50% 0,#f8fbe9 0,transparent 65%),linear-gradient(135deg,#edf3dc,#dde8c4);
+  background-size:260px 280px,auto,auto;
+}
+.theme-guide .site-header {
+  margin-top:18px;
+  padding-inline:20px;
+  border:1px solid #c8ae87;
+  border-radius:16px;
+  background:linear-gradient(120deg,#f3e8d4,#e2ccaa);
+  box-shadow:inset 0 1px #fff9ed,0 5px 20px #76633e09;
+}
+.theme-guide .header-links a {color:#655037}
+.theme-guide a:focus-visible,.theme-guide button:focus-visible {outline-color:#9c784c}
+.theme-guide .guide-intro h1,.theme-guide .article-head h1 {color:#59452e}
+.theme-guide .eyebrow {color:#8b663b}
+.theme-guide .save-card {background:linear-gradient(120deg,#f7efdf,#eddec5);border-color:#cfb995}
+.theme-guide .save-pass code,.theme-guide .download {background:#fffdf6;border-color:#cdb38d}
+.theme-guide .download {color:#5b643b;box-shadow:0 2px 0 #a88e5d0d}
+.theme-guide .download:hover {background:#f4f7e6}
+.theme-guide .category-card {background:#fffdf5;border-color:#d0bd9e;box-shadow:0 3px 10px #715c3910;transition:transform .18s,border-color .18s}
+.theme-guide .category-card:hover {transform:translateY(-3px);border-color:#9d875b}
+.theme-guide .category-copy {background:linear-gradient(115deg,#fffdf5,#f4eddd)}
+.theme-guide .category-card.icon img {background:#edf2dc}
+.theme-guide .article-note {background:#f4ead6;border:1px solid #d9c7a4;color:#69583e}
+.theme-guide .edition {border-top-color:#bea27b}
+.theme-guide .tag {background:#f4eddb;border-color:#cfb994;color:#6f5638}
+.theme-guide .article-side a {color:#5d634a}
+.theme-guide .article-side a:hover {background:#f1eedb}
+.theme-guide .article-side a[aria-current=page] {background:#ecddc3;color:#654b2b;box-shadow:inset 3px 0 #a07e4d}
+.theme-guide .article-main {margin-top:28px;padding:24px 28px 4px;background:#fffdf5f5;border:1px solid #d8c7a9;border-radius:18px;box-shadow:0 8px 28px #6655370a}
+.theme-guide .article-head {padding-top:0}
+.theme-guide .tabs {border-bottom-color:#d8c7a9}
+.theme-guide .tabs button {color:#6d624e}
+.theme-guide .tabs button[aria-selected=true] {color:#5d673a;background:#eef2de;border-bottom-color:#a58453;border-radius:7px 7px 0 0}
+.theme-guide .chapter h2 {border-left-color:#aa8b5f}
+.theme-guide .chapter p,.theme-guide .entry p {color:#5f604c}
+.theme-guide .chapter ul {padding-left:22px;margin:0 0 17px}
+.theme-guide .chapter li {font-size:14px;line-height:1.9;margin-bottom:7px;color:#5f604c}
+.theme-guide .entry {background:#faf5e9;border-color:#dfceb0}
+.theme-guide .entry>img {background:#eef1df}
+.theme-guide .ranks th {border-top-color:#d6c4a4}
+.theme-guide .site-footer {border-top-color:#c7b792;color:#69624e}
+@media(max-width:760px) {
+  .theme-guide .site-header {margin-top:12px;padding-inline:12px;border-radius:12px;gap:10px}
+  .theme-guide .brand {font-size:13px;letter-spacing:.01em;gap:7px}
+  .theme-guide .header-links {gap:10px;font-size:11px}
+  .theme-guide .article-main {margin-top:12px;padding:20px 17px 0;border-radius:14px}
+  .theme-guide .article-side a {font-size:12px}
+  .theme-guide .tabs button {padding-inline:10px}
+}
+@media(max-width:370px) {
+  .theme-guide .site-header {padding-inline:9px;gap:8px}
+  .theme-guide .brand {font-size:12px;gap:5px}
+  .theme-guide .brand img {width:25px}
+  .theme-guide .header-links {font-size:10.5px;gap:8px}
+  .theme-guide .article-main {padding:18px 14px 0}
+}
+.profile-lead {display:grid;grid-template-columns:minmax(140px,.85fr) minmax(0,1.3fr);gap:24px;align-items:center}
+.profile-lead>img {width:100%;aspect-ratio:1;object-fit:contain;background:#eef2df;border:1px solid #dac9aa;border-radius:14px}
+.profile-facts {margin:0;font-size:13px}
+.profile-facts>div {display:grid;grid-template-columns:85px minmax(0,1fr);gap:12px;border-bottom:1px solid #e6dac2;padding:9px 0;line-height:1.7}
+.profile-facts dt {color:#7b684b}
+.profile-facts dd {margin:0;color:#4c4d3c}
+@media(max-width:520px) {.profile-lead {grid-template-columns:1fr;gap:14px}.profile-lead>img {max-width:260px;justify-self:center}.profile-facts>div {grid-template-columns:85px minmax(0,1fr)}}
+body.theme-guide {display:flow-root}
+@media(max-width:600px) {#panel-companions .entry-grid {grid-template-columns:1fr}#panel-companions .entry>img {height:160px}}
