@@ -19,7 +19,7 @@ export const CREATURES=Object.freeze({
  moai_king:Object.freeze({...ENCOUNTER_PROFILES.moai_king,id:'moai_king',techniques:Object.freeze(['normal_attack','energy_ray']),name:'モアイの戦士',category:'normal',height:2.5,ranks:Object.freeze({hp:14,attack:9,ki:9,speed:2})}),
  ...ADDED_CREATURES
 });
-export const PATROL_CALM_COST=2;
+export const PATROL_CALM_COST=1;
 export const PROTOTYPE_CHOICES=Object.freeze({
  initialCharacterLevel:INITIAL_PLAYER_LEVEL,initialTechniqueLevel:1,superLevelIncrement:1,
  initialRecovery:`A fresh game starts with ${INITIAL_CALM_POINTS} calm points; saved progress retains its stored balance.`,
