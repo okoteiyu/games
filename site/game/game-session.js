@@ -344,8 +344,11 @@ export class GameSession{
   const enemies=b.enemies.map(snapshotActor);
   return clone({...b,player:{...snapshotActor(b.player),auraId:this.player.equippedAura,equipment:{...this.player.equipment}},enemies,enemy:enemies.find(enemy=>enemy.id===b.targetId)||enemies[0],enemyCount:enemies.length,techniques:{slots:[...this.player.techniqueSlots],superConfiguration:this.player.superConfiguration,superDetails:superStateDetails(this.player),energyRayUnlocked:this.player.energyRayUnlocked,punchLevel:this.player.punchLevel,energyRayLevel:this.player.energyRayLevel}});
  }
- exportState({allowPending=false}={}){
-  if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent&&!allowPending)throw new Error('Save only at home, outside patrol, battle, and the anger cut-in.');
+ exportState({allowPending=false,allowDepartureCheckpoint=false}={}){
+  // The accepted departure still has a brief home phase: checkpoint its cost
+  // before the cut-in. Loading this checkpoint resumes at home, not on a route.
+  const departing=allowDepartureCheckpoint&&['patrol','training'].includes(this.state.location);
+  if((this.state.location!=='home'&&!departing)||this.state.battle||this.state.pendingAngerEvent&&!allowPending)throw new Error('Save only at home, outside patrol, battle, and the anger cut-in.');
   return clone({schemaVersion:1,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount});
  }
  importState(saved){

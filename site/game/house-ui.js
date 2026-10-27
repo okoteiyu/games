@@ -115,13 +115,21 @@ export class HouseUI {
   if(retry){this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;this.failed=false;}
   return this.ensureLoaded();
  }
- async retry(){if(this.isPaused()||isModalBlocked())return false;this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;return this.ensureLoaded();}
+ async retry(){
+  if(this.isPaused()||isModalBlocked())return false;
+  const calm=this.retryCalmPoints??this.controller?.life?.consecutiveRelaxActions;
+  this.retryCalmPoints=calm;
+  this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;
+  const ready=await this.ensureLoaded();
+  if(ready&&Number.isSafeInteger(calm)){this.restoreConsecutiveRelaxActions(calm);this.retryCalmPoints=null;}
+  return ready;
+ }
  async applyHouseUpdate(update){if(!this.controller?.ready)throw new Error('部屋の準備ができていません。');const result=await this.controller.applyHouseUpdate(update);this.updateControls();return result;}
  requestAction(kind){if(!this.active||this.isPaused()||isModalBlocked())return false;return this.controller?.requestAction(kind)||false;}
  arriveFromOutside(options={}){return this.controller?.arriveFromOutside(options)||false;}
  leaveHouse(){return this.controller?.leaveHouse()||false;}
  spendCalmPoints(count){return this.controller?.spendCalmPoints(count)??false;}
- getConsecutiveRelaxActions(){return this.controller?.getConsecutiveRelaxActions?.()??0;}
+ getConsecutiveRelaxActions(){return this.retryCalmPoints??this.controller?.getConsecutiveRelaxActions?.()??0;}
  resetConsecutiveRelaxActions(reason='explicit'){return this.controller?.resetConsecutiveRelaxActions?.(reason)??false;}
  onAngerPointGain(){return this.controller?.onAngerPointGain?.()??false;}
  restoreConsecutiveRelaxActions(count){return this.controller?.restoreConsecutiveRelaxActions?.(count)??false;}

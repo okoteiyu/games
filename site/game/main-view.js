@@ -181,7 +181,7 @@ gameRuntime=new GameRuntime({view,house:houseUI,patrol:patrolUI,homeElement:docu
  isPaused:()=>eventVisible||isModalBlocked(),isModalPaused:()=>isModalBlocked(),isMessageVisible:()=>eventVisible,
  showMessage:(payload,{record=true,showMessage=true}={})=>showMessage?showEvent(payload,{record}):events.dispatch(payload,{showMessage:false}),hideMessage:hideEvent,setLocation,setGauges,toast,readMessagePage:()=>({page:message.page,pages:message.pages.length}),advanceMessagePage:()=>message.advance()});
 window.mainViewPreview.game=gameRuntime;
-const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>gameRuntime.scene==='house'&&gameRuntime.session.state.location==='home'&&Boolean(houseUI.controller?.ready),onError:text=>toast(text)});
+const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>gameRuntime.scene==='house'&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready),onError:text=>toast(text)});
 gameRuntime.onProgressChange=()=>{browserSave.saveNow();optionsUI.refreshGameView();};
 window.addEventListener('pagehide',()=>browserSave.saveNow());document.addEventListener('visibilitychange',()=>{if(document.hidden)browserSave.saveNow();});
 window.mainViewPreview.browserSave=browserSave;

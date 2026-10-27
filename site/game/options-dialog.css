@@ -79,6 +79,8 @@
 .save-inventory li>span:first-child { flex:1;min-inline-size:110px;overflow-wrap:anywhere; }
 .save-inventory li>span:last-child { flex-shrink:0;font-variant-numeric:tabular-nums; }
 .save-inventory .option-note { margin:12px 0 0; }
+.technique-slots strong,.collection-tile__name,.super-configuration h3 { max-inline-size:100%;white-space:normal;overflow-wrap:anywhere; }
+.super-configuration { min-inline-size:0; }
 .ios-guide { display:grid;gap:13px;min-inline-size:0; }
 .ios-guide__eyebrow { display:block;font-size:9.5px;font-weight:600;letter-spacing:.18em;line-height:1.6;color:#8e7254; }
 .ios-mysteries { padding:18px 16px;border:1px solid #ddbd8999;border-radius:15px 5px 15px 5px;background:linear-gradient(135deg,#6b5146,#81644d);color:#fff3dc;box-shadow:inset 0 0 0 3px #f6d39d10; }

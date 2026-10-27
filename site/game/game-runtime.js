@@ -26,7 +26,15 @@ export class GameRuntime {
  say(payload,{record=true}={}){this.showMessage({speaker:'ナレーション',kind:'narration',...payload},{record});}
  log(type,text){this.showMessage({type,text},{record:true,showMessage:false});}
  isRelaxing(){return /^(eating|bed_lie|bed_rise|chair_sit|chair_rise)$/.test(this.house.controller?.life?.phase||'');}
- homeCommands(){return this.session.commandAvailability(this.house.getConsecutiveRelaxActions(),{isRelaxing:this.isRelaxing()});}
+ isHouseReady(){return Boolean(this.house.controller?.ready&&this.house.controller?.life);}
+ homeCommands(){
+  const commands=this.session.commandAvailability(this.house.getConsecutiveRelaxActions(),{isRelaxing:this.isRelaxing()});
+  if(!this.isHouseReady()){
+   for(const key of ['patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
+   commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));
+  }
+  return commands;
+ }
  snapshot(){return {...this.session.snapshot(),scene:this.scene,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
  canExecuteHouseAction(kind){const key={meal:'meal',fridge_meal:'food',computer:'research',bed:'bed',chair:'chair'}[kind];return this.scene==='house'&&Boolean(this.homeCommands()[key]);}
  onHouseEvent(){this.sync();}
@@ -45,18 +53,21 @@ export class GameRuntime {
  }
  requestInterference(){
   if(this.isPaused()||document.hidden||this.scene!=='house')return {ok:false,reason:'paused'};
+  if(!this.isHouseReady())return {ok:false,reason:'house-not-ready'};
   const result=this.session.requestInterference({relaxStreak:this.house.getConsecutiveRelaxActions(),isRelaxing:this.isRelaxing()});this.sync();return result;
  }
  requestPatrol(){
   if(this.isPaused()||document.hidden||this.scene!=='house')return {ok:false,reason:'paused'};
+  if(!this.isHouseReady())return {ok:false,reason:'house-not-ready'};
   const result=this.session.requestPatrol({relaxStreak:this.house.getConsecutiveRelaxActions()});
-  if(result.ok){this.pendingEncounter=null;this.departureDestination={kind:'patrol'};this.startSceneCutin('departure');}
+  if(result.ok){this.sync();this.pendingEncounter=null;this.departureDestination={kind:'patrol'};this.startSceneCutin('departure');}
   this.sync();return result;
  }
  requestTraining(tier='easy'){
   if(this.isPaused()||document.hidden||this.scene!=='house')return {ok:false,reason:'paused'};
+  if(!this.isHouseReady())return {ok:false,reason:'house-not-ready'};
   const result=this.session.requestTraining({relaxStreak:this.house.getConsecutiveRelaxActions(),tier});
-  if(result.ok){this.pendingEncounter=null;this.departureDestination={kind:'training',tier,enemy:result.enemy};this.startSceneCutin('departure');}
+  if(result.ok){this.sync();this.pendingEncounter=null;this.departureDestination={kind:'training',tier,enemy:result.enemy};this.startSceneCutin('departure');}
   this.sync();return result;
  }
  onSessionEvent(event){
@@ -141,7 +152,7 @@ export class GameRuntime {
   if(outcome?.techniqueId&&!['punch','energy_ray'].includes(outcome.techniqueId))text=outcome.newlyLearned?outcome.techniqueName+'を取得した！ コレクションの「技」から設定できる。':outcome.techniqueName+'が少し上達した！';
   this.messages.push({type:outcome?.changed?'growth':'anger',text:'おこていゆイベントが起きた。 '+text});this.sync();
  }
- exportProgress({browser=false}={}){if(this.scene!=='house')throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
+ exportProgress({browser=false}={}){if(this.scene!=='house')throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
  importProgress(progress){if(this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');if(progress){this.session.importState(progress.session);this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);}else this.session.state.angerPoints=0;this.session.state.interferenceUsedSinceBattle=false;this.sync();}
  assignTechnique(slot,id){if(this.scene!=='house')return false;const accepted=this.session.assignTechnique(slot,id);this.sync();return accepted;}
  setSuperConfiguration(id){if(this.scene!=='house')return false;const accepted=this.session.setSuperConfiguration(id);this.sync();return accepted;}
