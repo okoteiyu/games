@@ -128,7 +128,7 @@ export class OptionsDialog {
     const detail=possible?'穏やかポイントを1消費します。':'現在の条件に合う珍生物がいません。';
     return '<button class="map-card" type="button" data-map="training" data-training-tier="'+course.id+'"'+(enabled?'':' disabled')+'><span class="map-card__icon">'+icon('shield')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">TRAINING · Lv.'+range+' · '+categories+'</small><strong class="map-card__name">'+course.label+'</strong><span class="map-card__description">'+detail+'</span></span><span class="map-card__arrow" aria-hidden="true">›</span></button>';
    }).join('');
-   this.body.innerHTML='<p class="option-section-intro">難易度を選んでください。パトロールで勝った珍生物が相手をします。</p>'+courses;
+   this.body.innerHTML='<p class="option-section-intro">難易度を選んでください。パトロールで勝った珍生物や、成長して出会えなくなった珍生物が相手をします。</p>'+courses;
   }else if(id==='journal'){
    this.renderJournal();
   }else if(id==='catalog'){

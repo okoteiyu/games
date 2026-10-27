@@ -87,6 +87,10 @@ export function auraDropPercent(level){integer(level,'opponent level',1,106);ret
 function randomValue(rng){const value=Number(rng());if(!Number.isFinite(value))throw new TypeError('The random source must return a finite number.');return Math.min(1-Number.EPSILON,Math.max(0,value));}
 function shuffle(items,rng){const result=[...items];for(let index=result.length-1;index>0;index--){const at=Math.floor(randomValue(rng)*(index+1));[result[index],result[at]]=[result[at],result[index]];}return result;}
 function prototypePlayer(){return {speciesId:'okoteiyu',name:'おこていゆ',level:INITIAL_PLAYER_LEVEL,xp:0,superLevel:1,punchLevel:1,energyRayLevel:1,energyRayUnlocked:false,unlockedTechniques:[],techniqueLevels:Object.fromEntries(ADDED_TECHNIQUE_IDS.map(id=>[id,1])),techniqueSlots:['punch',null,null],superConfiguration:'none',equipmentRulesVersion:1,ownedItems:{support:['moai_kun','hard_glove','stored_ki'],defense:['acrylic_shield','iron_shield','aura_shield']},equipment:{support:'moai_kun',defense:'acrylic_shield'},equippedAura:'okoteiyu',auras:{okoteiyu:{speciesId:'okoteiyu',name:'おこていゆのオーラ',level:1,copies:1,progress:0}},journal:{},battlesWon:0,battlesLost:0};}
+function recordJournalEncounter(player,enemy){
+ const speciesId=enemy.speciesId,entry=player.journal[speciesId]||{speciesId,name:enemy.name,encounters:0,defeats:0,patrolDefeats:0,lastLevel:enemy.level};
+ entry.encounters++;entry.lastLevel=enemy.level;player.journal[speciesId]=entry;return entry;
+}
 export function playerStats(player,{equipment=true}={}){const aura=player.auras?.[player.equippedAura],base=applyAuraStats(creatureStats('okoteiyu',player.level||1),player.equippedAura??null,aura?.level||1);if(!equipment)return base;const factors=equipmentMultipliers(player.equipment);return Object.fromEntries(STAT_KEYS.map(key=>[key,normalizeStat(key,base[key]*factors[key])]));}
 
 /** Existing PatrolState uses bounded color probabilities; preserve the raw formula separately. */
@@ -234,7 +238,7 @@ export class GameSession{
   const battle={kind,phase:'active',status:'active',time:0,player:actor('player','okoteiyu',this.player.level,playerStats(this.player)),enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
   this.state.battle=battle;this.state.location='battle';
   for(const id of this.actorIds())this.combatant(id).nextActionAt=this.nextInterval(id);
-  for(const enemy of enemies){const speciesId=enemy.speciesId,entry=this.player.journal[speciesId]||{speciesId,name:enemy.name,encounters:0,defeats:0,patrolDefeats:0,lastLevel:enemy.level};entry.encounters++;entry.lastLevel=enemy.level;this.player.journal[speciesId]=entry;}
+  if(kind==='patrol')for(const enemy of enemies)recordJournalEncounter(this.player,enemy);
   this.emit('battle-start',{battle:this.snapshotBattle()});return this.snapshotBattle();
  }
  actorIds(){const b=this.state.battle;return b?['player',...b.enemies.map(enemy=>enemy.id)]:[];}
@@ -316,7 +320,7 @@ export class GameSession{
   // Aura draws occur only on a full win, once for every opponent.
   if(result==='win'){
    this.player.battlesWon++;let experience=0;const drops=[],opponents=[];
-   for(const enemy of b.enemies){this.player.journal[enemy.speciesId].defeats++;if(b.kind==='patrol')this.player.journal[enemy.speciesId].patrolDefeats=(this.player.journal[enemy.speciesId].patrolDefeats||0)+1;const xp=defeatedEnemyExperience(enemy.speciesId,enemy.level),dropPercent=auraDropPercent(enemy.level),draw=this.random(),aura=draw<dropPercent/100?this.acquireAura(enemy.speciesId):null;experience+=xp;if(aura)drops.push(aura);opponents.push({speciesId:enemy.speciesId,level:enemy.level,experience:xp,dropPercent,dropDraw:draw,aura});}
+   for(const enemy of b.enemies){if(b.kind==='training')recordJournalEncounter(this.player,enemy);this.player.journal[enemy.speciesId].defeats++;if(b.kind==='patrol')this.player.journal[enemy.speciesId].patrolDefeats=(this.player.journal[enemy.speciesId].patrolDefeats||0)+1;const xp=defeatedEnemyExperience(enemy.speciesId,enemy.level),dropPercent=auraDropPercent(enemy.level),draw=this.random(),aura=draw<dropPercent/100?this.acquireAura(enemy.speciesId):null;experience+=xp;if(aura)drops.push(aura);opponents.push({speciesId:enemy.speciesId,level:enemy.level,experience:xp,dropPercent,dropDraw:draw,aura});}
    const levels=this.addExperience(experience);b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:drops[0]||null,auras:drops,opponents,dropPercent:opponents[0].dropPercent,dropDraw:opponents[0].dropDraw};
   }else{this.player.battlesLost++;const opponents=b.enemies.filter(enemy=>enemy.hp<=0).map(enemy=>({speciesId:enemy.speciesId,level:enemy.level,experience:defeatedEnemyExperience(enemy.speciesId,enemy.level)})),experience=opponents.reduce((sum,enemy)=>sum+enemy.experience,0),levels=experience>0?this.addExperience(experience):0;b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:null,auras:[],opponents};}
   this.emit('battle-end',{result,time:b.time,battle:this.snapshotBattle(),rewards:clone(b.rewards)});if(result==='win'||b.rewards.experience>0)this.emit('rewards',clone(b.rewards));return true;
