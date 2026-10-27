@@ -1,0 +1,16 @@
+.area-map{display:grid;grid-template-rows:auto minmax(0,1fr);block-size:100%;min-inline-size:0;min-block-size:0;overflow:hidden;border:1px solid #bdad8d;border-radius:10px 3px;background:linear-gradient(145deg,#faf6e9f5,#e8ecdbf2);box-shadow:inset 0 0 0 2px #fffdf570;color:#76664d;}
+.area-map__header{display:flex;align-items:center;justify-content:space-between;gap:3px;padding:7px 7px 6px;border-block-end:1px solid #b7ab8a44;min-inline-size:0;}
+.area-map__header h2{overflow:hidden;text-overflow:ellipsis;font-size:9.5px;font-weight:600;margin:0;white-space:nowrap;min-inline-size:0;}
+.area-map__header span{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;font-size:6.5px;color:#8a9478;white-space:nowrap;}
+.area-map__content{display:grid;place-items:center;min-inline-size:0;min-block-size:0;padding:5px;overflow:hidden;}
+.room-map{display:block;inline-size:100%;block-size:100%;min-inline-size:0;min-block-size:0;}
+.area-map[data-area="house"]{grid-template-rows:minmax(0,1fr);}
+.area-map[data-area="house"] .area-map__header{display:none;}
+.area-map[data-area="house"] .area-map__content{padding:2px;}
+.area-map .patrol-map{position:relative;inset:auto;display:grid;place-items:center;inline-size:100%;block-size:100%;max-inline-size:none;min-inline-size:0;min-block-size:0;padding:0;border:0;border-radius:5px;background:transparent;opacity:1;pointer-events:auto;box-shadow:none;touch-action:manipulation;}
+.area-map .patrol-map>svg{display:block;inline-size:100%;block-size:100%;min-inline-size:0;min-block-size:0;margin:0;background:transparent;}
+.area-map .patrol-map:hover:not(:disabled){background:#fffdf24d;}
+.area-map .patrol-map:focus-visible{outline:2px solid #9b7a50;outline-offset:-2px;}
+.area-map .patrol-map:disabled{cursor:default;}
+@media(max-height:540px){.area-map__header{padding:4px;}.area-map__header h2{overflow:hidden;text-overflow:ellipsis;font-size:7.5px;}.area-map__header span{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;font-size:5.5px;}.area-map__content{padding:3px;}}
+@media(max-height:340px){.area-map__header{padding:2px 3px;}.area-map__header h2{overflow:hidden;text-overflow:ellipsis;font-size:6.5px;}.area-map__header span{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;display:none;}.area-map__content{padding:2px;}}

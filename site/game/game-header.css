@@ -1,0 +1,54 @@
+/* Brushed bronze, cream and rose. All header items share one horizontal row. */
+.game-shell { container-type:inline-size; }
+.game-header { position:relative; display:grid; grid-template-columns:14% 20% minmax(0,1fr) 20% 14%; grid-template-rows:1fr; align-items:center; gap:clamp(1px,1cqi,4px); padding:0 clamp(4px,2.5cqi,10px) 4px; min-inline-size:0; block-size:52px; background:
+ repeating-linear-gradient(0deg,#ffecd408 0px,#ffecd408 .45px,#2d1a1008 .75px,transparent 1.6px,transparent 3px),
+ linear-gradient(108deg,transparent 10%,#f9e2b71c 36%,transparent 54%,#f9e2b710 75%,transparent 90%),
+ linear-gradient(180deg,#c99b6b 0%,#a8764d 7%,#895b3c 24%,#744830 46%,#6a412d 49%,#8b5c3d 54%,#794b33 82%,#a6744c 95%,#c59868 100%); border-radius:0 0 12px 12px; box-shadow:inset 0 1px 0 #f5dab6c9,inset 0 -1px 0 #3f2719b3,inset 0 -3px 0 #d5a16b59,0 2px 0 #68472d26; }
+.hero-rank { position:relative;container-type:inline-size;grid-area:1/1;justify-self:start;display:grid;grid-template-rows:9.5px minmax(0,1fr);align-items:center;justify-items:center;gap:0;inline-size:100%;min-inline-size:0;max-inline-size:100%;block-size:38px;padding:3px 4px;border:1px solid #dfbd83;border-radius:9px 9px 10px 6px;background:linear-gradient(145deg,#fff9e9,#efd6a7);box-shadow:inset 0 0 0 2px #fff8e2b3,0 2px 4px #35252225; }
+.hero-rank__label { display:block;justify-self:start;align-self:start;font-size:clamp(4px,18.48cqi,8.5px);letter-spacing:.035em;font-weight:700;line-height:1;color:#8d6b3f; }
+.hero-rank__value { font-size:clamp(9.5px,54cqi,22px);font-weight:600;line-height:1;color:#70534b; }
+.hero-rank__value.is-long { font-size:min(22px,calc(150cqi / var(--rank-characters,2)));letter-spacing:-.05em; }
+.current-location { grid-area:1/3; display:flex; align-items:center; justify-content:center; gap:3px; min-inline-size:0; font-size:clamp(7.5px,3.234cqi,13px); font-weight:600; line-height:1.35; color:#fff3df; text-align:center; }
+.current-location span { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; white-space:normal; }
+.current-location svg { inline-size:11px; block-size:11px; flex:none; fill:none; stroke:#ebd3b9; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+.options-trigger { grid-area:1/5; inline-size:100%; block-size:44px; justify-self:end; display:grid; place-items:center; padding:0; border:0; border-radius:12px; background:transparent; color:#fff2e2; cursor:pointer; touch-action:manipulation; }
+.options-trigger>span { display:grid; place-items:center; inline-size:clamp(14px,7.5cqi,30px); block-size:clamp(14px,7.5cqi,30px); border:1px solid #dec1af; border-radius:clamp(5px,2.5cqi,10px); background:#ffffff12; }
+.options-trigger svg { inline-size:clamp(8px,3.8cqi,15px); block-size:clamp(8px,3.8cqi,15px); fill:none; stroke:currentColor; stroke-width:1.2; }
+.options-trigger .options-dot { fill:#f0b6bd; stroke:#f0b6bd; }
+.options-trigger:hover>span { background:#ffffff24; border-color:#f0d9bf; }
+.options-trigger:focus-visible { outline:2px solid #efcf9f; outline-offset:-2px; }
+.game-header__line { position:absolute; inset-inline:0; bottom:1px; inline-size:100%; block-size:5px; pointer-events:none; fill:none; stroke:#dbaf7c; stroke-width:.85; }
+.header-gauges { display:contents; }
+.header-gauge { display:flex; flex-wrap:nowrap; align-items:center; gap:clamp(1px,.8cqi,4px); min-inline-size:0; block-size:24px; }
+.header-gauge--experience { grid-area:1/2; }.header-gauge--anger { grid-area:1/4; }
+.header-gauge__label { flex:none; white-space:nowrap; font-size:clamp(5.5px,2.541cqi,10.5px); color:#f5e4c9; }
+.header-gauge__track { flex:1; min-inline-size:0; block-size:5px; padding:1px; border-radius:99px; background:#4e3a3880; box-shadow:inset 0 1px 1px #35262620,0 0 0 .5px #e7c99266; overflow:hidden; }
+.header-gauge__track i { display:block; block-size:100%; max-inline-size:100%; border-radius:99px; background:linear-gradient(90deg,#f3dcad,#d7b27a); }
+.header-gauge__value { display:none; }
+.header-gauge--anger .header-gauge__label { color:#f9dce1; }
+.header-gauge--anger .header-gauge__track { background:#4e3a3880; }
+.header-gauge--anger .header-gauge__track i { background:linear-gradient(90deg,#f1c4c8,#dd99a8); }
+@container(max-width:360px) { .current-location svg { display:none; } }
+@media(max-height:340px) { .game-header { block-size:40px; }.hero-rank { block-size:30px;padding:2px;grid-template-rows:7.5px minmax(0,1fr); }.hero-rank__value { font-size:min(16px,54cqi); }.hero-rank__value.is-long { font-size:min(16px,calc(150cqi / var(--rank-characters,2))); }.options-trigger { block-size:34px; } }
+/* Fine gilding, with a small star crest rather than a large ornament. */
+.game-header::before { content:""; position:absolute; inset:3px 8px auto; block-size:1px; pointer-events:none; background:linear-gradient(90deg,transparent,#e7cb9866 25%,#fff0c69c 50%,#e7cb9866 75%,transparent); }
+.game-header::after { content:""; position:absolute; inset:auto 12px 5px; block-size:1px; pointer-events:none; background:linear-gradient(90deg,transparent,#e7cb9855 18%,#e7cb9855 82%,transparent); }
+.hero-rank::after { content:""; position:absolute; top:-3px; left:3px; inline-size:6px; block-size:6px; background:#f8dda3; clip-path:polygon(50% 0,62% 35%,100% 50%,62% 65%,50% 100%,38% 65%,0 50%,38% 35%); filter:drop-shadow(0 1px 0 #8c6638); }
+.options-trigger>span { border-color:#d7ad7c; background:linear-gradient(135deg,#f8d9a61f,#4d2e201c); box-shadow:inset 0 1px 0 #f6d9ac66,inset 0 -1px 0 #34241955,0 1px 3px #35252225; }
+.current-location { text-shadow:0 1px 2px #35252224; }
+@container(max-width:460px) { .current-location svg { display:none; } }
+
+/* A full-size target and a larger four-square emblem, within the same slim row. */
+.game-header{grid-template-columns:14% 18% minmax(0,1fr) 18% 44px;}
+.options-trigger{inline-size:44px;block-size:44px;}.options-trigger>span{inline-size:40px;block-size:40px;border-radius:11px;}.options-trigger svg{inline-size:22px;block-size:22px;stroke-width:1.4;}
+@media(max-height:340px){.options-trigger{block-size:34px;}.options-trigger>span{inline-size:32px;block-size:32px;}.options-trigger svg{inline-size:19px;block-size:19px;}}
+/* Points remain in the slim bronze row; experience lives in detailed observation. */
+.header-gauge--calm{grid-area:1/2;justify-content:center;}
+.header-gauge--anger{justify-content:center;}
+.header-gauge__value{display:inline-block;flex:none;font-size:clamp(10px,3.3cqi,14px);font-weight:650;line-height:1.25;color:#ffe8af;}
+.header-gauge--anger .header-gauge__value{color:#ffd9e1;}
+.header-point-unit{font-size:clamp(8px,2.2cqi,10px);color:#efdbbb;}
+.game-header .header-gauge__value[data-painted-flow]{inline-size:2.3ch;block-size:1.25em;min-block-size:1.25em;contain:strict;isolation:isolate;}
+.game-header .header-gauge--anger .header-gauge__value[data-painted-flow]{inline-size:3.6ch;}
+.game-header .header-gauge__value[data-painted-flow]>.house-label-text{position:absolute;inline-size:1px;block-size:1px;clip-path:inset(50%);overflow:hidden;}
+@container(max-width:260px){.header-gauge--calm,.header-gauge--anger{flex-direction:column;gap:0;justify-content:center;}.header-gauge__label{font-size:8px;line-height:1.2;}.header-gauge__value{font-size:12px;}.header-point-unit{display:none;}}

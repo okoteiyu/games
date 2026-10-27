@@ -1,0 +1,133 @@
+/* おこていゆ — 2行メッセージ枠。HTMLの文字を保ち、装飾画像だけを添えます。 */
+.dialogue-viewport {
+  container-type: inline-size;
+  inline-size: 100%;
+  --message-white: #ffffff;
+  --message-border: #94b8a5;
+  --message-ink: #354d43;
+  --message-rose: #dfa8ad;
+}
+.message-frame {
+  position: relative;
+  box-sizing: border-box;
+  inline-size: calc(100% - 20px);
+  max-inline-size: 640px;
+  margin: 0 auto;
+  padding: 20px 10px 16px;
+  border: 2px solid var(--message-border, #94b8a5);
+  border-radius: 22px;
+  background: var(--message-white, #fff);
+  color: var(--message-ink, #354d43);
+  box-shadow: 0 5px 0 #e5eee7, 0 11px 26px rgb(59 83 64 / 12%);
+  isolation: isolate;
+  font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+.message-frame::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  z-index: -1;
+  border: 1px solid #e4eee7;
+  border-radius: 16px;
+  pointer-events: none;
+}
+.message-frame__sticker {
+  position: absolute;
+  z-index: 2;
+  inline-size: 68px;
+  block-size: 68px;
+  inset-block-start: -42px;
+  inset-inline-start: -4px;
+  object-fit: contain;
+  transform: rotate(-9deg);
+  pointer-events: none;
+  user-select: none;
+}
+.message-frame__speaker {
+  position: absolute;
+  inset-block-start: -14px;
+  inset-inline-start: 56px;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 26px;
+  padding: 2px 15px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--message-border, #94b8a5);
+  border-radius: 99px;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  line-height: 1.4;
+}
+.message-frame__speaker::before {
+  content: "";
+  inline-size: 4px;
+  block-size: 4px;
+  margin-inline-end: 7px;
+  border-radius: 50%;
+  background: #a8c8b6;
+}
+.message-frame[data-kind="speech"] .message-frame__speaker {
+  border-color: #d8a6aa;
+  color: #805859;
+}
+.message-frame[data-kind="speech"] .message-frame__speaker::before { background: #dfa8ad; }
+.message-frame__sprig {
+  position: absolute;
+  inset-inline-end: 16px;
+  inset-block-start: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+.message-frame__sprig i { inline-size: 3px; block-size: 3px; border-radius: 50%; background: #e4bfc0; }
+.message-frame__sprig i:nth-child(2) { inline-size: 12px; block-size: 5px; border-radius: 9px 0 9px 0; background: #c4d8ca; transform: rotate(-22deg); }
+.message-frame__text {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0;
+  block-size: 3.1em;
+  min-block-size: 3.1em;
+  overflow: hidden;
+  line-break: strict;
+  overflow-wrap: anywhere;
+}
+@supports (font-size: 1cqi) {
+  .message-frame__text { font-size: clamp(12px, 3.1cqi, 16px); }
+}
+.message-frame__line { display: block; white-space: nowrap; min-block-size: 1.55em; }
+.message-frame__continue {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-end: 0;
+  inline-size: 44px;
+  block-size: 44px;
+  display: grid;
+  place-items: end center;
+  padding: 0 0 9px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #86a994;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.message-frame__continue span {
+  display: block;
+  inline-size: 7px;
+  block-size: 7px;
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+  transform: rotate(45deg);
+  animation: message-nod 1.7s ease-in-out infinite;
+}
+.message-frame__continue:hover { color: #507e67; }
+.message-frame__continue:focus-visible { outline: 2px solid #618a74; outline-offset: -5px; }
+.message-frame__continue:active span { translate: 0 2px; }
+@keyframes message-nod { 0%, 65%, 100% { translate: 0 0; } 80% { translate: 0 2px; } }
+@media (prefers-reduced-motion: reduce) { .message-frame__continue span { animation: none; } }

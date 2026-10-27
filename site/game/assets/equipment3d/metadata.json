@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "acrylic_shield",
+  "name": "アクリル盾",
+  "url": "acrylic_shield.glb",
+  "sha256": "6081e02c2a37694d0a969c64fb33c3f6573e219b5f15e9a8a83c3b7462ce5fe1",
+  "bytes": 63032,
+  "animations": [],
+  "dimensionsMetresAuthoring": [
+    0.146,
+    0.205,
+    0.008
+  ],
+  "effect": {
+    "damageReceivedMultiplier": 0.9
+  },
+  "presentation": "静止した状態で、おこていゆの体の前に浮かぶ。"
+}

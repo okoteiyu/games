@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "name": "トマトの妖精",
+  "url": "tomato.glb",
+  "rootNode": "tomato_root",
+  "duration": 1.2,
+  "units": "metres",
+  "dimensionsAreAuthoringChoices": true,
+  "motion": {
+    "start": [
+      0,
+      0.7,
+      0.6
+    ],
+    "end": [
+      0,
+      0.13,
+      -32
+    ],
+    "arcHeight": 0.9,
+    "spinTurns": 1.35
+  },
+  "sha256": "474c0392eb1981ec4d7cc403b21d143a6dff70fde3ca6c690bd5643937bbb7f1",
+  "bytes": 115184,
+  "description": "好物のトマトに誘われ、おこていゆは妖精が進んだ道へ進む。"
+}

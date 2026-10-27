@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 1,
+  "units": "metres",
+  "upAxis": "+Y",
+  "forwardAxis": "+Z",
+  "models": {
+    "okoteiyu": {
+      "url": "okoteiyu.glb",
+      "sha256": "86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
+      "bytes": 9662032,
+      "height": 0.45,
+      "height_m": 0.45,
+      "forwardAxis": "+Z",
+      "facingRoot": "Battle.FacingRoot",
+      "motionRoot": "Battle.MotionRoot",
+      "modelFrame": "Battle.ModelFrame",
+      "actorRoot": "CharacterRoot",
+      "clips": {
+        "idle": "idle",
+        "punch": "punch_right_aura",
+        "punchNormal": "punch_right_normal",
+        "punchAura": "punch_right_aura",
+        "punchSuper": "punch_right_super",
+        "energy_ray": "energy_ray",
+        "super_awaken": "super_awaken",
+        "hit_recoil": "hit_recoil"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "punch_right_normal": 0.5,
+        "punch_right_aura": 0.5,
+        "punch_right_super": 0.5,
+        "energy_ray": 0.8,
+        "super_awaken": 1.5,
+        "hit_recoil": 0.5
+      },
+      "appearance": {
+        "whiteAuraNodes": [
+          "Aura.White.Feather.00",
+          "Aura.White.Feather.01",
+          "Aura.White.Feather.02",
+          "Aura.White.Feather.03",
+          "Aura.White.Feather.04",
+          "Aura.White.Feather.05",
+          "Aura.White.Feather.06",
+          "Aura.White.Feather.07",
+          "Aura.White.Feather.08",
+          "Aura.White.Feather.09",
+          "Aura.White.Feather.10",
+          "Aura.White.Feather.11",
+          "Aura.White.Feather.12",
+          "Aura.White.Feather.13"
+        ],
+        "superNodes": [
+          "Aura.Super.Blade.00.Core",
+          "Aura.Super.Blade.00.Edge",
+          "Aura.Super.Blade.01.Core",
+          "Aura.Super.Blade.01.Edge",
+          "Aura.Super.Blade.02.Core",
+          "Aura.Super.Blade.02.Edge",
+          "Aura.Super.Blade.03.Core",
+          "Aura.Super.Blade.03.Edge",
+          "Aura.Super.Blade.04.Core",
+          "Aura.Super.Blade.04.Edge",
+          "Aura.Super.Blade.05.Core",
+          "Aura.Super.Blade.05.Edge",
+          "Aura.Super.Blade.06.Core",
+          "Aura.Super.Blade.06.Edge",
+          "Aura.Super.Blade.07.Core",
+          "Aura.Super.Blade.07.Edge",
+          "Aura.Super.Blade.08.Core",
+          "Aura.Super.Blade.08.Edge",
+          "Aura.Super.Blade.09.Core",
+          "Aura.Super.Blade.09.Edge",
+          "Aura.Super.Blade.10.Core",
+          "Aura.Super.Blade.10.Edge",
+          "Aura.Super.Blade.11.Core",
+          "Aura.Super.Blade.11.Edge",
+          "SuperGold.Body",
+          "SuperGold.Tail",
+          "SuperGold.Foot.L",
+          "SuperGold.Foot.R",
+          "SuperGold.Hand.L",
+          "SuperGold.Hand.R",
+          "SuperEye.Astroid.L",
+          "SuperEye.Astroid.R",
+          "SuperMouth.HalfOpen"
+        ],
+        "rayNodes": [
+          "Ray.Core",
+          "Ray.Halo",
+          "Ray.OuterGlow",
+          "Ray.MuzzleRing",
+          "Ray.Charge"
+        ]
+      },
+      "optimization": {
+        "imageSizes": {
+          "face_base_4096": [
+            1024,
+            1024
+          ],
+          "super_gold_face": [
+            1024,
+            1024
+          ],
+          "super_metallic_mask": [
+            1024,
+            1024
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 58,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "clipSources": {
+        "punch_right_normal": {
+          "source": "combat_motions/clips/punch_right_normal.glb",
+          "sourceDuration": 3.999999839812517,
+          "duration": 0.5,
+          "channels": 177,
+          "frameRateChangeOnly": true
+        },
+        "punch_right_aura": {
+          "source": "combat_motions/clips/punch_right_aura.glb",
+          "sourceDuration": 3.999999839812517,
+          "duration": 0.5,
+          "channels": 177,
+          "frameRateChangeOnly": true
+        },
+        "punch_right_super": {
+          "source": "combat_motions/clips/punch_right_super.glb",
+          "sourceDuration": 3.999999839812517,
+          "duration": 0.5,
+          "channels": 178,
+          "frameRateChangeOnly": true
+        },
+        "super_awaken": {
+          "source": "combat_motions/clips/transform_super.glb",
+          "sourceDuration": 4.999999839812517,
+          "duration": 1.5,
+          "channels": 178,
+          "frameRateChangeOnly": true
+        },
+        "energy_ray": {
+          "source": "combat_motions/energy_ray/energy_ray.glb",
+          "sourceDuration": 0.800000011920929,
+          "duration": 0.8,
+          "channels": 177,
+          "frameRateChangeOnly": true
+        }
+      },
+      "handedness": "right straight; source Hand.L is anatomical right",
+      "geometryFingerprintCount": 58,
+      "tailAttachmentRevision": "R042"
+    },
+    "horarara_horaran": {
+      "url": "horarara_horaran.glb",
+      "sha256": "46689d265a5291e0ea4dd10e99ddaaf2bb8ca7b97be409847bc863dbc2f409a6",
+      "bytes": 7253788,
+      "height": 0.4,
+      "height_m": 0.4,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "ghost_flame_emission": [
+            512,
+            512
+          ],
+          "ghost_flame_basecolor": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 25,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 23
+    },
+    "moai_king": {
+      "url": "moai_king.glb",
+      "sha256": "21aabbd1c330302b72e23f3c4da599c39c45b984a35a52ed9a47fba69a1bfcef",
+      "bytes": 10517448,
+      "height": 2.5,
+      "height_m": 2.5,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "stone_normal": [
+            512,
+            512
+          ],
+          "stone_basecolor": [
+            512,
+            512
+          ],
+          "stone_roughness": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 117,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 58
+    },
+    "fae_dragon": {
+      "id": "fae_dragon",
+      "name": "妖竜",
+      "url": "fae_dragon.glb",
+      "sha256": "0e451d1a32ab569a9bd3deab64cb07ad2160c4e1beb608f19a6c4568a7b900b5",
+      "bytes": 672492,
+      "height_m": 0.55,
+      "height_status": "confirmed",
+      "bounds_native_m": [
+        [
+          -0.41394492983818054,
+          -0.19118566811084747,
+          -1.4901161193847656e-08
+        ],
+        [
+          0.41394492983818054,
+          0.22906790673732758,
+          0.550000011920929
+        ]
+      ],
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "animations": [
+        "Idle"
+      ],
+      "native_source": "models/fae_dragon.blend",
+      "thumbnail": "renders/fae_dragon.png",
+      "mesh_count": 14,
+      "skins": 0,
+      "width_m": 0.8278898596763611,
+      "depth_m": 0.42025357484817505,
+      "expansionRevision": "R067",
+      "height": 0.55,
+      "canonical_height_m": 0.55,
+      "softAlpha": false
+    },
+    "punim": {
+      "id": "punim",
+      "name": "プニム",
+      "url": "punim.glb",
+      "sha256": "eb03fdf9d32aaf422c83c95711b7632962160c3d1d8a73128a948f7ba17bf5b4",
+      "bytes": 481976,
+      "height_m": 0.25,
+      "height_status": "confirmed",
+      "bounds_native_m": [
+        [
+          -0.14663276076316833,
+          -0.12228304147720337,
+          0.0
+        ],
+        [
+          0.14663276076316833,
+          0.12477150559425354,
+          0.25
+        ]
+      ],
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "animations": [
+        "Idle"
+      ],
+      "native_source": "models/punim.blend",
+      "thumbnail": "renders/punim.png",
+      "mesh_count": 4,
+      "skins": 0,
+      "width_m": 0.29326552152633667,
+      "depth_m": 0.2470545470714569,
+      "expansionRevision": "R067",
+      "height": 0.25,
+      "canonical_height_m": 0.25,
+      "softAlpha": false
+    },
+    "crystal_striker": {
+      "id": "crystal_striker",
+      "name": "クリスタルストライカー",
+      "url": "crystal_striker.glb",
+      "sha256": "f47315b95610693192608dfd2a6bf080ecd3eacae991437f783726a292511459",
+      "bytes": 106916,
+      "height_m": 1.15,
+      "height_status": "provisional_authoring_dimension",
+      "bounds_native_m": [
+        [
+          -0.5213172435760498,
+          -0.2203909307718277,
+          0.0
+        ],
+        [
+          0.5213172435760498,
+          0.15515872836112976,
+          1.149999976158142
+        ]
+      ],
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "animations": [
+        "Idle"
+      ],
+      "native_source": "models/crystal_striker.blend",
+      "thumbnail": "renders/crystal_striker.png",
+      "mesh_count": 5,
+      "skins": 0,
+      "width_m": 1.0426344871520996,
+      "depth_m": 0.37554965913295746,
+      "expansionRevision": "R067",
+      "height": 1.15,
+      "canonical_height_m": null,
+      "softAlpha": false
+    },
+    "dragon": {
+      "id": "dragon",
+      "name": "ドラゴン",
+      "url": "dragon.glb",
+      "sha256": "98ef70227353df6fed6c00cb21c5e8610f811f69e1e78b0b3e6e0be43d81422c",
+      "bytes": 672480,
+      "height_m": 1.45,
+      "height_status": "provisional_authoring_dimension",
+      "bounds_native_m": [
+        [
+          -0.9569689631462097,
+          -0.44198814034461975,
+          0.0
+        ],
+        [
+          0.9569689631462097,
+          0.5295652747154236,
+          1.4500000476837158
+        ]
+      ],
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "animations": [
+        "Idle"
+      ],
+      "native_source": "models/dragon.blend",
+      "thumbnail": "renders/dragon.png",
+      "mesh_count": 14,
+      "skins": 0,
+      "width_m": 1.9139379262924194,
+      "depth_m": 0.9715534150600433,
+      "expansionRevision": "R067",
+      "height": 1.45,
+      "canonical_height_m": null,
+      "softAlpha": false
+    },
+    "transparent_knight": {
+      "id": "transparent_knight",
+      "name": "透明騎士",
+      "url": "transparent_knight.glb",
+      "sha256": "2c1f35f0fc7b16f8517ea427f76c662445d25cea4995cadd68b5e64439fa1523",
+      "bytes": 732228,
+      "height_m": 1.8,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "native_bounds": {
+        "min": [
+          -0.5360724925994873,
+          -0.4867638647556305,
+          1.862645149230957e-08
+        ],
+        "max": [
+          0.5344015955924988,
+          0.49527856707572937,
+          1.7999999523162842
+        ]
+      },
+      "skins": 0,
+      "authoring_notes": "Photos and provisional dimensions are visual production choices; gameplay settings are not determined here.",
+      "editable_source": "models/transparent_knight.blend",
+      "thumbnail_png": "renders/transparent_knight.png",
+      "alpha_depth_write": false,
+      "expansionRevision": "R067",
+      "height": 1.8,
+      "canonical_height_m": 1.8,
+      "softAlpha": true
+    },
+    "unknown_low": {
+      "id": "unknown_low",
+      "name": "解析不可（危険度低）",
+      "url": "unknown_low.glb",
+      "sha256": "1d30ca6a34906aec0719104cb8d6415a37f2812cda5b9639f4098ac75241c4c6",
+      "bytes": 47416,
+      "height_m": 1.0,
+      "height_status": "provisional_authoring_dimension_only",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "native_bounds": {
+        "min": [
+          -0.42203763127326965,
+          -0.5010660290718079,
+          1.1175870895385742e-08
+        ],
+        "max": [
+          0.4719791114330292,
+          0.36906829476356506,
+          1.0000001192092896
+        ]
+      },
+      "skins": 0,
+      "authoring_notes": "Photos and provisional dimensions are visual production choices; gameplay settings are not determined here.",
+      "editable_source": "models/unknown_low.blend",
+      "thumbnail_png": "renders/unknown_low.png",
+      "alpha_depth_write": false,
+      "expansionRevision": "R067",
+      "height": 1.0,
+      "canonical_height_m": null,
+      "softAlpha": true
+    },
+    "unknown_danger": {
+      "id": "unknown_danger",
+      "name": "解析不可（危険）",
+      "url": "unknown_danger.glb",
+      "sha256": "4ffdc910bfbd6deb496e015f91a0d76d6104ccae1c5fe9f6fd1765c5ab3bc905",
+      "bytes": 47788,
+      "height_m": 1.0,
+      "height_status": "provisional_authoring_dimension_only",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "native_bounds": {
+        "min": [
+          -0.473346084356308,
+          -0.4984683096408844,
+          -7.450582373280668e-09
+        ],
+        "max": [
+          0.4444621801376343,
+          0.4456411898136139,
+          1.0
+        ]
+      },
+      "skins": 0,
+      "authoring_notes": "Photos and provisional dimensions are visual production choices; gameplay settings are not determined here.",
+      "editable_source": "models/unknown_danger.blend",
+      "thumbnail_png": "renders/unknown_danger.png",
+      "alpha_depth_write": false,
+      "expansionRevision": "R067",
+      "height": 1.0,
+      "canonical_height_m": null,
+      "softAlpha": true
+    },
+    "unknown_extreme": {
+      "id": "unknown_extreme",
+      "name": "解析不可（超危険）",
+      "url": "unknown_extreme.glb",
+      "sha256": "124bd2b71dc46c81c195bb1d46ebc2e4dce68743eb6d69f14f9196e07f6227e2",
+      "bytes": 47248,
+      "height_m": 1.0,
+      "height_status": "provisional_authoring_dimension_only",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "native_bounds": {
+        "min": [
+          -0.44478732347488403,
+          -0.39259833097457886,
+          2.2351741790771484e-08
+        ],
+        "max": [
+          0.44628769159317017,
+          0.471792072057724,
+          0.9999999403953552
+        ]
+      },
+      "skins": 0,
+      "authoring_notes": "Photos and provisional dimensions are visual production choices; gameplay settings are not determined here.",
+      "editable_source": "models/unknown_extreme.blend",
+      "thumbnail_png": "renders/unknown_extreme.png",
+      "alpha_depth_write": false,
+      "expansionRevision": "R067",
+      "height": 1.0,
+      "canonical_height_m": null,
+      "softAlpha": true
+    },
+    "gold_moai": {
+      "id": "gold_moai",
+      "name": "金モアイ",
+      "url": "gold_moai.glb",
+      "sha256": "910e7a74dcefb5f167fd382c0c45c5e4bdeceaa1c2bdc37a06ece41cc11e0ed4",
+      "bytes": 10517540,
+      "height_m": 2.5,
+      "height_status": "inherited_visual_size_not_new_canonical_height",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "idle"
+      },
+      "clipDurations": {
+        "idle": 1.5
+      },
+      "native_bounds": {
+        "min": [
+          -1.1237961053848267,
+          -1.2169654369354248,
+          -0.3098391890525818
+        ],
+        "max": [
+          1.2040455341339111,
+          1.1006996631622314,
+          2.914626359939575
+        ]
+      },
+      "skins": 0,
+      "authoring_notes": "Photos and provisional dimensions are visual production choices; gameplay settings are not determined here.",
+      "bodyGeometryPreserved": true,
+      "source": "/workspace/sites/okoteiyu-message-frame/dist/assets/battle3d/moai_king.glb",
+      "sourceSha256": "21aabbd1c330302b72e23f3c4da599c39c45b984a35a52ed9a47fba69a1bfcef",
+      "binaryBufferUnchanged": true,
+      "editable_source": "models/gold_moai.blend",
+      "thumbnail_png": "renders/gold_moai.png",
+      "alpha_depth_write": "same as source",
+      "expansionRevision": "R067",
+      "height": 2.5,
+      "canonical_height_m": 2.5,
+      "softAlpha": false
+    }
+  },
+  "commonMotion": {
+    "duration": 0.5,
+    "distanceHeightRatio": 0.06,
+    "curve": [
+      [
+        0,
+        0
+      ],
+      [
+        0.18,
+        1
+      ],
+      [
+        0.62,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ]
+  },
+  "existingApprovedSourcesUnchanged": true,
+  "prototypeDerivatives": true,
+  "creatureExpansionRevision": "R067"
+}

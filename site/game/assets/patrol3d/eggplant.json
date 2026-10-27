@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "url": "eggplant.glb",
+  "rootNode": "eggplant_root",
+  "clipName": "eggplant_throw_front",
+  "duration": 1.2,
+  "fps": 30,
+  "units": "metres",
+  "coordinateSystem": "Y up; forward -Z",
+  "lengthAxis": "+Y",
+  "staticRootAtOrigin": true,
+  "nominalLength": 0.242,
+  "dimensionsAreAuthoringChoices": true,
+  "motion": {
+    "start": [
+      0,
+      0.7,
+      0.6
+    ],
+    "end": [
+      0,
+      0.13,
+      -32
+    ],
+    "arcHeight": 0.9,
+    "spinTurns": 1.35,
+    "uniformScale": 1,
+    "deformation": false,
+    "direction": "front",
+    "runtimeCanRemapBranch": true
+  },
+  "meshCount": 3,
+  "triangles": 2228,
+  "bytes": 54384,
+  "sha256": "9f93c1885b8446a8808f22ddcf09d7416952f8551febccf4bd58559d1d3a0909",
+  "name": "ナスの妖精",
+  "description": "「あなた」が連れてきた飛行するナスの妖精。依頼に応じて道へ飛び、おこていゆのルートを制限する。"
+}

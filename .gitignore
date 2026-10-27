@@ -1,0 +1,22 @@
+# Public repository allowlist: everything else remains local.
+/*
+!/.gitignore
+!/README.md
+!/.github/
+!/.github/workflows/
+!/.github/workflows/pages.yml
+!/site/
+!/scripts/
+/scripts/*
+!/scripts/validate_site.py
+!/scripts/build_site.py
+**/__pycache__/
+**/*.pyc
+**/game_design/
+**/game-design/
+**/design_reamde*
+**/*.blend
+**/*.blend1
+**/*.zip
+**/*.tar.gz
+**/master*

@@ -1,0 +1,4982 @@
+{
+  "schemaVersion": 2,
+  "source": "environments/okoteiyu_house/life/house_life.blend",
+  "sourceSha256": "26c10cf780d024af64032b4bb6d8d875a6034d993c5b7bd077397eea2b46ed1e",
+  "glbSha256": "c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
+  "units": "metres",
+  "coordinateSystem": "Y up; entrance Z=0; room rear negative Z",
+  "entrance": {
+    "pivot": [
+      0,
+      0.8,
+      0
+    ],
+    "eye": [
+      0,
+      1.2,
+      0.18
+    ]
+  },
+  "target": {
+    "nodeName": "Life.Okoteiyu.Body",
+    "centerOffset": [
+      0.012,
+      0.166,
+      0
+    ],
+    "height": 0.45
+  },
+  "viewing": {
+    "position": [
+      3,
+      3,
+      2.8
+    ],
+    "lookAt": [
+      0,
+      1,
+      -2.7
+    ]
+  },
+  "animation": {
+    "clipName": "house_life",
+    "duration": 93.29166666666667,
+    "fps": 24
+  },
+  "roomBounds": {
+    "min": [
+      -2.72,
+      -0.1,
+      -5.72
+    ],
+    "max": [
+      2.72,
+      2.8,
+      0.15
+    ]
+  },
+  "wallGroups": {
+    "entry": [
+      "Web.Static.entry.04",
+      "Web.Static.entry.12",
+      "Web.Static.entry.13",
+      "Web.Static.entry.14",
+      "Web.Static.entry.15"
+    ],
+    "ceiling": [
+      "Web.Static.ceiling.05"
+    ],
+    "right": [
+      "Web.Static.right.03",
+      "Web.Static.right.26",
+      "Web.Static.right.27",
+      "Web.Static.right.28"
+    ],
+    "left": [
+      "Web.Static.left.02"
+    ],
+    "back": [
+      "Web.Static.back.01"
+    ]
+  },
+  "life": {
+    "actorRoot": "Life.ActorRoot",
+    "poseRoot": "Life.PoseRoot",
+    "targetBody": "Life.Okoteiyu.Body",
+    "companionRoot": "Life.CompanionRoot",
+    "masterClip": "house_life",
+    "frameNumbering": "zero-based after glTF slide-to-zero",
+    "clips": {
+      "idle": {
+        "startFrame": 0,
+        "endFrame": 24,
+        "startTime": 0.0,
+        "endTime": 1.0,
+        "fps": 24,
+        "duration": 1.0,
+        "loop": true
+      },
+      "walk": {
+        "startFrame": 26,
+        "endFrame": 41,
+        "startTime": 1.0833333333333333,
+        "endTime": 1.7083333333333333,
+        "fps": 24,
+        "duration": 0.625,
+        "loop": true
+      },
+      "computer": {
+        "startFrame": 43,
+        "endFrame": 91,
+        "startTime": 1.7916666666666667,
+        "endTime": 3.7916666666666665,
+        "fps": 24,
+        "duration": 2.0,
+        "loop": true
+      },
+      "bed_lie": {
+        "startFrame": 93,
+        "endFrame": 165,
+        "startTime": 3.875,
+        "endTime": 6.875,
+        "fps": 24,
+        "duration": 3.0,
+        "loop": false
+      },
+      "bed_rise": {
+        "startFrame": 167,
+        "endFrame": 234,
+        "startTime": 6.958333333333333,
+        "endTime": 9.75,
+        "fps": 24,
+        "duration": 2.7916666666666665,
+        "loop": false
+      },
+      "chair_sit": {
+        "startFrame": 236,
+        "endFrame": 284,
+        "startTime": 9.833333333333334,
+        "endTime": 11.833333333333334,
+        "fps": 24,
+        "duration": 2.0,
+        "loop": false
+      },
+      "chair_rise": {
+        "startFrame": 286,
+        "endFrame": 322,
+        "startTime": 11.916666666666666,
+        "endTime": 13.416666666666666,
+        "fps": 24,
+        "duration": 1.5,
+        "loop": false
+      },
+      "fridge_open": {
+        "startFrame": 324,
+        "endFrame": 420,
+        "startTime": 13.5,
+        "endTime": 17.5,
+        "fps": 24,
+        "duration": 4.0,
+        "loop": false
+      },
+      "fridge_close": {
+        "startFrame": 422,
+        "endFrame": 518,
+        "startTime": 17.583333333333332,
+        "endTime": 21.583333333333332,
+        "fps": 24,
+        "duration": 4.0,
+        "loop": false
+      },
+      "pickup_soda_cup": {
+        "startFrame": 520,
+        "endFrame": 558,
+        "startTime": 21.666666666666668,
+        "endTime": 23.25,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "pickup_soda_straw": {
+        "startFrame": 560,
+        "endFrame": 598,
+        "startTime": 23.333333333333332,
+        "endTime": 24.916666666666668,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "pickup_bacon": {
+        "startFrame": 600,
+        "endFrame": 638,
+        "startTime": 25.0,
+        "endTime": 26.583333333333332,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "pickup_bread": {
+        "startFrame": 640,
+        "endFrame": 678,
+        "startTime": 26.666666666666668,
+        "endTime": 28.25,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "pickup_hamburger": {
+        "startFrame": 680,
+        "endFrame": 718,
+        "startTime": 28.333333333333332,
+        "endTime": 29.916666666666668,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "pickup_pudding": {
+        "startFrame": 720,
+        "endFrame": 758,
+        "startTime": 30.0,
+        "endTime": 31.583333333333332,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "fridge_take_soda_cup": {
+        "startFrame": 760,
+        "endFrame": 798,
+        "startTime": 31.666666666666668,
+        "endTime": 33.25,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "fridge_take_soda_straw": {
+        "startFrame": 800,
+        "endFrame": 838,
+        "startTime": 33.333333333333336,
+        "endTime": 34.916666666666664,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "fridge_take_bacon": {
+        "startFrame": 840,
+        "endFrame": 878,
+        "startTime": 35.0,
+        "endTime": 36.583333333333336,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "fridge_take_bread": {
+        "startFrame": 880,
+        "endFrame": 918,
+        "startTime": 36.666666666666664,
+        "endTime": 38.25,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "fridge_take_hamburger": {
+        "startFrame": 920,
+        "endFrame": 958,
+        "startTime": 38.333333333333336,
+        "endTime": 39.916666666666664,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "fridge_take_pudding": {
+        "startFrame": 960,
+        "endFrame": 998,
+        "startTime": 40.0,
+        "endTime": 41.583333333333336,
+        "fps": 24,
+        "duration": 1.5833333333333333,
+        "loop": false
+      },
+      "eat_soda_cup": {
+        "startFrame": 1000,
+        "endFrame": 1144,
+        "startTime": 41.666666666666664,
+        "endTime": 47.666666666666664,
+        "fps": 24,
+        "duration": 6.0,
+        "loop": false
+      },
+      "eat_soda_straw": {
+        "startFrame": 1146,
+        "endFrame": 1290,
+        "startTime": 47.75,
+        "endTime": 53.75,
+        "fps": 24,
+        "duration": 6.0,
+        "loop": false
+      },
+      "eat_bacon": {
+        "startFrame": 1292,
+        "endFrame": 1436,
+        "startTime": 53.833333333333336,
+        "endTime": 59.833333333333336,
+        "fps": 24,
+        "duration": 6.0,
+        "loop": false
+      },
+      "eat_bread": {
+        "startFrame": 1438,
+        "endFrame": 1582,
+        "startTime": 59.916666666666664,
+        "endTime": 65.91666666666667,
+        "fps": 24,
+        "duration": 6.0,
+        "loop": false
+      },
+      "eat_hamburger": {
+        "startFrame": 1584,
+        "endFrame": 1728,
+        "startTime": 66.0,
+        "endTime": 72.0,
+        "fps": 24,
+        "duration": 6.0,
+        "loop": false
+      },
+      "eat_pudding": {
+        "startFrame": 1730,
+        "endFrame": 1874,
+        "startTime": 72.08333333333333,
+        "endTime": 78.08333333333333,
+        "fps": 24,
+        "duration": 6.0,
+        "loop": false
+      },
+      "stairs_up": {
+        "startFrame": 1876,
+        "endFrame": 2056,
+        "startTime": 78.16666666666667,
+        "endTime": 85.66666666666667,
+        "fps": 24,
+        "duration": 7.5,
+        "loop": false,
+        "rootEndOffset": [
+          0.8700554966926575,
+          0.6299999952316284,
+          -0.40571367740631104
+        ],
+        "rootAnchor": [
+          -1.8799999952316284,
+          0.0,
+          -2.7950000762939453
+        ],
+        "rootYawRadians": 1.1344640137963142
+      },
+      "stairs_down": {
+        "startFrame": 2058,
+        "endFrame": 2238,
+        "startTime": 85.75,
+        "endTime": 93.25,
+        "fps": 24,
+        "duration": 7.5,
+        "loop": false,
+        "rootEndOffset": [
+          0.8700554966926575,
+          -0.6285000443458557,
+          0.4057135581970215
+        ],
+        "rootAnchor": [
+          -1.8799998760223389,
+          0.6299999952316284,
+          -3.7350001335144043
+        ],
+        "rootYawRadians": -1.1344640137963142
+      }
+    },
+    "landmarks": {
+      "entrance": {
+        "position": [
+          0.0,
+          0.0,
+          -0.45
+        ],
+        "yawRadians": 1.5707963267948966
+      },
+      "table": {
+        "position": [
+          0.0,
+          0.027,
+          -1.4
+        ],
+        "yawRadians": 1.5707963267948966
+      },
+      "computer": {
+        "position": [
+          1.76,
+          0.63,
+          -1.78
+        ],
+        "yawRadians": 0
+      },
+      "stairsBottom": {
+        "position": [
+          -1.8799999952316284,
+          0.0,
+          -2.7950000762939453
+        ],
+        "yawRadians": 1.1344640137963142
+      },
+      "stairsTop": {
+        "position": [
+          -1.8799998760223389,
+          0.6299999952316284,
+          -3.7350001335144043
+        ],
+        "yawRadians": -1.1344640137963142
+      },
+      "bed": {
+        "position": [
+          -0.72,
+          0.846,
+          -4.78
+        ],
+        "yawRadians": -1.5707963267948966
+      },
+      "chair": {
+        "position": [
+          1.98,
+          0.946,
+          -4.8
+        ],
+        "yawRadians": -1.5707963267948966
+      },
+      "fridge": {
+        "position": [
+          -1.77,
+          0.0,
+          -2.17
+        ],
+        "yawRadians": 3.141592653589793
+      }
+    },
+    "tableItems": [
+      {
+        "id": "bacon",
+        "kind": "bacon",
+        "nodeName": "Life.TableFood.bacon",
+        "position": [
+          -0.3199999928474426,
+          0.23164987564086914,
+          -1.7100000381469727
+        ],
+        "anchor": [
+          -0.32,
+          0.027,
+          -1.4
+        ],
+        "yawRadians": 1.5707963267948966,
+        "amount": 1,
+        "plateNode": "Life.TablePlate.bacon",
+        "platePosition": [
+          -0.3199999928474426,
+          0.22200000286102295,
+          -1.7899999618530273
+        ],
+        "variants": {
+          "1": "Life.TableFood.bacon.Amount100",
+          "0.75": "Life.TableFood.bacon.Amount075",
+          "0.5": "Life.TableFood.bacon.Amount050",
+          "0.25": "Life.TableFood.bacon.Amount025"
+        },
+        "pickupClip": "pickup_bacon",
+        "variantMeshes": {
+          "1.00": [
+            "Life.TableFood.bacon.Bacon",
+            "Life.TableFood.bacon.Bacon.Fat",
+            "Life.TableFood.bacon.Bacon.Fat.001",
+            "Life.TableFood.bacon.Bacon.Fat.002",
+            "Life.TableFood.bacon.Bacon.Fat.003",
+            "Life.TableFood.bacon.Bacon.Fat.004",
+            "Life.TableFood.bacon.Bacon.Fat.005",
+            "Life.TableFood.bacon.RoastMark",
+            "Life.TableFood.bacon.RoastMark.001",
+            "Life.TableFood.bacon.RoastMark.002",
+            "Life.TableFood.bacon.RoastMark.003",
+            "Life.TableFood.bacon.RoastMark.004",
+            "Life.TableFood.bacon.RoastMark.005",
+            "Life.TableFood.bacon.RoastMark.006",
+            "Life.TableFood.bacon.RoastMark.007",
+            "Life.TableFood.bacon.RoastMark.008"
+          ],
+          "0.75": [
+            "Life.TableFood.bacon.Bacon.001",
+            "Life.TableFood.bacon.Bacon.Fat.006",
+            "Life.TableFood.bacon.Bacon.Fat.007",
+            "Life.TableFood.bacon.Bacon.Fat.008",
+            "Life.TableFood.bacon.Bacon.Fat.009",
+            "Life.TableFood.bacon.Bacon.Fat.010",
+            "Life.TableFood.bacon.Bacon.Fat.011",
+            "Life.TableFood.bacon.RoastMark.009",
+            "Life.TableFood.bacon.RoastMark.010",
+            "Life.TableFood.bacon.RoastMark.011",
+            "Life.TableFood.bacon.RoastMark.012",
+            "Life.TableFood.bacon.RoastMark.013",
+            "Life.TableFood.bacon.RoastMark.014"
+          ],
+          "0.50": [
+            "Life.TableFood.bacon.Bacon.002",
+            "Life.TableFood.bacon.Bacon.Fat.012",
+            "Life.TableFood.bacon.Bacon.Fat.013",
+            "Life.TableFood.bacon.Bacon.Fat.014",
+            "Life.TableFood.bacon.Bacon.Fat.015",
+            "Life.TableFood.bacon.Bacon.Fat.016",
+            "Life.TableFood.bacon.Bacon.Fat.017",
+            "Life.TableFood.bacon.RoastMark.015",
+            "Life.TableFood.bacon.RoastMark.016",
+            "Life.TableFood.bacon.RoastMark.017",
+            "Life.TableFood.bacon.RoastMark.018"
+          ],
+          "0.25": [
+            "Life.TableFood.bacon.Bacon.003",
+            "Life.TableFood.bacon.Bacon.Fat.018",
+            "Life.TableFood.bacon.Bacon.Fat.019",
+            "Life.TableFood.bacon.Bacon.Fat.020",
+            "Life.TableFood.bacon.Bacon.Fat.021",
+            "Life.TableFood.bacon.Bacon.Fat.022",
+            "Life.TableFood.bacon.Bacon.Fat.023",
+            "Life.TableFood.bacon.RoastMark.019",
+            "Life.TableFood.bacon.RoastMark.020"
+          ],
+          "0.00": []
+        },
+        "liquidNodes": null
+      },
+      {
+        "id": "bread",
+        "kind": "bread",
+        "nodeName": "Life.TableFood.bread",
+        "position": [
+          0.0,
+          0.22699999809265137,
+          -1.7100000381469727
+        ],
+        "anchor": [
+          0.0,
+          0.027,
+          -1.4
+        ],
+        "yawRadians": 1.5707963267948966,
+        "amount": 1,
+        "plateNode": "Life.TablePlate.bread",
+        "platePosition": [
+          0.0,
+          0.22200000286102295,
+          -1.7100000381469727
+        ],
+        "variants": {
+          "1": "Life.TableFood.bread.Amount100",
+          "0.75": "Life.TableFood.bread.Amount075",
+          "0.5": "Life.TableFood.bread.Amount050",
+          "0.25": "Life.TableFood.bread.Amount025"
+        },
+        "pickupClip": "pickup_bread",
+        "variantMeshes": {
+          "1.00": [
+            "Life.TableFood.bread.Bread",
+            "Life.TableFood.bread.BreadScore",
+            "Life.TableFood.bread.BreadScore.001",
+            "Life.TableFood.bread.BreadScore.002"
+          ],
+          "0.75": [
+            "Life.TableFood.bread.Bread.001",
+            "Life.TableFood.bread.BreadScore.003",
+            "Life.TableFood.bread.BreadScore.004",
+            "Life.TableFood.bread.BreadScore.005"
+          ],
+          "0.50": [
+            "Life.TableFood.bread.Bread.002",
+            "Life.TableFood.bread.BreadScore.006",
+            "Life.TableFood.bread.BreadScore.007",
+            "Life.TableFood.bread.BreadScore.008"
+          ],
+          "0.25": [
+            "Life.TableFood.bread.Bread.003",
+            "Life.TableFood.bread.BreadScore.009",
+            "Life.TableFood.bread.BreadScore.010",
+            "Life.TableFood.bread.BreadScore.011"
+          ],
+          "0.00": []
+        },
+        "liquidNodes": null
+      },
+      {
+        "id": "soda_cup",
+        "kind": "soda_cup",
+        "nodeName": "Life.TableFood.soda_cup",
+        "position": [
+          0.3199999928474426,
+          0.22200000286102295,
+          -1.7100000381469727
+        ],
+        "anchor": [
+          0.32,
+          0.027,
+          -1.4
+        ],
+        "yawRadians": 1.5707963267948966,
+        "amount": 1,
+        "plateNode": null,
+        "platePosition": null,
+        "variants": {},
+        "pickupClip": "pickup_soda_cup",
+        "variantMeshes": {},
+        "liquidNodes": {
+          "group": "Life.TableFood.soda_cup.Liquid",
+          "mesh": "Life.TableFood.soda_cup.Soda",
+          "bubbles": [
+            "Life.TableFood.soda_cup.Bubble.013",
+            "Life.TableFood.soda_cup.Bubble.012",
+            "Life.TableFood.soda_cup.Bubble.011",
+            "Life.TableFood.soda_cup.Bubble.010",
+            "Life.TableFood.soda_cup.Bubble.009",
+            "Life.TableFood.soda_cup.Bubble.008",
+            "Life.TableFood.soda_cup.Bubble.007",
+            "Life.TableFood.soda_cup.Bubble.006",
+            "Life.TableFood.soda_cup.Bubble.005",
+            "Life.TableFood.soda_cup.Bubble.004",
+            "Life.TableFood.soda_cup.Bubble.003",
+            "Life.TableFood.soda_cup.Bubble.002",
+            "Life.TableFood.soda_cup.Bubble.001",
+            "Life.TableFood.soda_cup.Bubble"
+          ],
+          "scaleAxis": "y"
+        }
+      }
+    ],
+    "foods": {
+      "soda_cup": {
+        "rootNode": "Life.Food.soda_cup.Root",
+        "rootNodes": [
+          "Life.Food.soda_cup.Root"
+        ],
+        "meshNodes": [
+          "Life.Food.soda_cup.Food.Soda",
+          "Life.Food.soda_cup.Food.Rim",
+          "Life.Food.soda_cup.Food.Glass",
+          "Life.Food.soda_cup.Food.Foot",
+          "Life.Food.soda_cup.Food.Bubble.013",
+          "Life.Food.soda_cup.Food.Bubble.012",
+          "Life.Food.soda_cup.Food.Bubble.011",
+          "Life.Food.soda_cup.Food.Bubble.010",
+          "Life.Food.soda_cup.Food.Bubble.009",
+          "Life.Food.soda_cup.Food.Bubble.008",
+          "Life.Food.soda_cup.Food.Bubble.007",
+          "Life.Food.soda_cup.Food.Bubble.006",
+          "Life.Food.soda_cup.Food.Bubble.005",
+          "Life.Food.soda_cup.Food.Bubble.004",
+          "Life.Food.soda_cup.Food.Bubble.003",
+          "Life.Food.soda_cup.Food.Bubble.002",
+          "Life.Food.soda_cup.Food.Bubble.001",
+          "Life.Food.soda_cup.Food.Bubble"
+        ],
+        "amountLevels": [
+          1,
+          0.75,
+          0.5,
+          0.25,
+          0
+        ],
+        "holdPoseTime": 0,
+        "pickupClip": "pickup_soda_cup",
+        "eatClip": "eat_soda_cup",
+        "fridgeTakeClip": "fridge_take_soda_cup",
+        "amountCurve": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.041666666666666664,
+            1.0
+          ],
+          [
+            0.08333333333333333,
+            1.0
+          ],
+          [
+            0.125,
+            1.0
+          ],
+          [
+            0.16666666666666666,
+            1.0
+          ],
+          [
+            0.20833333333333334,
+            1.0
+          ],
+          [
+            0.25,
+            1.0
+          ],
+          [
+            0.2916666666666667,
+            1.0
+          ],
+          [
+            0.3333333333333333,
+            1.0
+          ],
+          [
+            0.375,
+            1.0
+          ],
+          [
+            0.4166666666666667,
+            1.0
+          ],
+          [
+            0.4583333333333333,
+            1.0
+          ],
+          [
+            0.5,
+            1.0
+          ],
+          [
+            0.5416666666666666,
+            1.0
+          ],
+          [
+            0.5833333333333334,
+            1.0
+          ],
+          [
+            0.625,
+            1.0
+          ],
+          [
+            0.6666666666666666,
+            1.0
+          ],
+          [
+            0.7083333333333334,
+            1.0
+          ],
+          [
+            0.75,
+            1.0
+          ],
+          [
+            0.7916666666666666,
+            0.9979654064752205
+          ],
+          [
+            0.8333333333333334,
+            0.9630464423852853
+          ],
+          [
+            0.875,
+            0.9004097013523666
+          ],
+          [
+            0.9166666666666666,
+            0.8304359017168934
+          ],
+          [
+            0.9583333333333334,
+            0.7735057618192949
+          ],
+          [
+            1.0,
+            0.75
+          ],
+          [
+            1.0416666666666667,
+            0.75
+          ],
+          [
+            1.0833333333333333,
+            0.75
+          ],
+          [
+            1.125,
+            0.75
+          ],
+          [
+            1.1666666666666667,
+            0.75
+          ],
+          [
+            1.2083333333333333,
+            0.75
+          ],
+          [
+            1.25,
+            0.75
+          ],
+          [
+            1.2916666666666667,
+            0.75
+          ],
+          [
+            1.3333333333333333,
+            0.75
+          ],
+          [
+            1.375,
+            0.75
+          ],
+          [
+            1.4166666666666667,
+            0.75
+          ],
+          [
+            1.4583333333333333,
+            0.75
+          ],
+          [
+            1.5,
+            0.75
+          ],
+          [
+            1.5416666666666667,
+            0.75
+          ],
+          [
+            1.5833333333333333,
+            0.75
+          ],
+          [
+            1.625,
+            0.75
+          ],
+          [
+            1.6666666666666667,
+            0.75
+          ],
+          [
+            1.7083333333333333,
+            0.75
+          ],
+          [
+            1.75,
+            0.75
+          ],
+          [
+            1.7916666666666667,
+            0.75
+          ],
+          [
+            1.8333333333333333,
+            0.75
+          ],
+          [
+            1.875,
+            0.75
+          ],
+          [
+            1.9166666666666667,
+            0.75
+          ],
+          [
+            1.9583333333333333,
+            0.75
+          ],
+          [
+            2.0,
+            0.75
+          ],
+          [
+            2.0416666666666665,
+            0.7479654064752206
+          ],
+          [
+            2.0833333333333335,
+            0.7130464423852853
+          ],
+          [
+            2.125,
+            0.6504097013523668
+          ],
+          [
+            2.1666666666666665,
+            0.5804359017168939
+          ],
+          [
+            2.2083333333333335,
+            0.5235057618192949
+          ],
+          [
+            2.25,
+            0.5
+          ],
+          [
+            2.2916666666666665,
+            0.5
+          ],
+          [
+            2.3333333333333335,
+            0.5
+          ],
+          [
+            2.375,
+            0.5
+          ],
+          [
+            2.4166666666666665,
+            0.5
+          ],
+          [
+            2.4583333333333335,
+            0.5
+          ],
+          [
+            2.5,
+            0.5
+          ],
+          [
+            2.5416666666666665,
+            0.5
+          ],
+          [
+            2.5833333333333335,
+            0.5
+          ],
+          [
+            2.625,
+            0.5
+          ],
+          [
+            2.6666666666666665,
+            0.5
+          ],
+          [
+            2.7083333333333335,
+            0.5
+          ],
+          [
+            2.75,
+            0.5
+          ],
+          [
+            2.7916666666666665,
+            0.5
+          ],
+          [
+            2.8333333333333335,
+            0.5
+          ],
+          [
+            2.875,
+            0.5
+          ],
+          [
+            2.9166666666666665,
+            0.5
+          ],
+          [
+            2.9583333333333335,
+            0.5
+          ],
+          [
+            3.0,
+            0.5
+          ],
+          [
+            3.0416666666666665,
+            0.5
+          ],
+          [
+            3.0833333333333335,
+            0.5
+          ],
+          [
+            3.125,
+            0.5
+          ],
+          [
+            3.1666666666666665,
+            0.5
+          ],
+          [
+            3.2083333333333335,
+            0.5
+          ],
+          [
+            3.25,
+            0.5
+          ],
+          [
+            3.2916666666666665,
+            0.4979654064752206
+          ],
+          [
+            3.3333333333333335,
+            0.46304644238528525
+          ],
+          [
+            3.375,
+            0.40040970135236675
+          ],
+          [
+            3.4166666666666665,
+            0.3304359017168938
+          ],
+          [
+            3.4583333333333335,
+            0.2735057618192948
+          ],
+          [
+            3.5,
+            0.25
+          ],
+          [
+            3.5416666666666665,
+            0.25
+          ],
+          [
+            3.5833333333333335,
+            0.25
+          ],
+          [
+            3.625,
+            0.25
+          ],
+          [
+            3.6666666666666665,
+            0.25
+          ],
+          [
+            3.7083333333333335,
+            0.25
+          ],
+          [
+            3.75,
+            0.25
+          ],
+          [
+            3.7916666666666665,
+            0.25
+          ],
+          [
+            3.8333333333333335,
+            0.25
+          ],
+          [
+            3.875,
+            0.25
+          ],
+          [
+            3.9166666666666665,
+            0.25
+          ],
+          [
+            3.9583333333333335,
+            0.25
+          ],
+          [
+            4.0,
+            0.25
+          ],
+          [
+            4.041666666666667,
+            0.25
+          ],
+          [
+            4.083333333333333,
+            0.25
+          ],
+          [
+            4.125,
+            0.25
+          ],
+          [
+            4.166666666666667,
+            0.25
+          ],
+          [
+            4.208333333333333,
+            0.25
+          ],
+          [
+            4.25,
+            0.25
+          ],
+          [
+            4.291666666666667,
+            0.25
+          ],
+          [
+            4.333333333333333,
+            0.25
+          ],
+          [
+            4.375,
+            0.25
+          ],
+          [
+            4.416666666666667,
+            0.25
+          ],
+          [
+            4.458333333333333,
+            0.25
+          ],
+          [
+            4.5,
+            0.25
+          ],
+          [
+            4.541666666666667,
+            0.2479654064752203
+          ],
+          [
+            4.583333333333333,
+            0.21304644238528528
+          ],
+          [
+            4.625,
+            0.15040970135236603
+          ],
+          [
+            4.666666666666667,
+            0.08043590171689238
+          ],
+          [
+            4.708333333333333,
+            0.023505761819294813
+          ],
+          [
+            4.75,
+            0.0
+          ],
+          [
+            4.791666666666667,
+            0.0
+          ],
+          [
+            4.833333333333333,
+            0.0
+          ],
+          [
+            4.875,
+            0.0
+          ],
+          [
+            4.916666666666667,
+            0.0
+          ],
+          [
+            4.958333333333333,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.041666666666667,
+            0.0
+          ],
+          [
+            5.083333333333333,
+            0.0
+          ],
+          [
+            5.125,
+            0.0
+          ],
+          [
+            5.166666666666667,
+            0.0
+          ],
+          [
+            5.208333333333333,
+            0.0
+          ],
+          [
+            5.25,
+            0.0
+          ],
+          [
+            5.291666666666667,
+            0.0
+          ],
+          [
+            5.333333333333333,
+            0.0
+          ],
+          [
+            5.375,
+            0.0
+          ],
+          [
+            5.416666666666667,
+            0.0
+          ],
+          [
+            5.458333333333333,
+            0.0
+          ],
+          [
+            5.5,
+            0.0
+          ],
+          [
+            5.541666666666667,
+            0.0
+          ],
+          [
+            5.583333333333333,
+            0.0
+          ],
+          [
+            5.625,
+            0.0
+          ],
+          [
+            5.666666666666667,
+            0.0
+          ],
+          [
+            5.708333333333333,
+            0.0
+          ],
+          [
+            5.75,
+            0.0
+          ],
+          [
+            5.791666666666667,
+            0.0
+          ],
+          [
+            5.833333333333333,
+            0.0
+          ],
+          [
+            5.875,
+            0.0
+          ],
+          [
+            5.916666666666667,
+            0.0
+          ],
+          [
+            5.958333333333333,
+            0.0
+          ],
+          [
+            6.0,
+            0.0
+          ]
+        ],
+        "holdPose": {
+          "space": "poseRoot",
+          "foodNode": "Life.Food.soda_cup.Root",
+          "foodTransform": {
+            "position": [
+              0.21799999475479126,
+              0.02499999850988388,
+              0.00800000037997961
+            ],
+            "quaternion": [
+              0.0,
+              0.0,
+              -0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "handNode": "Life.Okoteiyu.Hand.R",
+          "handTransform": {
+            "position": [
+              0.12080954760313034,
+              0.059364330023527145,
+              -0.05991964042186737
+            ],
+            "quaternion": [
+              0.5849692225456238,
+              0.402095228433609,
+              -0.4114062488079071,
+              0.5717300772666931
+            ],
+            "scale": [
+              1.0000001192092896,
+              0.10330033302307129,
+              1.000000238418579
+            ]
+          },
+          "hideRootNodes": [],
+          "handToFoodContactErrorM": 5.385589709431291e-08,
+          "preservesFreeDoorHand": true
+        }
+      },
+      "soda_straw": {
+        "rootNode": "Life.Food.soda_straw.Root",
+        "rootNodes": [
+          "Life.Food.soda_straw.Root"
+        ],
+        "meshNodes": [
+          "Life.Food.soda_straw.Food.Straw",
+          "Life.Food.soda_straw.Food.Soda",
+          "Life.Food.soda_straw.Food.Rim",
+          "Life.Food.soda_straw.Food.Glass",
+          "Life.Food.soda_straw.Food.Foot",
+          "Life.Food.soda_straw.Food.Bubble.013",
+          "Life.Food.soda_straw.Food.Bubble.012",
+          "Life.Food.soda_straw.Food.Bubble.011",
+          "Life.Food.soda_straw.Food.Bubble.010",
+          "Life.Food.soda_straw.Food.Bubble.009",
+          "Life.Food.soda_straw.Food.Bubble.008",
+          "Life.Food.soda_straw.Food.Bubble.007",
+          "Life.Food.soda_straw.Food.Bubble.006",
+          "Life.Food.soda_straw.Food.Bubble.005",
+          "Life.Food.soda_straw.Food.Bubble.004",
+          "Life.Food.soda_straw.Food.Bubble.003",
+          "Life.Food.soda_straw.Food.Bubble.002",
+          "Life.Food.soda_straw.Food.Bubble.001",
+          "Life.Food.soda_straw.Food.Bubble"
+        ],
+        "amountLevels": [
+          1,
+          0.75,
+          0.5,
+          0.25,
+          0
+        ],
+        "holdPoseTime": 0,
+        "pickupClip": "pickup_soda_straw",
+        "eatClip": "eat_soda_straw",
+        "fridgeTakeClip": "fridge_take_soda_straw",
+        "amountCurve": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.041666666666666664,
+            1.0
+          ],
+          [
+            0.08333333333333333,
+            1.0
+          ],
+          [
+            0.125,
+            1.0
+          ],
+          [
+            0.16666666666666666,
+            1.0
+          ],
+          [
+            0.20833333333333334,
+            1.0
+          ],
+          [
+            0.25,
+            1.0
+          ],
+          [
+            0.2916666666666667,
+            1.0
+          ],
+          [
+            0.3333333333333333,
+            1.0
+          ],
+          [
+            0.375,
+            1.0
+          ],
+          [
+            0.4166666666666667,
+            1.0
+          ],
+          [
+            0.4583333333333333,
+            1.0
+          ],
+          [
+            0.5,
+            1.0
+          ],
+          [
+            0.5416666666666666,
+            1.0
+          ],
+          [
+            0.5833333333333334,
+            1.0
+          ],
+          [
+            0.625,
+            1.0
+          ],
+          [
+            0.6666666666666666,
+            1.0
+          ],
+          [
+            0.7083333333333334,
+            1.0
+          ],
+          [
+            0.75,
+            1.0
+          ],
+          [
+            0.7916666666666666,
+            0.9979654064752205
+          ],
+          [
+            0.8333333333333334,
+            0.9630464423852853
+          ],
+          [
+            0.875,
+            0.9004097013523666
+          ],
+          [
+            0.9166666666666666,
+            0.8304359017168934
+          ],
+          [
+            0.9583333333333334,
+            0.7735057618192949
+          ],
+          [
+            1.0,
+            0.75
+          ],
+          [
+            1.0416666666666667,
+            0.75
+          ],
+          [
+            1.0833333333333333,
+            0.75
+          ],
+          [
+            1.125,
+            0.75
+          ],
+          [
+            1.1666666666666667,
+            0.75
+          ],
+          [
+            1.2083333333333333,
+            0.75
+          ],
+          [
+            1.25,
+            0.75
+          ],
+          [
+            1.2916666666666667,
+            0.75
+          ],
+          [
+            1.3333333333333333,
+            0.75
+          ],
+          [
+            1.375,
+            0.75
+          ],
+          [
+            1.4166666666666667,
+            0.75
+          ],
+          [
+            1.4583333333333333,
+            0.75
+          ],
+          [
+            1.5,
+            0.75
+          ],
+          [
+            1.5416666666666667,
+            0.75
+          ],
+          [
+            1.5833333333333333,
+            0.75
+          ],
+          [
+            1.625,
+            0.75
+          ],
+          [
+            1.6666666666666667,
+            0.75
+          ],
+          [
+            1.7083333333333333,
+            0.75
+          ],
+          [
+            1.75,
+            0.75
+          ],
+          [
+            1.7916666666666667,
+            0.75
+          ],
+          [
+            1.8333333333333333,
+            0.75
+          ],
+          [
+            1.875,
+            0.75
+          ],
+          [
+            1.9166666666666667,
+            0.75
+          ],
+          [
+            1.9583333333333333,
+            0.75
+          ],
+          [
+            2.0,
+            0.75
+          ],
+          [
+            2.0416666666666665,
+            0.7479654064752206
+          ],
+          [
+            2.0833333333333335,
+            0.7130464423852853
+          ],
+          [
+            2.125,
+            0.6504097013523668
+          ],
+          [
+            2.1666666666666665,
+            0.5804359017168939
+          ],
+          [
+            2.2083333333333335,
+            0.5235057618192949
+          ],
+          [
+            2.25,
+            0.5
+          ],
+          [
+            2.2916666666666665,
+            0.5
+          ],
+          [
+            2.3333333333333335,
+            0.5
+          ],
+          [
+            2.375,
+            0.5
+          ],
+          [
+            2.4166666666666665,
+            0.5
+          ],
+          [
+            2.4583333333333335,
+            0.5
+          ],
+          [
+            2.5,
+            0.5
+          ],
+          [
+            2.5416666666666665,
+            0.5
+          ],
+          [
+            2.5833333333333335,
+            0.5
+          ],
+          [
+            2.625,
+            0.5
+          ],
+          [
+            2.6666666666666665,
+            0.5
+          ],
+          [
+            2.7083333333333335,
+            0.5
+          ],
+          [
+            2.75,
+            0.5
+          ],
+          [
+            2.7916666666666665,
+            0.5
+          ],
+          [
+            2.8333333333333335,
+            0.5
+          ],
+          [
+            2.875,
+            0.5
+          ],
+          [
+            2.9166666666666665,
+            0.5
+          ],
+          [
+            2.9583333333333335,
+            0.5
+          ],
+          [
+            3.0,
+            0.5
+          ],
+          [
+            3.0416666666666665,
+            0.5
+          ],
+          [
+            3.0833333333333335,
+            0.5
+          ],
+          [
+            3.125,
+            0.5
+          ],
+          [
+            3.1666666666666665,
+            0.5
+          ],
+          [
+            3.2083333333333335,
+            0.5
+          ],
+          [
+            3.25,
+            0.5
+          ],
+          [
+            3.2916666666666665,
+            0.4979654064752206
+          ],
+          [
+            3.3333333333333335,
+            0.46304644238528525
+          ],
+          [
+            3.375,
+            0.40040970135236675
+          ],
+          [
+            3.4166666666666665,
+            0.3304359017168938
+          ],
+          [
+            3.4583333333333335,
+            0.2735057618192948
+          ],
+          [
+            3.5,
+            0.25
+          ],
+          [
+            3.5416666666666665,
+            0.25
+          ],
+          [
+            3.5833333333333335,
+            0.25
+          ],
+          [
+            3.625,
+            0.25
+          ],
+          [
+            3.6666666666666665,
+            0.25
+          ],
+          [
+            3.7083333333333335,
+            0.25
+          ],
+          [
+            3.75,
+            0.25
+          ],
+          [
+            3.7916666666666665,
+            0.25
+          ],
+          [
+            3.8333333333333335,
+            0.25
+          ],
+          [
+            3.875,
+            0.25
+          ],
+          [
+            3.9166666666666665,
+            0.25
+          ],
+          [
+            3.9583333333333335,
+            0.25
+          ],
+          [
+            4.0,
+            0.25
+          ],
+          [
+            4.041666666666667,
+            0.25
+          ],
+          [
+            4.083333333333333,
+            0.25
+          ],
+          [
+            4.125,
+            0.25
+          ],
+          [
+            4.166666666666667,
+            0.25
+          ],
+          [
+            4.208333333333333,
+            0.25
+          ],
+          [
+            4.25,
+            0.25
+          ],
+          [
+            4.291666666666667,
+            0.25
+          ],
+          [
+            4.333333333333333,
+            0.25
+          ],
+          [
+            4.375,
+            0.25
+          ],
+          [
+            4.416666666666667,
+            0.25
+          ],
+          [
+            4.458333333333333,
+            0.25
+          ],
+          [
+            4.5,
+            0.25
+          ],
+          [
+            4.541666666666667,
+            0.2479654064752203
+          ],
+          [
+            4.583333333333333,
+            0.21304644238528528
+          ],
+          [
+            4.625,
+            0.15040970135236603
+          ],
+          [
+            4.666666666666667,
+            0.08043590171689238
+          ],
+          [
+            4.708333333333333,
+            0.023505761819294813
+          ],
+          [
+            4.75,
+            0.0
+          ],
+          [
+            4.791666666666667,
+            0.0
+          ],
+          [
+            4.833333333333333,
+            0.0
+          ],
+          [
+            4.875,
+            0.0
+          ],
+          [
+            4.916666666666667,
+            0.0
+          ],
+          [
+            4.958333333333333,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.041666666666667,
+            0.0
+          ],
+          [
+            5.083333333333333,
+            0.0
+          ],
+          [
+            5.125,
+            0.0
+          ],
+          [
+            5.166666666666667,
+            0.0
+          ],
+          [
+            5.208333333333333,
+            0.0
+          ],
+          [
+            5.25,
+            0.0
+          ],
+          [
+            5.291666666666667,
+            0.0
+          ],
+          [
+            5.333333333333333,
+            0.0
+          ],
+          [
+            5.375,
+            0.0
+          ],
+          [
+            5.416666666666667,
+            0.0
+          ],
+          [
+            5.458333333333333,
+            0.0
+          ],
+          [
+            5.5,
+            0.0
+          ],
+          [
+            5.541666666666667,
+            0.0
+          ],
+          [
+            5.583333333333333,
+            0.0
+          ],
+          [
+            5.625,
+            0.0
+          ],
+          [
+            5.666666666666667,
+            0.0
+          ],
+          [
+            5.708333333333333,
+            0.0
+          ],
+          [
+            5.75,
+            0.0
+          ],
+          [
+            5.791666666666667,
+            0.0
+          ],
+          [
+            5.833333333333333,
+            0.0
+          ],
+          [
+            5.875,
+            0.0
+          ],
+          [
+            5.916666666666667,
+            0.0
+          ],
+          [
+            5.958333333333333,
+            0.0
+          ],
+          [
+            6.0,
+            0.0
+          ]
+        ],
+        "holdPose": {
+          "space": "poseRoot",
+          "foodNode": "Life.Food.soda_straw.Root",
+          "foodTransform": {
+            "position": [
+              0.2280000001192093,
+              -0.001999996602535248,
+              0.004000000189989805
+            ],
+            "quaternion": [
+              0.0,
+              0.0,
+              -0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "handNode": "Life.Okoteiyu.Hand.R",
+          "handTransform": {
+            "position": [
+              0.12206846475601196,
+              0.05039573833346367,
+              -0.05955994874238968
+            ],
+            "quaternion": [
+              0.6143108606338501,
+              0.38449037075042725,
+              -0.4621419906616211,
+              0.5110909938812256
+            ],
+            "scale": [
+              0.9999998807907104,
+              0.11212218552827835,
+              0.9999998807907104
+            ]
+          },
+          "hideRootNodes": [],
+          "handToFoodContactErrorM": 2.5809568279517847e-08,
+          "preservesFreeDoorHand": true
+        }
+      },
+      "bacon": {
+        "rootNode": "Life.Food.bacon.Root",
+        "rootNodes": [
+          "Life.Food.bacon.Root"
+        ],
+        "meshNodes": [
+          "Life.Food.bacon.Food.RoastMark.020",
+          "Life.Food.bacon.Food.RoastMark.019",
+          "Life.Food.bacon.Food.RoastMark.018",
+          "Life.Food.bacon.Food.RoastMark.017",
+          "Life.Food.bacon.Food.RoastMark.016",
+          "Life.Food.bacon.Food.RoastMark.015",
+          "Life.Food.bacon.Food.RoastMark.014",
+          "Life.Food.bacon.Food.RoastMark.013",
+          "Life.Food.bacon.Food.RoastMark.012",
+          "Life.Food.bacon.Food.RoastMark.011",
+          "Life.Food.bacon.Food.RoastMark.010",
+          "Life.Food.bacon.Food.RoastMark.009",
+          "Life.Food.bacon.Food.RoastMark.008",
+          "Life.Food.bacon.Food.RoastMark.007",
+          "Life.Food.bacon.Food.RoastMark.006",
+          "Life.Food.bacon.Food.RoastMark.005",
+          "Life.Food.bacon.Food.RoastMark.004",
+          "Life.Food.bacon.Food.RoastMark.003",
+          "Life.Food.bacon.Food.RoastMark.002",
+          "Life.Food.bacon.Food.RoastMark.001",
+          "Life.Food.bacon.Food.RoastMark",
+          "Life.Food.bacon.Food.Bacon.Fat.023",
+          "Life.Food.bacon.Food.Bacon.Fat.022",
+          "Life.Food.bacon.Food.Bacon.Fat.021",
+          "Life.Food.bacon.Food.Bacon.Fat.020",
+          "Life.Food.bacon.Food.Bacon.Fat.019",
+          "Life.Food.bacon.Food.Bacon.Fat.018",
+          "Life.Food.bacon.Food.Bacon.Fat.017",
+          "Life.Food.bacon.Food.Bacon.Fat.016",
+          "Life.Food.bacon.Food.Bacon.Fat.015",
+          "Life.Food.bacon.Food.Bacon.Fat.014",
+          "Life.Food.bacon.Food.Bacon.Fat.013",
+          "Life.Food.bacon.Food.Bacon.Fat.012",
+          "Life.Food.bacon.Food.Bacon.Fat.011",
+          "Life.Food.bacon.Food.Bacon.Fat.010",
+          "Life.Food.bacon.Food.Bacon.Fat.009",
+          "Life.Food.bacon.Food.Bacon.Fat.008",
+          "Life.Food.bacon.Food.Bacon.Fat.007",
+          "Life.Food.bacon.Food.Bacon.Fat.006",
+          "Life.Food.bacon.Food.Bacon.Fat.005",
+          "Life.Food.bacon.Food.Bacon.Fat.004",
+          "Life.Food.bacon.Food.Bacon.Fat.003",
+          "Life.Food.bacon.Food.Bacon.Fat.002",
+          "Life.Food.bacon.Food.Bacon.Fat.001",
+          "Life.Food.bacon.Food.Bacon.Fat",
+          "Life.Food.bacon.Food.Bacon.003",
+          "Life.Food.bacon.Food.Bacon.002",
+          "Life.Food.bacon.Food.Bacon.001",
+          "Life.Food.bacon.Food.Bacon"
+        ],
+        "amountLevels": [
+          1,
+          0.75,
+          0.5,
+          0.25,
+          0
+        ],
+        "holdPoseTime": 0,
+        "pickupClip": "pickup_bacon",
+        "eatClip": "eat_bacon",
+        "fridgeTakeClip": "fridge_take_bacon",
+        "amountCurve": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.041666666666666664,
+            1.0
+          ],
+          [
+            0.08333333333333333,
+            1.0
+          ],
+          [
+            0.125,
+            1.0
+          ],
+          [
+            0.16666666666666666,
+            1.0
+          ],
+          [
+            0.20833333333333334,
+            1.0
+          ],
+          [
+            0.25,
+            1.0
+          ],
+          [
+            0.2916666666666667,
+            1.0
+          ],
+          [
+            0.3333333333333333,
+            1.0
+          ],
+          [
+            0.375,
+            1.0
+          ],
+          [
+            0.4166666666666667,
+            1.0
+          ],
+          [
+            0.4583333333333333,
+            1.0
+          ],
+          [
+            0.5,
+            1.0
+          ],
+          [
+            0.5416666666666666,
+            1.0
+          ],
+          [
+            0.5833333333333334,
+            1.0
+          ],
+          [
+            0.625,
+            1.0
+          ],
+          [
+            0.6666666666666666,
+            1.0
+          ],
+          [
+            0.7083333333333334,
+            1.0
+          ],
+          [
+            0.75,
+            1.0
+          ],
+          [
+            0.7916666666666666,
+            1.0
+          ],
+          [
+            0.8333333333333334,
+            1.0
+          ],
+          [
+            0.875,
+            1.0
+          ],
+          [
+            0.9166666666666666,
+            1.0
+          ],
+          [
+            0.9583333333333334,
+            1.0
+          ],
+          [
+            1.0,
+            1.0
+          ],
+          [
+            1.0416666666666667,
+            0.75
+          ],
+          [
+            1.0833333333333333,
+            0.75
+          ],
+          [
+            1.125,
+            0.75
+          ],
+          [
+            1.1666666666666667,
+            0.75
+          ],
+          [
+            1.2083333333333333,
+            0.75
+          ],
+          [
+            1.25,
+            0.75
+          ],
+          [
+            1.2916666666666667,
+            0.75
+          ],
+          [
+            1.3333333333333333,
+            0.75
+          ],
+          [
+            1.375,
+            0.75
+          ],
+          [
+            1.4166666666666667,
+            0.75
+          ],
+          [
+            1.4583333333333333,
+            0.75
+          ],
+          [
+            1.5,
+            0.75
+          ],
+          [
+            1.5416666666666667,
+            0.75
+          ],
+          [
+            1.5833333333333333,
+            0.75
+          ],
+          [
+            1.625,
+            0.75
+          ],
+          [
+            1.6666666666666667,
+            0.75
+          ],
+          [
+            1.7083333333333333,
+            0.75
+          ],
+          [
+            1.75,
+            0.75
+          ],
+          [
+            1.7916666666666667,
+            0.75
+          ],
+          [
+            1.8333333333333333,
+            0.75
+          ],
+          [
+            1.875,
+            0.75
+          ],
+          [
+            1.9166666666666667,
+            0.75
+          ],
+          [
+            1.9583333333333333,
+            0.75
+          ],
+          [
+            2.0,
+            0.75
+          ],
+          [
+            2.0416666666666665,
+            0.75
+          ],
+          [
+            2.0833333333333335,
+            0.75
+          ],
+          [
+            2.125,
+            0.75
+          ],
+          [
+            2.1666666666666665,
+            0.75
+          ],
+          [
+            2.2083333333333335,
+            0.75
+          ],
+          [
+            2.25,
+            0.75
+          ],
+          [
+            2.2916666666666665,
+            0.5
+          ],
+          [
+            2.3333333333333335,
+            0.5
+          ],
+          [
+            2.375,
+            0.5
+          ],
+          [
+            2.4166666666666665,
+            0.5
+          ],
+          [
+            2.4583333333333335,
+            0.5
+          ],
+          [
+            2.5,
+            0.5
+          ],
+          [
+            2.5416666666666665,
+            0.5
+          ],
+          [
+            2.5833333333333335,
+            0.5
+          ],
+          [
+            2.625,
+            0.5
+          ],
+          [
+            2.6666666666666665,
+            0.5
+          ],
+          [
+            2.7083333333333335,
+            0.5
+          ],
+          [
+            2.75,
+            0.5
+          ],
+          [
+            2.7916666666666665,
+            0.5
+          ],
+          [
+            2.8333333333333335,
+            0.5
+          ],
+          [
+            2.875,
+            0.5
+          ],
+          [
+            2.9166666666666665,
+            0.5
+          ],
+          [
+            2.9583333333333335,
+            0.5
+          ],
+          [
+            3.0,
+            0.5
+          ],
+          [
+            3.0416666666666665,
+            0.5
+          ],
+          [
+            3.0833333333333335,
+            0.5
+          ],
+          [
+            3.125,
+            0.5
+          ],
+          [
+            3.1666666666666665,
+            0.5
+          ],
+          [
+            3.2083333333333335,
+            0.5
+          ],
+          [
+            3.25,
+            0.5
+          ],
+          [
+            3.2916666666666665,
+            0.5
+          ],
+          [
+            3.3333333333333335,
+            0.5
+          ],
+          [
+            3.375,
+            0.5
+          ],
+          [
+            3.4166666666666665,
+            0.5
+          ],
+          [
+            3.4583333333333335,
+            0.5
+          ],
+          [
+            3.5,
+            0.5
+          ],
+          [
+            3.5416666666666665,
+            0.25
+          ],
+          [
+            3.5833333333333335,
+            0.25
+          ],
+          [
+            3.625,
+            0.25
+          ],
+          [
+            3.6666666666666665,
+            0.25
+          ],
+          [
+            3.7083333333333335,
+            0.25
+          ],
+          [
+            3.75,
+            0.25
+          ],
+          [
+            3.7916666666666665,
+            0.25
+          ],
+          [
+            3.8333333333333335,
+            0.25
+          ],
+          [
+            3.875,
+            0.25
+          ],
+          [
+            3.9166666666666665,
+            0.25
+          ],
+          [
+            3.9583333333333335,
+            0.25
+          ],
+          [
+            4.0,
+            0.25
+          ],
+          [
+            4.041666666666667,
+            0.25
+          ],
+          [
+            4.083333333333333,
+            0.25
+          ],
+          [
+            4.125,
+            0.25
+          ],
+          [
+            4.166666666666667,
+            0.25
+          ],
+          [
+            4.208333333333333,
+            0.25
+          ],
+          [
+            4.25,
+            0.25
+          ],
+          [
+            4.291666666666667,
+            0.25
+          ],
+          [
+            4.333333333333333,
+            0.25
+          ],
+          [
+            4.375,
+            0.25
+          ],
+          [
+            4.416666666666667,
+            0.25
+          ],
+          [
+            4.458333333333333,
+            0.25
+          ],
+          [
+            4.5,
+            0.25
+          ],
+          [
+            4.541666666666667,
+            0.25
+          ],
+          [
+            4.583333333333333,
+            0.25
+          ],
+          [
+            4.625,
+            0.25
+          ],
+          [
+            4.666666666666667,
+            0.25
+          ],
+          [
+            4.708333333333333,
+            0.25
+          ],
+          [
+            4.75,
+            0.25
+          ],
+          [
+            4.791666666666667,
+            0.0
+          ],
+          [
+            4.833333333333333,
+            0.0
+          ],
+          [
+            4.875,
+            0.0
+          ],
+          [
+            4.916666666666667,
+            0.0
+          ],
+          [
+            4.958333333333333,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.041666666666667,
+            0.0
+          ],
+          [
+            5.083333333333333,
+            0.0
+          ],
+          [
+            5.125,
+            0.0
+          ],
+          [
+            5.166666666666667,
+            0.0
+          ],
+          [
+            5.208333333333333,
+            0.0
+          ],
+          [
+            5.25,
+            0.0
+          ],
+          [
+            5.291666666666667,
+            0.0
+          ],
+          [
+            5.333333333333333,
+            0.0
+          ],
+          [
+            5.375,
+            0.0
+          ],
+          [
+            5.416666666666667,
+            0.0
+          ],
+          [
+            5.458333333333333,
+            0.0
+          ],
+          [
+            5.5,
+            0.0
+          ],
+          [
+            5.541666666666667,
+            0.0
+          ],
+          [
+            5.583333333333333,
+            0.0
+          ],
+          [
+            5.625,
+            0.0
+          ],
+          [
+            5.666666666666667,
+            0.0
+          ],
+          [
+            5.708333333333333,
+            0.0
+          ],
+          [
+            5.75,
+            0.0
+          ],
+          [
+            5.791666666666667,
+            0.0
+          ],
+          [
+            5.833333333333333,
+            0.0
+          ],
+          [
+            5.875,
+            0.0
+          ],
+          [
+            5.916666666666667,
+            0.0
+          ],
+          [
+            5.958333333333333,
+            0.0
+          ],
+          [
+            6.0,
+            0.0
+          ]
+        ],
+        "holdPose": {
+          "space": "poseRoot",
+          "foodNode": "Life.Food.bacon.Root",
+          "foodTransform": {
+            "position": [
+              0.2070000022649765,
+              0.0520000085234642,
+              -0.012000000104308128
+            ],
+            "quaternion": [
+              0.0,
+              0.0,
+              -0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "handNode": "Life.Okoteiyu.Hand.R",
+          "handTransform": {
+            "position": [
+              0.12426571547985077,
+              0.06372278183698654,
+              -0.04871682450175285
+            ],
+            "quaternion": [
+              0.5852965116500854,
+              0.3902908265590668,
+              -0.38059520721435547,
+              0.6002068519592285
+            ],
+            "scale": [
+              0.9999998807907104,
+              0.09054429829120636,
+              0.9999998807907104
+            ]
+          },
+          "hideRootNodes": [],
+          "handToFoodContactErrorM": 1.501712528671799e-08,
+          "preservesFreeDoorHand": true
+        }
+      },
+      "bread": {
+        "rootNode": "Life.Food.bread.Root",
+        "rootNodes": [
+          "Life.Food.bread.Root"
+        ],
+        "meshNodes": [
+          "Life.Food.bread.Food.BreadScore.011",
+          "Life.Food.bread.Food.BreadScore.010",
+          "Life.Food.bread.Food.BreadScore.009",
+          "Life.Food.bread.Food.BreadScore.008",
+          "Life.Food.bread.Food.BreadScore.007",
+          "Life.Food.bread.Food.BreadScore.006",
+          "Life.Food.bread.Food.BreadScore.005",
+          "Life.Food.bread.Food.BreadScore.004",
+          "Life.Food.bread.Food.BreadScore.003",
+          "Life.Food.bread.Food.BreadScore.002",
+          "Life.Food.bread.Food.BreadScore.001",
+          "Life.Food.bread.Food.BreadScore",
+          "Life.Food.bread.Food.Bread.003",
+          "Life.Food.bread.Food.Bread.002",
+          "Life.Food.bread.Food.Bread.001",
+          "Life.Food.bread.Food.Bread"
+        ],
+        "amountLevels": [
+          1,
+          0.75,
+          0.5,
+          0.25,
+          0
+        ],
+        "holdPoseTime": 0,
+        "pickupClip": "pickup_bread",
+        "eatClip": "eat_bread",
+        "fridgeTakeClip": "fridge_take_bread",
+        "amountCurve": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.041666666666666664,
+            1.0
+          ],
+          [
+            0.08333333333333333,
+            1.0
+          ],
+          [
+            0.125,
+            1.0
+          ],
+          [
+            0.16666666666666666,
+            1.0
+          ],
+          [
+            0.20833333333333334,
+            1.0
+          ],
+          [
+            0.25,
+            1.0
+          ],
+          [
+            0.2916666666666667,
+            1.0
+          ],
+          [
+            0.3333333333333333,
+            1.0
+          ],
+          [
+            0.375,
+            1.0
+          ],
+          [
+            0.4166666666666667,
+            1.0
+          ],
+          [
+            0.4583333333333333,
+            1.0
+          ],
+          [
+            0.5,
+            1.0
+          ],
+          [
+            0.5416666666666666,
+            1.0
+          ],
+          [
+            0.5833333333333334,
+            1.0
+          ],
+          [
+            0.625,
+            1.0
+          ],
+          [
+            0.6666666666666666,
+            1.0
+          ],
+          [
+            0.7083333333333334,
+            1.0
+          ],
+          [
+            0.75,
+            1.0
+          ],
+          [
+            0.7916666666666666,
+            1.0
+          ],
+          [
+            0.8333333333333334,
+            1.0
+          ],
+          [
+            0.875,
+            1.0
+          ],
+          [
+            0.9166666666666666,
+            1.0
+          ],
+          [
+            0.9583333333333334,
+            1.0
+          ],
+          [
+            1.0,
+            1.0
+          ],
+          [
+            1.0416666666666667,
+            0.75
+          ],
+          [
+            1.0833333333333333,
+            0.75
+          ],
+          [
+            1.125,
+            0.75
+          ],
+          [
+            1.1666666666666667,
+            0.75
+          ],
+          [
+            1.2083333333333333,
+            0.75
+          ],
+          [
+            1.25,
+            0.75
+          ],
+          [
+            1.2916666666666667,
+            0.75
+          ],
+          [
+            1.3333333333333333,
+            0.75
+          ],
+          [
+            1.375,
+            0.75
+          ],
+          [
+            1.4166666666666667,
+            0.75
+          ],
+          [
+            1.4583333333333333,
+            0.75
+          ],
+          [
+            1.5,
+            0.75
+          ],
+          [
+            1.5416666666666667,
+            0.75
+          ],
+          [
+            1.5833333333333333,
+            0.75
+          ],
+          [
+            1.625,
+            0.75
+          ],
+          [
+            1.6666666666666667,
+            0.75
+          ],
+          [
+            1.7083333333333333,
+            0.75
+          ],
+          [
+            1.75,
+            0.75
+          ],
+          [
+            1.7916666666666667,
+            0.75
+          ],
+          [
+            1.8333333333333333,
+            0.75
+          ],
+          [
+            1.875,
+            0.75
+          ],
+          [
+            1.9166666666666667,
+            0.75
+          ],
+          [
+            1.9583333333333333,
+            0.75
+          ],
+          [
+            2.0,
+            0.75
+          ],
+          [
+            2.0416666666666665,
+            0.75
+          ],
+          [
+            2.0833333333333335,
+            0.75
+          ],
+          [
+            2.125,
+            0.75
+          ],
+          [
+            2.1666666666666665,
+            0.75
+          ],
+          [
+            2.2083333333333335,
+            0.75
+          ],
+          [
+            2.25,
+            0.75
+          ],
+          [
+            2.2916666666666665,
+            0.5
+          ],
+          [
+            2.3333333333333335,
+            0.5
+          ],
+          [
+            2.375,
+            0.5
+          ],
+          [
+            2.4166666666666665,
+            0.5
+          ],
+          [
+            2.4583333333333335,
+            0.5
+          ],
+          [
+            2.5,
+            0.5
+          ],
+          [
+            2.5416666666666665,
+            0.5
+          ],
+          [
+            2.5833333333333335,
+            0.5
+          ],
+          [
+            2.625,
+            0.5
+          ],
+          [
+            2.6666666666666665,
+            0.5
+          ],
+          [
+            2.7083333333333335,
+            0.5
+          ],
+          [
+            2.75,
+            0.5
+          ],
+          [
+            2.7916666666666665,
+            0.5
+          ],
+          [
+            2.8333333333333335,
+            0.5
+          ],
+          [
+            2.875,
+            0.5
+          ],
+          [
+            2.9166666666666665,
+            0.5
+          ],
+          [
+            2.9583333333333335,
+            0.5
+          ],
+          [
+            3.0,
+            0.5
+          ],
+          [
+            3.0416666666666665,
+            0.5
+          ],
+          [
+            3.0833333333333335,
+            0.5
+          ],
+          [
+            3.125,
+            0.5
+          ],
+          [
+            3.1666666666666665,
+            0.5
+          ],
+          [
+            3.2083333333333335,
+            0.5
+          ],
+          [
+            3.25,
+            0.5
+          ],
+          [
+            3.2916666666666665,
+            0.5
+          ],
+          [
+            3.3333333333333335,
+            0.5
+          ],
+          [
+            3.375,
+            0.5
+          ],
+          [
+            3.4166666666666665,
+            0.5
+          ],
+          [
+            3.4583333333333335,
+            0.5
+          ],
+          [
+            3.5,
+            0.5
+          ],
+          [
+            3.5416666666666665,
+            0.25
+          ],
+          [
+            3.5833333333333335,
+            0.25
+          ],
+          [
+            3.625,
+            0.25
+          ],
+          [
+            3.6666666666666665,
+            0.25
+          ],
+          [
+            3.7083333333333335,
+            0.25
+          ],
+          [
+            3.75,
+            0.25
+          ],
+          [
+            3.7916666666666665,
+            0.25
+          ],
+          [
+            3.8333333333333335,
+            0.25
+          ],
+          [
+            3.875,
+            0.25
+          ],
+          [
+            3.9166666666666665,
+            0.25
+          ],
+          [
+            3.9583333333333335,
+            0.25
+          ],
+          [
+            4.0,
+            0.25
+          ],
+          [
+            4.041666666666667,
+            0.25
+          ],
+          [
+            4.083333333333333,
+            0.25
+          ],
+          [
+            4.125,
+            0.25
+          ],
+          [
+            4.166666666666667,
+            0.25
+          ],
+          [
+            4.208333333333333,
+            0.25
+          ],
+          [
+            4.25,
+            0.25
+          ],
+          [
+            4.291666666666667,
+            0.25
+          ],
+          [
+            4.333333333333333,
+            0.25
+          ],
+          [
+            4.375,
+            0.25
+          ],
+          [
+            4.416666666666667,
+            0.25
+          ],
+          [
+            4.458333333333333,
+            0.25
+          ],
+          [
+            4.5,
+            0.25
+          ],
+          [
+            4.541666666666667,
+            0.25
+          ],
+          [
+            4.583333333333333,
+            0.25
+          ],
+          [
+            4.625,
+            0.25
+          ],
+          [
+            4.666666666666667,
+            0.25
+          ],
+          [
+            4.708333333333333,
+            0.25
+          ],
+          [
+            4.75,
+            0.25
+          ],
+          [
+            4.791666666666667,
+            0.0
+          ],
+          [
+            4.833333333333333,
+            0.0
+          ],
+          [
+            4.875,
+            0.0
+          ],
+          [
+            4.916666666666667,
+            0.0
+          ],
+          [
+            4.958333333333333,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.041666666666667,
+            0.0
+          ],
+          [
+            5.083333333333333,
+            0.0
+          ],
+          [
+            5.125,
+            0.0
+          ],
+          [
+            5.166666666666667,
+            0.0
+          ],
+          [
+            5.208333333333333,
+            0.0
+          ],
+          [
+            5.25,
+            0.0
+          ],
+          [
+            5.291666666666667,
+            0.0
+          ],
+          [
+            5.333333333333333,
+            0.0
+          ],
+          [
+            5.375,
+            0.0
+          ],
+          [
+            5.416666666666667,
+            0.0
+          ],
+          [
+            5.458333333333333,
+            0.0
+          ],
+          [
+            5.5,
+            0.0
+          ],
+          [
+            5.541666666666667,
+            0.0
+          ],
+          [
+            5.583333333333333,
+            0.0
+          ],
+          [
+            5.625,
+            0.0
+          ],
+          [
+            5.666666666666667,
+            0.0
+          ],
+          [
+            5.708333333333333,
+            0.0
+          ],
+          [
+            5.75,
+            0.0
+          ],
+          [
+            5.791666666666667,
+            0.0
+          ],
+          [
+            5.833333333333333,
+            0.0
+          ],
+          [
+            5.875,
+            0.0
+          ],
+          [
+            5.916666666666667,
+            0.0
+          ],
+          [
+            5.958333333333333,
+            0.0
+          ],
+          [
+            6.0,
+            0.0
+          ]
+        ],
+        "holdPose": {
+          "space": "poseRoot",
+          "foodNode": "Life.Food.bread.Root",
+          "foodTransform": {
+            "position": [
+              0.20499999821186066,
+              0.06499999016523361,
+              -0.0
+            ],
+            "quaternion": [
+              0.0,
+              0.0,
+              -0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "handNode": "Life.Okoteiyu.Hand.R",
+          "handTransform": {
+            "position": [
+              0.10585098713636398,
+              0.0775332897901535,
+              -0.0843895748257637
+            ],
+            "quaternion": [
+              0.5066736936569214,
+              0.48445188999176025,
+              -0.4334114193916321,
+              0.5663415789604187
+            ],
+            "scale": [
+              1.0,
+              0.11244142800569534,
+              1.0
+            ]
+          },
+          "hideRootNodes": [],
+          "handToFoodContactErrorM": 0.0,
+          "preservesFreeDoorHand": true
+        }
+      },
+      "hamburger": {
+        "rootNode": "Life.Food.hamburger.Root",
+        "rootNodes": [
+          "Life.Food.hamburger.Root",
+          "Life.Food.hamburger.Utensil.Root"
+        ],
+        "meshNodes": [
+          "Life.Food.hamburger.Utensil.Tine.003",
+          "Life.Food.hamburger.Utensil.Tine.002",
+          "Life.Food.hamburger.Utensil.Tine.001",
+          "Life.Food.hamburger.Utensil.Tine",
+          "Life.Food.hamburger.Utensil.Handle",
+          "Life.Food.hamburger.Utensil.Crossbar",
+          "Life.Food.hamburger.Morsel.Sauce",
+          "Life.Food.hamburger.Morsel.Food",
+          "Life.Food.hamburger.Food.Steak.003",
+          "Life.Food.hamburger.Food.Steak.002",
+          "Life.Food.hamburger.Food.Steak.001",
+          "Life.Food.hamburger.Food.Steak",
+          "Life.Food.hamburger.Food.Sauce.003",
+          "Life.Food.hamburger.Food.Sauce.002",
+          "Life.Food.hamburger.Food.Sauce.001",
+          "Life.Food.hamburger.Food.Sauce",
+          "Life.Food.hamburger.Food.Grill.015",
+          "Life.Food.hamburger.Food.Grill.014",
+          "Life.Food.hamburger.Food.Grill.013",
+          "Life.Food.hamburger.Food.Grill.012",
+          "Life.Food.hamburger.Food.Grill.011",
+          "Life.Food.hamburger.Food.Grill.010",
+          "Life.Food.hamburger.Food.Grill.009",
+          "Life.Food.hamburger.Food.Grill.008",
+          "Life.Food.hamburger.Food.Grill.007",
+          "Life.Food.hamburger.Food.Grill.006",
+          "Life.Food.hamburger.Food.Grill.005",
+          "Life.Food.hamburger.Food.Grill.004",
+          "Life.Food.hamburger.Food.Grill.003",
+          "Life.Food.hamburger.Food.Grill.002",
+          "Life.Food.hamburger.Food.Grill.001",
+          "Life.Food.hamburger.Food.Grill",
+          "Life.Food.hamburger.Food.Dish"
+        ],
+        "amountLevels": [
+          1,
+          0.75,
+          0.5,
+          0.25,
+          0
+        ],
+        "holdPoseTime": 0,
+        "pickupClip": "pickup_hamburger",
+        "eatClip": "eat_hamburger",
+        "fridgeTakeClip": "fridge_take_hamburger",
+        "amountCurve": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.041666666666666664,
+            1.0
+          ],
+          [
+            0.08333333333333333,
+            1.0
+          ],
+          [
+            0.125,
+            1.0
+          ],
+          [
+            0.16666666666666666,
+            1.0
+          ],
+          [
+            0.20833333333333334,
+            1.0
+          ],
+          [
+            0.25,
+            1.0
+          ],
+          [
+            0.2916666666666667,
+            1.0
+          ],
+          [
+            0.3333333333333333,
+            1.0
+          ],
+          [
+            0.375,
+            1.0
+          ],
+          [
+            0.4166666666666667,
+            1.0
+          ],
+          [
+            0.4583333333333333,
+            1.0
+          ],
+          [
+            0.5,
+            1.0
+          ],
+          [
+            0.5416666666666666,
+            0.75
+          ],
+          [
+            0.5833333333333334,
+            0.75
+          ],
+          [
+            0.625,
+            0.75
+          ],
+          [
+            0.6666666666666666,
+            0.75
+          ],
+          [
+            0.7083333333333334,
+            0.75
+          ],
+          [
+            0.75,
+            0.75
+          ],
+          [
+            0.7916666666666666,
+            0.75
+          ],
+          [
+            0.8333333333333334,
+            0.75
+          ],
+          [
+            0.875,
+            0.75
+          ],
+          [
+            0.9166666666666666,
+            0.75
+          ],
+          [
+            0.9583333333333334,
+            0.75
+          ],
+          [
+            1.0,
+            0.75
+          ],
+          [
+            1.0416666666666667,
+            0.75
+          ],
+          [
+            1.0833333333333333,
+            0.75
+          ],
+          [
+            1.125,
+            0.75
+          ],
+          [
+            1.1666666666666667,
+            0.75
+          ],
+          [
+            1.2083333333333333,
+            0.75
+          ],
+          [
+            1.25,
+            0.75
+          ],
+          [
+            1.2916666666666667,
+            0.75
+          ],
+          [
+            1.3333333333333333,
+            0.75
+          ],
+          [
+            1.375,
+            0.75
+          ],
+          [
+            1.4166666666666667,
+            0.75
+          ],
+          [
+            1.4583333333333333,
+            0.75
+          ],
+          [
+            1.5,
+            0.75
+          ],
+          [
+            1.5416666666666667,
+            0.75
+          ],
+          [
+            1.5833333333333333,
+            0.75
+          ],
+          [
+            1.625,
+            0.75
+          ],
+          [
+            1.6666666666666667,
+            0.75
+          ],
+          [
+            1.7083333333333333,
+            0.75
+          ],
+          [
+            1.75,
+            0.75
+          ],
+          [
+            1.7916666666666667,
+            0.5
+          ],
+          [
+            1.8333333333333333,
+            0.5
+          ],
+          [
+            1.875,
+            0.5
+          ],
+          [
+            1.9166666666666667,
+            0.5
+          ],
+          [
+            1.9583333333333333,
+            0.5
+          ],
+          [
+            2.0,
+            0.5
+          ],
+          [
+            2.0416666666666665,
+            0.5
+          ],
+          [
+            2.0833333333333335,
+            0.5
+          ],
+          [
+            2.125,
+            0.5
+          ],
+          [
+            2.1666666666666665,
+            0.5
+          ],
+          [
+            2.2083333333333335,
+            0.5
+          ],
+          [
+            2.25,
+            0.5
+          ],
+          [
+            2.2916666666666665,
+            0.5
+          ],
+          [
+            2.3333333333333335,
+            0.5
+          ],
+          [
+            2.375,
+            0.5
+          ],
+          [
+            2.4166666666666665,
+            0.5
+          ],
+          [
+            2.4583333333333335,
+            0.5
+          ],
+          [
+            2.5,
+            0.5
+          ],
+          [
+            2.5416666666666665,
+            0.5
+          ],
+          [
+            2.5833333333333335,
+            0.5
+          ],
+          [
+            2.625,
+            0.5
+          ],
+          [
+            2.6666666666666665,
+            0.5
+          ],
+          [
+            2.7083333333333335,
+            0.5
+          ],
+          [
+            2.75,
+            0.5
+          ],
+          [
+            2.7916666666666665,
+            0.5
+          ],
+          [
+            2.8333333333333335,
+            0.5
+          ],
+          [
+            2.875,
+            0.5
+          ],
+          [
+            2.9166666666666665,
+            0.5
+          ],
+          [
+            2.9583333333333335,
+            0.5
+          ],
+          [
+            3.0,
+            0.5
+          ],
+          [
+            3.0416666666666665,
+            0.25
+          ],
+          [
+            3.0833333333333335,
+            0.25
+          ],
+          [
+            3.125,
+            0.25
+          ],
+          [
+            3.1666666666666665,
+            0.25
+          ],
+          [
+            3.2083333333333335,
+            0.25
+          ],
+          [
+            3.25,
+            0.25
+          ],
+          [
+            3.2916666666666665,
+            0.25
+          ],
+          [
+            3.3333333333333335,
+            0.25
+          ],
+          [
+            3.375,
+            0.25
+          ],
+          [
+            3.4166666666666665,
+            0.25
+          ],
+          [
+            3.4583333333333335,
+            0.25
+          ],
+          [
+            3.5,
+            0.25
+          ],
+          [
+            3.5416666666666665,
+            0.25
+          ],
+          [
+            3.5833333333333335,
+            0.25
+          ],
+          [
+            3.625,
+            0.25
+          ],
+          [
+            3.6666666666666665,
+            0.25
+          ],
+          [
+            3.7083333333333335,
+            0.25
+          ],
+          [
+            3.75,
+            0.25
+          ],
+          [
+            3.7916666666666665,
+            0.25
+          ],
+          [
+            3.8333333333333335,
+            0.25
+          ],
+          [
+            3.875,
+            0.25
+          ],
+          [
+            3.9166666666666665,
+            0.25
+          ],
+          [
+            3.9583333333333335,
+            0.25
+          ],
+          [
+            4.0,
+            0.25
+          ],
+          [
+            4.041666666666667,
+            0.25
+          ],
+          [
+            4.083333333333333,
+            0.25
+          ],
+          [
+            4.125,
+            0.25
+          ],
+          [
+            4.166666666666667,
+            0.25
+          ],
+          [
+            4.208333333333333,
+            0.25
+          ],
+          [
+            4.25,
+            0.25
+          ],
+          [
+            4.291666666666667,
+            0.0
+          ],
+          [
+            4.333333333333333,
+            0.0
+          ],
+          [
+            4.375,
+            0.0
+          ],
+          [
+            4.416666666666667,
+            0.0
+          ],
+          [
+            4.458333333333333,
+            0.0
+          ],
+          [
+            4.5,
+            0.0
+          ],
+          [
+            4.541666666666667,
+            0.0
+          ],
+          [
+            4.583333333333333,
+            0.0
+          ],
+          [
+            4.625,
+            0.0
+          ],
+          [
+            4.666666666666667,
+            0.0
+          ],
+          [
+            4.708333333333333,
+            0.0
+          ],
+          [
+            4.75,
+            0.0
+          ],
+          [
+            4.791666666666667,
+            0.0
+          ],
+          [
+            4.833333333333333,
+            0.0
+          ],
+          [
+            4.875,
+            0.0
+          ],
+          [
+            4.916666666666667,
+            0.0
+          ],
+          [
+            4.958333333333333,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.041666666666667,
+            0.0
+          ],
+          [
+            5.083333333333333,
+            0.0
+          ],
+          [
+            5.125,
+            0.0
+          ],
+          [
+            5.166666666666667,
+            0.0
+          ],
+          [
+            5.208333333333333,
+            0.0
+          ],
+          [
+            5.25,
+            0.0
+          ],
+          [
+            5.291666666666667,
+            0.0
+          ],
+          [
+            5.333333333333333,
+            0.0
+          ],
+          [
+            5.375,
+            0.0
+          ],
+          [
+            5.416666666666667,
+            0.0
+          ],
+          [
+            5.458333333333333,
+            0.0
+          ],
+          [
+            5.5,
+            0.0
+          ],
+          [
+            5.541666666666667,
+            0.0
+          ],
+          [
+            5.583333333333333,
+            0.0
+          ],
+          [
+            5.625,
+            0.0
+          ],
+          [
+            5.666666666666667,
+            0.0
+          ],
+          [
+            5.708333333333333,
+            0.0
+          ],
+          [
+            5.75,
+            0.0
+          ],
+          [
+            5.791666666666667,
+            0.0
+          ],
+          [
+            5.833333333333333,
+            0.0
+          ],
+          [
+            5.875,
+            0.0
+          ],
+          [
+            5.916666666666667,
+            0.0
+          ],
+          [
+            5.958333333333333,
+            0.0
+          ],
+          [
+            6.0,
+            0.0
+          ]
+        ],
+        "holdPose": {
+          "space": "poseRoot",
+          "foodNode": "Life.Food.hamburger.Root",
+          "foodTransform": {
+            "position": [
+              0.2549999952316284,
+              0.04800000041723251,
+              -0.006000000052154064
+            ],
+            "quaternion": [
+              0.0,
+              0.0,
+              -0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "handNode": "Life.Okoteiyu.Hand.R",
+          "handTransform": {
+            "position": [
+              0.10692639648914337,
+              0.0730203315615654,
+              -0.08360432833433151
+            ],
+            "quaternion": [
+              0.5643413066864014,
+              0.43560105562210083,
+              -0.4904719293117523,
+              0.5012064576148987
+            ],
+            "scale": [
+              1.0,
+              0.12719643115997314,
+              1.0
+            ]
+          },
+          "hideRootNodes": [
+            "Life.Food.hamburger.Utensil.Root"
+          ],
+          "handToFoodContactErrorM": 1.666000468656264e-08,
+          "preservesFreeDoorHand": true
+        }
+      },
+      "pudding": {
+        "rootNode": "Life.Food.pudding.Root",
+        "rootNodes": [
+          "Life.Food.pudding.Root",
+          "Life.Food.pudding.Utensil.Root"
+        ],
+        "meshNodes": [
+          "Life.Food.pudding.Utensil.Handle",
+          "Life.Food.pudding.Utensil.Bowl",
+          "Life.Food.pudding.Morsel.Food",
+          "Life.Food.pudding.Morsel.Caramel",
+          "Life.Food.pudding.Food.Dish",
+          "Life.Food.pudding.Food.Custard.003",
+          "Life.Food.pudding.Food.Custard.002",
+          "Life.Food.pudding.Food.Custard.001",
+          "Life.Food.pudding.Food.Custard",
+          "Life.Food.pudding.Food.Caramel.003",
+          "Life.Food.pudding.Food.Caramel.002",
+          "Life.Food.pudding.Food.Caramel.001",
+          "Life.Food.pudding.Food.Caramel"
+        ],
+        "amountLevels": [
+          1,
+          0.75,
+          0.5,
+          0.25,
+          0
+        ],
+        "holdPoseTime": 0,
+        "pickupClip": "pickup_pudding",
+        "eatClip": "eat_pudding",
+        "fridgeTakeClip": "fridge_take_pudding",
+        "amountCurve": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.041666666666666664,
+            1.0
+          ],
+          [
+            0.08333333333333333,
+            1.0
+          ],
+          [
+            0.125,
+            1.0
+          ],
+          [
+            0.16666666666666666,
+            1.0
+          ],
+          [
+            0.20833333333333334,
+            1.0
+          ],
+          [
+            0.25,
+            1.0
+          ],
+          [
+            0.2916666666666667,
+            1.0
+          ],
+          [
+            0.3333333333333333,
+            1.0
+          ],
+          [
+            0.375,
+            1.0
+          ],
+          [
+            0.4166666666666667,
+            1.0
+          ],
+          [
+            0.4583333333333333,
+            1.0
+          ],
+          [
+            0.5,
+            1.0
+          ],
+          [
+            0.5416666666666666,
+            0.75
+          ],
+          [
+            0.5833333333333334,
+            0.75
+          ],
+          [
+            0.625,
+            0.75
+          ],
+          [
+            0.6666666666666666,
+            0.75
+          ],
+          [
+            0.7083333333333334,
+            0.75
+          ],
+          [
+            0.75,
+            0.75
+          ],
+          [
+            0.7916666666666666,
+            0.75
+          ],
+          [
+            0.8333333333333334,
+            0.75
+          ],
+          [
+            0.875,
+            0.75
+          ],
+          [
+            0.9166666666666666,
+            0.75
+          ],
+          [
+            0.9583333333333334,
+            0.75
+          ],
+          [
+            1.0,
+            0.75
+          ],
+          [
+            1.0416666666666667,
+            0.75
+          ],
+          [
+            1.0833333333333333,
+            0.75
+          ],
+          [
+            1.125,
+            0.75
+          ],
+          [
+            1.1666666666666667,
+            0.75
+          ],
+          [
+            1.2083333333333333,
+            0.75
+          ],
+          [
+            1.25,
+            0.75
+          ],
+          [
+            1.2916666666666667,
+            0.75
+          ],
+          [
+            1.3333333333333333,
+            0.75
+          ],
+          [
+            1.375,
+            0.75
+          ],
+          [
+            1.4166666666666667,
+            0.75
+          ],
+          [
+            1.4583333333333333,
+            0.75
+          ],
+          [
+            1.5,
+            0.75
+          ],
+          [
+            1.5416666666666667,
+            0.75
+          ],
+          [
+            1.5833333333333333,
+            0.75
+          ],
+          [
+            1.625,
+            0.75
+          ],
+          [
+            1.6666666666666667,
+            0.75
+          ],
+          [
+            1.7083333333333333,
+            0.75
+          ],
+          [
+            1.75,
+            0.75
+          ],
+          [
+            1.7916666666666667,
+            0.5
+          ],
+          [
+            1.8333333333333333,
+            0.5
+          ],
+          [
+            1.875,
+            0.5
+          ],
+          [
+            1.9166666666666667,
+            0.5
+          ],
+          [
+            1.9583333333333333,
+            0.5
+          ],
+          [
+            2.0,
+            0.5
+          ],
+          [
+            2.0416666666666665,
+            0.5
+          ],
+          [
+            2.0833333333333335,
+            0.5
+          ],
+          [
+            2.125,
+            0.5
+          ],
+          [
+            2.1666666666666665,
+            0.5
+          ],
+          [
+            2.2083333333333335,
+            0.5
+          ],
+          [
+            2.25,
+            0.5
+          ],
+          [
+            2.2916666666666665,
+            0.5
+          ],
+          [
+            2.3333333333333335,
+            0.5
+          ],
+          [
+            2.375,
+            0.5
+          ],
+          [
+            2.4166666666666665,
+            0.5
+          ],
+          [
+            2.4583333333333335,
+            0.5
+          ],
+          [
+            2.5,
+            0.5
+          ],
+          [
+            2.5416666666666665,
+            0.5
+          ],
+          [
+            2.5833333333333335,
+            0.5
+          ],
+          [
+            2.625,
+            0.5
+          ],
+          [
+            2.6666666666666665,
+            0.5
+          ],
+          [
+            2.7083333333333335,
+            0.5
+          ],
+          [
+            2.75,
+            0.5
+          ],
+          [
+            2.7916666666666665,
+            0.5
+          ],
+          [
+            2.8333333333333335,
+            0.5
+          ],
+          [
+            2.875,
+            0.5
+          ],
+          [
+            2.9166666666666665,
+            0.5
+          ],
+          [
+            2.9583333333333335,
+            0.5
+          ],
+          [
+            3.0,
+            0.5
+          ],
+          [
+            3.0416666666666665,
+            0.25
+          ],
+          [
+            3.0833333333333335,
+            0.25
+          ],
+          [
+            3.125,
+            0.25
+          ],
+          [
+            3.1666666666666665,
+            0.25
+          ],
+          [
+            3.2083333333333335,
+            0.25
+          ],
+          [
+            3.25,
+            0.25
+          ],
+          [
+            3.2916666666666665,
+            0.25
+          ],
+          [
+            3.3333333333333335,
+            0.25
+          ],
+          [
+            3.375,
+            0.25
+          ],
+          [
+            3.4166666666666665,
+            0.25
+          ],
+          [
+            3.4583333333333335,
+            0.25
+          ],
+          [
+            3.5,
+            0.25
+          ],
+          [
+            3.5416666666666665,
+            0.25
+          ],
+          [
+            3.5833333333333335,
+            0.25
+          ],
+          [
+            3.625,
+            0.25
+          ],
+          [
+            3.6666666666666665,
+            0.25
+          ],
+          [
+            3.7083333333333335,
+            0.25
+          ],
+          [
+            3.75,
+            0.25
+          ],
+          [
+            3.7916666666666665,
+            0.25
+          ],
+          [
+            3.8333333333333335,
+            0.25
+          ],
+          [
+            3.875,
+            0.25
+          ],
+          [
+            3.9166666666666665,
+            0.25
+          ],
+          [
+            3.9583333333333335,
+            0.25
+          ],
+          [
+            4.0,
+            0.25
+          ],
+          [
+            4.041666666666667,
+            0.25
+          ],
+          [
+            4.083333333333333,
+            0.25
+          ],
+          [
+            4.125,
+            0.25
+          ],
+          [
+            4.166666666666667,
+            0.25
+          ],
+          [
+            4.208333333333333,
+            0.25
+          ],
+          [
+            4.25,
+            0.25
+          ],
+          [
+            4.291666666666667,
+            0.0
+          ],
+          [
+            4.333333333333333,
+            0.0
+          ],
+          [
+            4.375,
+            0.0
+          ],
+          [
+            4.416666666666667,
+            0.0
+          ],
+          [
+            4.458333333333333,
+            0.0
+          ],
+          [
+            4.5,
+            0.0
+          ],
+          [
+            4.541666666666667,
+            0.0
+          ],
+          [
+            4.583333333333333,
+            0.0
+          ],
+          [
+            4.625,
+            0.0
+          ],
+          [
+            4.666666666666667,
+            0.0
+          ],
+          [
+            4.708333333333333,
+            0.0
+          ],
+          [
+            4.75,
+            0.0
+          ],
+          [
+            4.791666666666667,
+            0.0
+          ],
+          [
+            4.833333333333333,
+            0.0
+          ],
+          [
+            4.875,
+            0.0
+          ],
+          [
+            4.916666666666667,
+            0.0
+          ],
+          [
+            4.958333333333333,
+            0.0
+          ],
+          [
+            5.0,
+            0.0
+          ],
+          [
+            5.041666666666667,
+            0.0
+          ],
+          [
+            5.083333333333333,
+            0.0
+          ],
+          [
+            5.125,
+            0.0
+          ],
+          [
+            5.166666666666667,
+            0.0
+          ],
+          [
+            5.208333333333333,
+            0.0
+          ],
+          [
+            5.25,
+            0.0
+          ],
+          [
+            5.291666666666667,
+            0.0
+          ],
+          [
+            5.333333333333333,
+            0.0
+          ],
+          [
+            5.375,
+            0.0
+          ],
+          [
+            5.416666666666667,
+            0.0
+          ],
+          [
+            5.458333333333333,
+            0.0
+          ],
+          [
+            5.5,
+            0.0
+          ],
+          [
+            5.541666666666667,
+            0.0
+          ],
+          [
+            5.583333333333333,
+            0.0
+          ],
+          [
+            5.625,
+            0.0
+          ],
+          [
+            5.666666666666667,
+            0.0
+          ],
+          [
+            5.708333333333333,
+            0.0
+          ],
+          [
+            5.75,
+            0.0
+          ],
+          [
+            5.791666666666667,
+            0.0
+          ],
+          [
+            5.833333333333333,
+            0.0
+          ],
+          [
+            5.875,
+            0.0
+          ],
+          [
+            5.916666666666667,
+            0.0
+          ],
+          [
+            5.958333333333333,
+            0.0
+          ],
+          [
+            6.0,
+            0.0
+          ]
+        ],
+        "holdPose": {
+          "space": "poseRoot",
+          "foodNode": "Life.Food.pudding.Root",
+          "foodTransform": {
+            "position": [
+              0.2549999952316284,
+              0.04800000041723251,
+              -0.006000000052154064
+            ],
+            "quaternion": [
+              0.0,
+              0.0,
+              -0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "handNode": "Life.Okoteiyu.Hand.R",
+          "handTransform": {
+            "position": [
+              0.10692639648914337,
+              0.0730203315615654,
+              -0.08360432833433151
+            ],
+            "quaternion": [
+              0.5643413066864014,
+              0.43560105562210083,
+              -0.4904719293117523,
+              0.5012064576148987
+            ],
+            "scale": [
+              1.0,
+              0.12719643115997314,
+              1.0
+            ]
+          },
+          "hideRootNodes": [
+            "Life.Food.pudding.Utensil.Root"
+          ],
+          "handToFoodContactErrorM": 1.666000468656264e-08,
+          "preservesFreeDoorHand": true
+        }
+      }
+    },
+    "fridge": {
+      "doorNode": "Life.FridgeHinge",
+      "hingeAxis": "y",
+      "openAngleRadians": -1.75,
+      "stock": [
+        {
+          "kind": "soda_cup",
+          "nodeName": "Life.FridgeStock.soda_cup",
+          "position": [
+            -2.0899999141693115,
+            0.057999998331069946,
+            -1.9600000381469727
+          ],
+          "nativePosition": [
+            -2.0899999141693115,
+            1.9600000381469727,
+            0.057999998331069946
+          ]
+        },
+        {
+          "kind": "soda_straw",
+          "nodeName": "Life.FridgeStock.soda_straw",
+          "position": [
+            -2.0899999141693115,
+            0.057999998331069946,
+            -2.0950000286102295
+          ],
+          "nativePosition": [
+            -2.0899999141693115,
+            2.0950000286102295,
+            0.057999998331069946
+          ]
+        },
+        {
+          "kind": "bacon",
+          "nodeName": "Life.FridgeStock.bacon",
+          "position": [
+            -2.0899999141693115,
+            0.057999998331069946,
+            -2.2300000190734863
+          ],
+          "nativePosition": [
+            -2.0899999141693115,
+            2.2300000190734863,
+            0.057999998331069946
+          ]
+        },
+        {
+          "kind": "bread",
+          "nodeName": "Life.FridgeStock.bread",
+          "position": [
+            -2.0899999141693115,
+            0.2160000056028366,
+            -2.0950000286102295
+          ],
+          "nativePosition": [
+            -2.0899999141693115,
+            2.0950000286102295,
+            0.2160000056028366
+          ]
+        },
+        {
+          "kind": "hamburger",
+          "nodeName": "Life.FridgeStock.hamburger",
+          "position": [
+            -2.0899999141693115,
+            0.2160000056028366,
+            -1.9600000381469727
+          ],
+          "nativePosition": [
+            -2.0899999141693115,
+            1.9600000381469727,
+            0.2160000056028366
+          ]
+        },
+        {
+          "kind": "pudding",
+          "nodeName": "Life.FridgeStock.pudding",
+          "position": [
+            -2.0899999141693115,
+            0.2160000056028366,
+            -2.2300000190734863
+          ],
+          "nativePosition": [
+            -2.0899999141693115,
+            2.2300000190734863,
+            0.2160000056028366
+          ]
+        }
+      ],
+      "retrievalUsesExistingKinds": [
+        "soda_cup",
+        "soda_straw",
+        "bacon",
+        "bread",
+        "hamburger",
+        "pudding"
+      ],
+      "excludedKinds": [
+        "eggplant"
+      ]
+    },
+    "tableTopHeight": 0.22,
+    "bedTopHeight": 0.846,
+    "chairSeatHeight": 0.946,
+    "computerSteps": {
+      "position": [
+        0.85,
+        0.0,
+        -1.78
+      ],
+      "steps": [
+        [
+          1.12,
+          0.21,
+          -1.78
+        ],
+        [
+          1.42,
+          0.42,
+          -1.78
+        ],
+        [
+          1.72,
+          0.63,
+          -1.78
+        ]
+      ]
+    },
+    "tableware": {
+      "plateTemplateNode": "Life.TablePlate.Template",
+      "plateBaseHeight": 0.222,
+      "foodLift": 0.005,
+      "newPlateKinds": [
+        "bacon",
+        "bread"
+      ],
+      "existingDishKinds": [
+        "hamburger",
+        "pudding"
+      ],
+      "platesStayOnTableDuringMeal": true,
+      "baconPlate": {
+        "scale": [
+          0.6,
+          0.25,
+          0.7
+        ],
+        "tableSurface": {
+          "center": [
+            0,
+            -2.1
+          ],
+          "halfSize": [
+            0.6,
+            0.425
+          ],
+          "cornerRadius": 0.24,
+          "edgeInset": 0.006
+        },
+        "placement": "Rear edge; all dish vertices remain within the rounded tabletop. Food and pickup anchors follow the dish.",
+        "revision": "R054",
+        "servingTurnRadians": 3.141592653589793
+      }
+    },
+    "blanket": {
+      "nodeName": "Life.Bed.HalfBlanket",
+      "morphName": "Cover",
+      "coverageFraction": 0.5,
+      "headAndFaceExposed": true,
+      "coveredEdgeNativeY": 4.945261716842651,
+      "bodyYBounds": [
+        4.739523410797119,
+        5.151000022888184
+      ],
+      "sleepOnly": true,
+      "hiddenOutsideSleepByAnimatedScale": true,
+      "baseBeddingSupport": "bare mattress without pillow",
+      "foldedEdgeContinuous": true,
+      "opposingSurfaceGapM": 0.006
+    },
+    "autonomy": {
+      "relaxGapAfterCompletionSeconds": 10,
+      "minimumResearchSeconds": 3,
+      "minimumResearchIsAuthoringChoice": true,
+      "duringGap": "Walk to the computer and research; a due rest waits for the initial research period.",
+      "pauseWithMessagesAndHiddenTab": true,
+      "pauseWithModals": false
+    },
+    "movementSpeed": {
+      "room": 1.5,
+      "loftStairs": 1.7,
+      "relativeTo": "R023",
+      "appliedBy": "house-life.js travel duration and pose playback together",
+      "multiplyFactorsTogether": false
+    }
+  },
+  "fridgeDoorSealCorrection": {
+    "revision": "R041",
+    "doorLocalXOffsetMetres": -0.018,
+    "closedDoorRearMeetsCabinet": true
+  },
+  "tailAttachmentRevision": "R042",
+  "mouseOrientationRevision": "R042",
+  "bedSupportRevision": "R052",
+  "authoringChoicesNotCanonical": true,
+  "approvedSources": {
+    "environments/okoteiyu_house/okoteiyu_house.blend": "9a1b88b080bfd76949b45274ed61655d7c76a98d307da5a824357215c04a4619",
+    "environments/okoteiyu_house/tour/room_tour.blend": "b0fe73544eef293515898770e9d977f80b679012429972e366d12a8980ad48d7",
+    "character_latest/daily/character_source.blend": "e6408f2bd7facf6723db1e3832f53523d280280421daaaa2c506700c1f112e30",
+    "food_motions/clips/soda_cup.blend": "5d54c625d3a083264d39e1a38bbef22312a332c0fe03d61d9e50000fa4eb5676",
+    "food_motions/clips/soda_straw.blend": "9a77c53d0658e00503b93cd25ae4c4d39b77f28823b400ede69ad43a53c676ef",
+    "food_motions/clips/bacon.blend": "f514bee091dc35bd248726f1b50720aa0ed56254a5484c0b13d7c38d98e475d4",
+    "food_motions/clips/bread.blend": "685245732ed2141e06974cfc402e43e043b7b8701e1de6919a0bce0f7f619b11",
+    "food_motions/clips/hamburger.blend": "a8bda65ef9d86f257fd4ee770a81a4901e4e71890bcd777020d43ca5ca491118",
+    "food_motions/clips/pudding.blend": "7cc4b18eb1e7a9424bcbb69f2547e3f61fcd3ad864e56a9ac85668d72ab38291"
+  },
+  "supportDiagnostics": [],
+  "optimization": {
+    "sourceTriangles": 1634916,
+    "derivativeBytes": 21905992,
+    "singleSharedActor": true,
+    "foodGeometrySharedAcrossHeldTableAndFridge": true,
+    "textureMaxEdge": 512,
+    "faceAndPosterMaxEdge": 1024,
+    "imageSizes": {
+      "face_base_4096": [
+        1024,
+        1024
+      ],
+      "stone_normal": [
+        512,
+        512
+      ],
+      "stone_basecolor": [
+        512,
+        512
+      ],
+      "linen_normal": [
+        512,
+        512
+      ],
+      "sage_fabric_basecolor": [
+        512,
+        512
+      ],
+      "cream_fabric_basecolor": [
+        512,
+        512
+      ],
+      "oak_normal": [
+        512,
+        512
+      ],
+      "oak_basecolor": [
+        512,
+        512
+      ],
+      "plaster_normal": [
+        512,
+        512
+      ],
+      "plaster_basecolor": [
+        512,
+        512
+      ],
+      "calendar_2000_01": [
+        410,
+        512
+      ],
+      "poster_easter_island": [
+        777,
+        1024
+      ],
+      "poster_moai": [
+        777,
+        1024
+      ],
+      "computer_research_screen": [
+        512,
+        320
+      ],
+      "open_book": [
+        512,
+        329
+      ],
+      "book_spines": [
+        512,
+        256
+      ],
+      "whiteboard": [
+        512,
+        352
+      ],
+      "linen_basecolor": [
+        512,
+        512
+      ],
+      "cotton_sage": [
+        512,
+        512
+      ],
+      "cotton_peach": [
+        512,
+        512
+      ],
+      "cotton_blue": [
+        512,
+        512
+      ],
+      "cotton_yellow": [
+        512,
+        512
+      ],
+      "plush_apricot": [
+        512,
+        512
+      ]
+    },
+    "packedNormalAndUvAccessors": 289,
+    "gltfExtension": "KHR_mesh_quantization"
+  }
+}

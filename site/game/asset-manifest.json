@@ -1,0 +1,752 @@
+{
+  "schemaVersion": 1,
+  "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
+  "fileCount": 93,
+  "totalBytes": 92608602,
+  "files": [
+    {
+      "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
+      "label": "おこていゆハウス",
+      "type": "binary",
+      "bytes": 21905992,
+      "priority": 0,
+      "sha256": "c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9"
+    },
+    {
+      "url": "assets/house3d/metadata.json",
+      "label": "ハウスの設定",
+      "type": "json",
+      "bytes": 102315,
+      "priority": 0,
+      "sha256": "9a5e6977eedc6a057a56050d4280cd99539470c0cca1035263a7bf17c4e8c7e6"
+    },
+    {
+      "url": "assets/naruto-sticker.png",
+      "label": "メッセージ枠のナルト",
+      "type": "image",
+      "bytes": 811004,
+      "priority": 1,
+      "sha256": "6c55fddc614730b0d812f14da28c78111420bfffcdc1f24ad06d3a94045c0eaa"
+    },
+    {
+      "url": "assets/ui-pattern.svg",
+      "label": "画面の模様",
+      "type": "image",
+      "bytes": 1768,
+      "priority": 1,
+      "sha256": "6c67bee1a9677107193ff0dd5bd011446a65f053df6f5a704c885565e2a18c00"
+    },
+    {
+      "url": "assets/okoteiyu-house-workspace.png",
+      "label": "ハウスの表示画像",
+      "type": "image",
+      "bytes": 1648442,
+      "priority": 1,
+      "sha256": "bb2ae8f927c39f262ae3684e94cc8070f5187fc26b6598a2e4f7b72eb5666c82"
+    },
+    {
+      "url": "assets/patrol-map-background.webp?v=90ed7765751e4f360c15f8db5a86f75c0d4c20952e9697dc87d3608e922b8b41",
+      "label": "道中マップの背景",
+      "type": "image",
+      "bytes": 243656,
+      "priority": 1,
+      "sha256": "90ed7765751e4f360c15f8db5a86f75c0d4c20952e9697dc87d3608e922b8b41"
+    },
+    {
+      "url": "assets/icons/app-icon-192.png",
+      "label": "おこていゆのアプリアイコン",
+      "type": "image",
+      "bytes": 57810,
+      "priority": 1,
+      "sha256": "b7b18827e37c67000b48eff0cc2fcbc55a0f9d7f30caf867504d2d738e7b8838"
+    },
+    {
+      "url": "assets/collection/acrylic_shield.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 2230,
+      "priority": 3,
+      "sha256": "83c602e1487fa001fef31cafaa36fc71072b231b7df176fce56a6171d28c20c0"
+    },
+    {
+      "url": "assets/collection/aura-crystal_striker.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4724,
+      "priority": 3,
+      "sha256": "0fa7c2cc565fb5e53d6289b32aa4efa488eacc56d89393852143b1ed9d531266"
+    },
+    {
+      "url": "assets/collection/aura-dragon.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4886,
+      "priority": 3,
+      "sha256": "497275df26461b4231b03a3fdd65823b3817823f3964235cf6242a43c7d21165"
+    },
+    {
+      "url": "assets/collection/aura-fae_dragon.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4380,
+      "priority": 3,
+      "sha256": "ec95c0a2b4bca76c4106eb648f428ad7b2b7189cc54c73ffd1fd7a1c66671a3b"
+    },
+    {
+      "url": "assets/collection/aura-gold_moai.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4384,
+      "priority": 3,
+      "sha256": "6e79ee101a5576f0e700e44a86516c725af67cbf9f8ebae8c8b3cf1817086a8a"
+    },
+    {
+      "url": "assets/collection/aura-horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 5006,
+      "priority": 3,
+      "sha256": "3178c9f5272e333ea17a61543752e7fc7f63d8bee6518cc5583f5760f0d7709d"
+    },
+    {
+      "url": "assets/collection/aura-moai_king.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4566,
+      "priority": 3,
+      "sha256": "01e79823dd1f3a3ca7dcc867455b718828d30d13197784af1e110774406a3894"
+    },
+    {
+      "url": "assets/collection/aura-okoteiyu.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4556,
+      "priority": 3,
+      "sha256": "f1caa4d5568b0c5c33b2c7b1f476eec9047a39cc7c9add55336533da29d2c50d"
+    },
+    {
+      "url": "assets/collection/aura-punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4380,
+      "priority": 3,
+      "sha256": "ec95c0a2b4bca76c4106eb648f428ad7b2b7189cc54c73ffd1fd7a1c66671a3b"
+    },
+    {
+      "url": "assets/collection/aura-transparent_knight.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4786,
+      "priority": 3,
+      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+    },
+    {
+      "url": "assets/collection/aura-unknown_danger.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4786,
+      "priority": 3,
+      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+    },
+    {
+      "url": "assets/collection/aura-unknown_extreme.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4786,
+      "priority": 3,
+      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+    },
+    {
+      "url": "assets/collection/aura-unknown_low.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 4786,
+      "priority": 3,
+      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+    },
+    {
+      "url": "assets/collection/aura_shield.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 2300,
+      "priority": 3,
+      "sha256": "0881db5c4b63917d4e76b9b783f78b68067c0cd1317cfaeccbebc7c6bf9803a5"
+    },
+    {
+      "url": "assets/collection/crystal_striker.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 14606,
+      "priority": 3,
+      "sha256": "37f34b10f2cf28ac3cd7c7612078e48e90eb9faf81547b2a22241f598f747d9d"
+    },
+    {
+      "url": "assets/collection/dragon.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 17684,
+      "priority": 3,
+      "sha256": "9125c81d239fce195957ffb9ac0f2489b868e54ad3c4cfa5c45b6e3e6508c2ef"
+    },
+    {
+      "url": "assets/collection/fae_dragon.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 14374,
+      "priority": 3,
+      "sha256": "ae2177631812c3da71396f68a598a9289a62c5a3f3b7004d742169891b5cd8d4"
+    },
+    {
+      "url": "assets/collection/gold_moai.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 18312,
+      "priority": 3,
+      "sha256": "af47118c1ff36748bb32341e13b1030cca1c734ca433bc5f037178679dfadc39"
+    },
+    {
+      "url": "assets/collection/hard_glove.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 2686,
+      "priority": 3,
+      "sha256": "d69c64d9699b94db22e4f17dc9c5baf95d5199c00027944b5dc8ab2c86cadb3a"
+    },
+    {
+      "url": "assets/collection/horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 11596,
+      "priority": 3,
+      "sha256": "655c9b2c90dc56104368b6699736c0783fb57fa64f25884b63ead032c9161a10"
+    },
+    {
+      "url": "assets/collection/iron_shield.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 3470,
+      "priority": 3,
+      "sha256": "470c5df67f49acb3b692c38bb45baee4d7c0d9d21c4f1fd6836edd41fa8114ee"
+    },
+    {
+      "url": "assets/collection/moai_king.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 10458,
+      "priority": 3,
+      "sha256": "43c6b86ff12565cbd9ceb6c43b8f1229725f45a6ba7b974014e05826d504d7ed"
+    },
+    {
+      "url": "assets/collection/moai_kun.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 2878,
+      "priority": 3,
+      "sha256": "867b1667c7e8d625ae54d7bf0e703fea45f736a49d872040d91be0d51d276c10"
+    },
+    {
+      "url": "assets/collection/punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 9972,
+      "priority": 3,
+      "sha256": "5432e2b27cf487a8c1d2203259fa7edf319906e1551d5043f4840ee4808a6fdc"
+    },
+    {
+      "url": "assets/collection/stored_ki.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 1594,
+      "priority": 3,
+      "sha256": "97f9bb74cb04fc4200c3485cb350d78da38f4b33eb181a2ba1fecdac4bcd6955"
+    },
+    {
+      "url": "assets/collection/technique-charged_energy_ray.svg",
+      "label": "技のアイコン",
+      "type": "image",
+      "bytes": 1018,
+      "priority": 3,
+      "sha256": "f2903cedf4cd8999a383543764b7a8bfdeb8baa5d9774a690286e2a44ad58220"
+    },
+    {
+      "url": "assets/collection/technique-charged_punch.svg",
+      "label": "技のアイコン",
+      "type": "image",
+      "bytes": 1076,
+      "priority": 3,
+      "sha256": "7bfc57eb794283ffab9a7fc0f3e89507738def98ef7909a3ee6ae73a16ac67f9"
+    },
+    {
+      "url": "assets/collection/technique-energy_punch.svg",
+      "label": "技のアイコン",
+      "type": "image",
+      "bytes": 1085,
+      "priority": 3,
+      "sha256": "85964a4e60fdda053b93591fdae7f11a13667f297b4e15c8ce37fba64b2b81e5"
+    },
+    {
+      "url": "assets/collection/technique-energy_ray.svg",
+      "label": "技のアイコン",
+      "type": "image",
+      "bytes": 801,
+      "priority": 3,
+      "sha256": "fb40d509c3218249cbde1db5e7120b41948b1c5ad32db18069827c7b20b66bce"
+    },
+    {
+      "url": "assets/collection/technique-punch.svg",
+      "label": "技のアイコン",
+      "type": "image",
+      "bytes": 859,
+      "priority": 3,
+      "sha256": "c6fc8aca819d8b97ed8f1994d23cbfcbe0401ed174f57592d9fda850e04f6214"
+    },
+    {
+      "url": "assets/collection/transparent_knight.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 5298,
+      "priority": 3,
+      "sha256": "90d0b0130f172a3fe2a8170b425fe1182306f65b5de393316f0542a333454468"
+    },
+    {
+      "url": "assets/collection/unknown_danger.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 2834,
+      "priority": 3,
+      "sha256": "c413af1f2dff5204636d9eb34891231da9457e96f0ea7f0d253785906f972418"
+    },
+    {
+      "url": "assets/collection/unknown_extreme.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 2904,
+      "priority": 3,
+      "sha256": "44c63b04b527fca8856e6a337325123d5a3eeb51b77ac9a2205b5711c861fea7"
+    },
+    {
+      "url": "assets/collection/unknown_low.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "bytes": 2732,
+      "priority": 3,
+      "sha256": "7772bec4259a37a02b6ae847d46a0256bbf161ec8eed48f2a7c994900c3f7ab8"
+    },
+    {
+      "url": "assets/patrol3d/manifest.json",
+      "label": "道中の設定",
+      "type": "json",
+      "bytes": 11987,
+      "priority": 2,
+      "sha256": "6ca7151948df40f752dca5d93a11ab5a56fbe83f7662ac55df54c846b7808100"
+    },
+    {
+      "url": "assets/patrol3d/actors.json",
+      "label": "キャラクターの設定",
+      "type": "json",
+      "bytes": 2219,
+      "priority": 2,
+      "sha256": "0b8dceabd7894f584d135bd8eb3608e715b525433ca56823590697e6fe497a4d"
+    },
+    {
+      "url": "assets/patrol3d/eggplant.json",
+      "label": "ナスの妖精の設定",
+      "type": "json",
+      "bytes": 937,
+      "priority": 2,
+      "sha256": "3be7e759ee2098a68c85a7fd27e39124740c97e7c6676bb737f3b8839e59d0a5"
+    },
+    {
+      "url": "assets/patrol3d/actors.glb?v=fb8390ecce6ceab47b5d4795388f5bd2dae3d3125cd2a4df43c86f70a4350945",
+      "label": "おこていゆとモアイくん",
+      "type": "binary",
+      "bytes": 2718356,
+      "priority": 2,
+      "sha256": "fb8390ecce6ceab47b5d4795388f5bd2dae3d3125cd2a4df43c86f70a4350945"
+    },
+    {
+      "url": "assets/patrol3d/eggplant.glb?v=9f93c1885b8446a8808f22ddcf09d7416952f8551febccf4bd58559d1d3a0909",
+      "label": "ナスの妖精",
+      "type": "binary",
+      "bytes": 54384,
+      "priority": 2,
+      "sha256": "9f93c1885b8446a8808f22ddcf09d7416952f8551febccf4bd58559d1d3a0909"
+    },
+    {
+      "url": "assets/patrol3d/tomato.json",
+      "label": "トマトの妖精の設定",
+      "type": "json",
+      "bytes": 560,
+      "priority": 2,
+      "sha256": "e97e753cffb46b1378c72b293e2e92fa97ae1b5d00646f6fa2869ecc013e2a45"
+    },
+    {
+      "url": "assets/patrol3d/tomato.glb?v=474c0392eb1981ec4d7cc403b21d143a6dff70fde3ca6c690bd5643937bbb7f1",
+      "label": "トマトの妖精",
+      "type": "binary",
+      "bytes": 115184,
+      "priority": 2,
+      "sha256": "474c0392eb1981ec4d7cc403b21d143a6dff70fde3ca6c690bd5643937bbb7f1"
+    },
+    {
+      "url": "assets/patrol3d/city_morning_road.glb?v=5ef4dd3825a913c4b39d0e3864f9100a884609b92f4f8d5b42984f26bf9704e4",
+      "label": "都市部・朝・道",
+      "type": "binary",
+      "bytes": 791404,
+      "priority": 3,
+      "sha256": "5ef4dd3825a913c4b39d0e3864f9100a884609b92f4f8d5b42984f26bf9704e4"
+    },
+    {
+      "url": "assets/patrol3d/city_morning_junction.glb?v=c81a97e9d84d9bb0a4997f9bf04ae2d7da70b51793ecc04df88fe74f473e183a",
+      "label": "都市部・朝・分かれ道",
+      "type": "binary",
+      "bytes": 810424,
+      "priority": 3,
+      "sha256": "c81a97e9d84d9bb0a4997f9bf04ae2d7da70b51793ecc04df88fe74f473e183a"
+    },
+    {
+      "url": "assets/patrol3d/city_day_road.glb?v=72dd21eb01fe96841d15c09ceca0b921ab78c115f143ee04b2e854a325459d43",
+      "label": "都市部・昼・道",
+      "type": "binary",
+      "bytes": 791340,
+      "priority": 3,
+      "sha256": "72dd21eb01fe96841d15c09ceca0b921ab78c115f143ee04b2e854a325459d43"
+    },
+    {
+      "url": "assets/patrol3d/city_day_junction.glb?v=74fa43447b01e97f84d2872619239865f6cc2b73e48f9fdd38758923b9b7725b",
+      "label": "都市部・昼・分かれ道",
+      "type": "binary",
+      "bytes": 810348,
+      "priority": 3,
+      "sha256": "74fa43447b01e97f84d2872619239865f6cc2b73e48f9fdd38758923b9b7725b"
+    },
+    {
+      "url": "assets/patrol3d/residential_morning_road.glb?v=a533d4838b8a1bf78b13a51e9711f36bf7f095e436ac4b89c297fbcb91d0ce49",
+      "label": "住宅街・朝・道",
+      "type": "binary",
+      "bytes": 576964,
+      "priority": 3,
+      "sha256": "a533d4838b8a1bf78b13a51e9711f36bf7f095e436ac4b89c297fbcb91d0ce49"
+    },
+    {
+      "url": "assets/patrol3d/residential_morning_junction.glb?v=2c9f1e526401baf068cc37061ca203ae2f3b4f7b15af1d2b55671f2a50977265",
+      "label": "住宅街・朝・分かれ道",
+      "type": "binary",
+      "bytes": 595984,
+      "priority": 3,
+      "sha256": "2c9f1e526401baf068cc37061ca203ae2f3b4f7b15af1d2b55671f2a50977265"
+    },
+    {
+      "url": "assets/patrol3d/residential_day_road.glb?v=613391354789516512cb6d6050a9b419bac87a0099ee73a5c414fd6c7ef780c5",
+      "label": "住宅街・昼・道",
+      "type": "binary",
+      "bytes": 576868,
+      "priority": 3,
+      "sha256": "613391354789516512cb6d6050a9b419bac87a0099ee73a5c414fd6c7ef780c5"
+    },
+    {
+      "url": "assets/patrol3d/residential_day_junction.glb?v=8d68455f7cae3668e24ede5eba0dcd2ed405b734611dd4b7a0d8c4577f9ddfdc",
+      "label": "住宅街・昼・分かれ道",
+      "type": "binary",
+      "bytes": 595876,
+      "priority": 3,
+      "sha256": "8d68455f7cae3668e24ede5eba0dcd2ed405b734611dd4b7a0d8c4577f9ddfdc"
+    },
+    {
+      "url": "assets/patrol3d/forest_morning_road.glb?v=cbc1a2cb5d2185918b077b7153fe347c7b766bdfc3bb3254315878561cb25576",
+      "label": "森林・朝・道",
+      "type": "binary",
+      "bytes": 938016,
+      "priority": 3,
+      "sha256": "cbc1a2cb5d2185918b077b7153fe347c7b766bdfc3bb3254315878561cb25576"
+    },
+    {
+      "url": "assets/patrol3d/forest_morning_junction.glb?v=fc0d8d701fe7c6dd6170bb300fe2832dc80c8ce7249279baecd36dbe4dd254ba",
+      "label": "森林・朝・分かれ道",
+      "type": "binary",
+      "bytes": 898044,
+      "priority": 3,
+      "sha256": "fc0d8d701fe7c6dd6170bb300fe2832dc80c8ce7249279baecd36dbe4dd254ba"
+    },
+    {
+      "url": "assets/patrol3d/forest_day_road.glb?v=1b43d0c00fba0716c1659891dd6b1d3cfc53cc16aeb459a16b356cade79a7861",
+      "label": "森林・昼・道",
+      "type": "binary",
+      "bytes": 938024,
+      "priority": 3,
+      "sha256": "1b43d0c00fba0716c1659891dd6b1d3cfc53cc16aeb459a16b356cade79a7861"
+    },
+    {
+      "url": "assets/patrol3d/forest_day_junction.glb?v=608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a",
+      "label": "森林・昼・分かれ道",
+      "type": "binary",
+      "bytes": 898044,
+      "priority": 3,
+      "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
+    },
+    {
+      "url": "assets/battle3d/manifest.json",
+      "label": "戦闘モデルの設定",
+      "type": "json",
+      "bytes": 17726,
+      "priority": 2,
+      "sha256": "187f0e0781d1238a4cae54a5bb5b66f2b379e6744274ea3c9971846e4d1f998e"
+    },
+    {
+      "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
+      "label": "戦闘中のおこていゆ",
+      "type": "binary",
+      "bytes": 9662032,
+      "priority": 3,
+      "sha256": "86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0"
+    },
+    {
+      "url": "assets/battle3d/horarara_horaran.glb?v=46689d265a5291e0ea4dd10e99ddaaf2bb8ca7b97be409847bc863dbc2f409a6",
+      "label": "ホラララホララン",
+      "type": "binary",
+      "bytes": 7253788,
+      "priority": 3,
+      "sha256": "46689d265a5291e0ea4dd10e99ddaaf2bb8ca7b97be409847bc863dbc2f409a6"
+    },
+    {
+      "url": "assets/battle3d/moai_king.glb?v=21aabbd1c330302b72e23f3c4da599c39c45b984a35a52ed9a47fba69a1bfcef",
+      "label": "モアイの戦士",
+      "type": "binary",
+      "bytes": 10517448,
+      "priority": 3,
+      "sha256": "21aabbd1c330302b72e23f3c4da599c39c45b984a35a52ed9a47fba69a1bfcef"
+    },
+    {
+      "url": "assets/battle3d/fae_dragon.glb?v=0e451d1a32ab569a9bd3deab64cb07ad2160c4e1beb608f19a6c4568a7b900b5",
+      "label": "妖竜",
+      "type": "binary",
+      "bytes": 672492,
+      "priority": 3,
+      "sha256": "0e451d1a32ab569a9bd3deab64cb07ad2160c4e1beb608f19a6c4568a7b900b5"
+    },
+    {
+      "url": "assets/battle3d/punim.glb?v=eb03fdf9d32aaf422c83c95711b7632962160c3d1d8a73128a948f7ba17bf5b4",
+      "label": "プニム",
+      "type": "binary",
+      "bytes": 481976,
+      "priority": 3,
+      "sha256": "eb03fdf9d32aaf422c83c95711b7632962160c3d1d8a73128a948f7ba17bf5b4"
+    },
+    {
+      "url": "assets/battle3d/crystal_striker.glb?v=f47315b95610693192608dfd2a6bf080ecd3eacae991437f783726a292511459",
+      "label": "クリスタルストライカー",
+      "type": "binary",
+      "bytes": 106916,
+      "priority": 3,
+      "sha256": "f47315b95610693192608dfd2a6bf080ecd3eacae991437f783726a292511459"
+    },
+    {
+      "url": "assets/battle3d/dragon.glb?v=98ef70227353df6fed6c00cb21c5e8610f811f69e1e78b0b3e6e0be43d81422c",
+      "label": "ドラゴン",
+      "type": "binary",
+      "bytes": 672480,
+      "priority": 3,
+      "sha256": "98ef70227353df6fed6c00cb21c5e8610f811f69e1e78b0b3e6e0be43d81422c"
+    },
+    {
+      "url": "assets/battle3d/transparent_knight.glb?v=2c1f35f0fc7b16f8517ea427f76c662445d25cea4995cadd68b5e64439fa1523",
+      "label": "透明騎士",
+      "type": "binary",
+      "bytes": 732228,
+      "priority": 3,
+      "sha256": "2c1f35f0fc7b16f8517ea427f76c662445d25cea4995cadd68b5e64439fa1523"
+    },
+    {
+      "url": "assets/battle3d/unknown_low.glb?v=1d30ca6a34906aec0719104cb8d6415a37f2812cda5b9639f4098ac75241c4c6",
+      "label": "解析不可（危険度低）",
+      "type": "binary",
+      "bytes": 47416,
+      "priority": 3,
+      "sha256": "1d30ca6a34906aec0719104cb8d6415a37f2812cda5b9639f4098ac75241c4c6"
+    },
+    {
+      "url": "assets/battle3d/unknown_danger.glb?v=4ffdc910bfbd6deb496e015f91a0d76d6104ccae1c5fe9f6fd1765c5ab3bc905",
+      "label": "解析不可（危険）",
+      "type": "binary",
+      "bytes": 47788,
+      "priority": 3,
+      "sha256": "4ffdc910bfbd6deb496e015f91a0d76d6104ccae1c5fe9f6fd1765c5ab3bc905"
+    },
+    {
+      "url": "assets/battle3d/unknown_extreme.glb?v=124bd2b71dc46c81c195bb1d46ebc2e4dce68743eb6d69f14f9196e07f6227e2",
+      "label": "解析不可（超危険）",
+      "type": "binary",
+      "bytes": 47248,
+      "priority": 3,
+      "sha256": "124bd2b71dc46c81c195bb1d46ebc2e4dce68743eb6d69f14f9196e07f6227e2"
+    },
+    {
+      "url": "assets/battle3d/gold_moai.glb?v=910e7a74dcefb5f167fd382c0c45c5e4bdeceaa1c2bdc37a06ece41cc11e0ed4",
+      "label": "金モアイ",
+      "type": "binary",
+      "bytes": 10517540,
+      "priority": 3,
+      "sha256": "910e7a74dcefb5f167fd382c0c45c5e4bdeceaa1c2bdc37a06ece41cc11e0ed4"
+    },
+    {
+      "url": "assets/battle3d/fields.json",
+      "label": "戦闘フィールドの設定",
+      "type": "json",
+      "bytes": 2854,
+      "priority": 2,
+      "sha256": "57b1c65fcc690aeca38ff8757851d6447c0c6518f26d13123f0285d442eee139"
+    },
+    {
+      "url": "assets/battle3d/city_day.glb?v=c355a3ee37b86a1a80441e46ce9a77283ca04947b19bc9ff4e4c56567af17167",
+      "label": "都市部・昼の戦闘フィールド",
+      "type": "binary",
+      "bytes": 868484,
+      "priority": 3,
+      "sha256": "c355a3ee37b86a1a80441e46ce9a77283ca04947b19bc9ff4e4c56567af17167"
+    },
+    {
+      "url": "assets/battle3d/city_night.glb?v=a4cc8feaffa962e5406e3794f808d628499c00d3452f96fe01604e47a168527d",
+      "label": "都市部・夜の戦闘フィールド",
+      "type": "binary",
+      "bytes": 868836,
+      "priority": 3,
+      "sha256": "a4cc8feaffa962e5406e3794f808d628499c00d3452f96fe01604e47a168527d"
+    },
+    {
+      "url": "assets/battle3d/residential_day.glb?v=b70a0461d38f5750bc045db17eabe1ddbc7071312b135e48d49775660c33786e",
+      "label": "住宅街・昼の戦闘フィールド",
+      "type": "binary",
+      "bytes": 617560,
+      "priority": 3,
+      "sha256": "b70a0461d38f5750bc045db17eabe1ddbc7071312b135e48d49775660c33786e"
+    },
+    {
+      "url": "assets/battle3d/residential_night.glb?v=f1e2f72081ea9f82d35513da396d72cd91b5e0f8d3310d084c0872dae300439e",
+      "label": "住宅街・夜の戦闘フィールド",
+      "type": "binary",
+      "bytes": 617892,
+      "priority": 3,
+      "sha256": "f1e2f72081ea9f82d35513da396d72cd91b5e0f8d3310d084c0872dae300439e"
+    },
+    {
+      "url": "assets/battle3d/forest_day.glb?v=77e8a7a355c0213683c0a0381beeb7695c17c1d7d64b99bcc5be870c079f39a4",
+      "label": "森林・昼の戦闘フィールド",
+      "type": "binary",
+      "bytes": 925584,
+      "priority": 3,
+      "sha256": "77e8a7a355c0213683c0a0381beeb7695c17c1d7d64b99bcc5be870c079f39a4"
+    },
+    {
+      "url": "assets/battle3d/forest_night.glb?v=30d3ba3f52a942b491301f1a21d57c98f703e619fa4afe7cf822c2247b5e3b87",
+      "label": "森林・夜の戦闘フィールド",
+      "type": "binary",
+      "bytes": 925596,
+      "priority": 3,
+      "sha256": "30d3ba3f52a942b491301f1a21d57c98f703e619fa4afe7cf822c2247b5e3b87"
+    },
+    {
+      "url": "assets/battle3d/training_day.glb?v=e4b1e1868540771d037cf88628552f141220be442fae6c7db1e711d7840b06ac",
+      "label": "訓練広場・昼の戦闘フィールド",
+      "type": "binary",
+      "bytes": 112356,
+      "priority": 3,
+      "sha256": "e4b1e1868540771d037cf88628552f141220be442fae6c7db1e711d7840b06ac"
+    },
+    {
+      "url": "assets/battle3d/training_night.glb?v=ab598dcaca0d25a602c755a7fbb0663a4faf93ac17c532703e70a67f7f797de9",
+      "label": "訓練広場・夜の戦闘フィールド",
+      "type": "binary",
+      "bytes": 112612,
+      "priority": 3,
+      "sha256": "ab598dcaca0d25a602c755a7fbb0663a4faf93ac17c532703e70a67f7f797de9"
+    },
+    {
+      "url": "assets/equipment3d/metadata.json",
+      "label": "防御もちものの設定",
+      "type": "json",
+      "bytes": 442,
+      "priority": 2,
+      "sha256": "1c7b9fc36888b5bf8e3e2de4383d04117efb1d26bcef18ed35721ee82d8aedc2"
+    },
+    {
+      "url": "assets/equipment3d/acrylic_shield.glb?v=6081e02c2a37694d0a969c64fb33c3f6573e219b5f15e9a8a83c3b7462ce5fe1",
+      "label": "アクリル盾",
+      "type": "binary",
+      "bytes": 63032,
+      "priority": 3,
+      "sha256": "6081e02c2a37694d0a969c64fb33c3f6573e219b5f15e9a8a83c3b7462ce5fe1"
+    },
+    {
+      "url": "assets/equipment3d/items.json",
+      "label": "追加もちものの設定",
+      "type": "json",
+      "bytes": 568,
+      "priority": 2,
+      "sha256": "e06bbff1e0106fef396e7c2e4716119b46b1cfb7f410a6999adfc5d40f71608c"
+    },
+    {
+      "url": "assets/equipment3d/iron_shield.glb?v=dce50293a56afb00750ee888ee0ee2187d9074d88f2fe65c9f08c688c12eec5e",
+      "label": "鉄の盾",
+      "type": "binary",
+      "bytes": 164504,
+      "priority": 3,
+      "sha256": "dce50293a56afb00750ee888ee0ee2187d9074d88f2fe65c9f08c688c12eec5e"
+    },
+    {
+      "url": "assets/equipment3d/aura_shield.glb?v=49edae3efd936d2dcad43b57e1a0e03589ea96e5d3bc2adeace13434c5b5b5df",
+      "label": "オーラの盾",
+      "type": "binary",
+      "bytes": 11408,
+      "priority": 3,
+      "sha256": "49edae3efd936d2dcad43b57e1a0e03589ea96e5d3bc2adeace13434c5b5b5df"
+    },
+    {
+      "url": "assets/cinematics/anger-cutin.json",
+      "label": "怒りのカットイン設定",
+      "type": "json",
+      "bytes": 511,
+      "priority": 2,
+      "sha256": "053870c435835de69c2a1d70468f8ea6526641c921891f17d70c1062f91b5812"
+    },
+    {
+      "url": "assets/cinematics/anger-cutin.mp4",
+      "label": "怒りの8秒カットイン",
+      "type": "binary",
+      "bytes": 2086537,
+      "priority": 3,
+      "sha256": "18e6bbf41288161f4e0b519da2218ec738d0540e347b5a23fbb9cfaf8d18831a"
+    },
+    {
+      "url": "assets/door3d/metadata.json",
+      "label": "出発カットインの設定",
+      "type": "json",
+      "bytes": 3367,
+      "priority": 2,
+      "sha256": "e012166d6b552ccbf7a06783fbe727f906defd0ab0c163be64bcca31ec6e5466"
+    },
+    {
+      "url": "assets/door3d/door_motions.glb?v=bad5452d66962ebcec9aa9a55319bab6f2d2ba746e08d7a816b15c59ce23d1f6",
+      "label": "パトロール出発のカットイン",
+      "type": "binary",
+      "bytes": 7292092,
+      "priority": 3,
+      "sha256": "bad5452d66962ebcec9aa9a55319bab6f2d2ba746e08d7a816b15c59ce23d1f6"
+    },
+    {
+      "url": "assets/scene-cutins/face_happy.png",
+      "label": "勝敗カットインの表情",
+      "type": "binary",
+      "bytes": 32375,
+      "priority": 3,
+      "sha256": "20cf930374a1c2cb13aee1d8bb128fe1ddeee9aca988fb9935446c807fc1c3ef"
+    },
+    {
+      "url": "assets/scene-cutins/face_teary.png",
+      "label": "勝敗カットインの表情",
+      "type": "binary",
+      "bytes": 42171,
+      "priority": 3,
+      "sha256": "a16b6054289d37645c57628fb83795156ab0e3a4458b4ed3cb7e6eea9540da35"
+    }
+  ]
+}

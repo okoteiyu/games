@@ -1,0 +1,61 @@
+/* A nearly square-cornered media viewport with a gently bowed two-line outline. */
+.main-view { position:relative;inline-size:100%;aspect-ratio:1/1;min-inline-size:0;min-block-size:0;isolation:isolate; }
+.main-view__surface { position:absolute;inset:9px;overflow:hidden;border-radius:2%;background:#fffdf6; }
+.main-view__surface.is-video { background:#000; }
+.main-view__surface>img,.main-view__surface>video,.main-view__surface>canvas { display:block;inline-size:100%;block-size:100%;object-fit:contain; }
+.main-view__border { position:absolute;inset:0;inline-size:100%;block-size:100%;overflow:visible;pointer-events:none; }
+.main-view__paper { fill:#fffef9; }
+.main-view__stroke { fill:none;stroke:#98b9a6;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke; }
+.main-view__stroke--inside { stroke:#c5a16c;stroke-width:.8;opacity:.8; }
+.main-view__demo { position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 45% 45%,#fffdf5,transparent 65%),linear-gradient(155deg,#edf5e8,#f5efdc); }
+.main-view__demo::before { content:"";position:absolute;inset:0;background-image:radial-gradient(#bdcbb8 .65px,transparent .65px);background-size:14px 14px;opacity:.13; }
+.main-view__demo.is-dark { background:radial-gradient(ellipse at 40% 65%,#506378,#273d47 53%,#23313c); }
+.demo-halo { position:absolute;inset:22%;border:1px solid #d3dfc655;border-radius:48% 52% 49% 51%;transform:rotate(-13deg); }
+.demo-halo::after { content:"";position:absolute;inset:-11%;border:1px solid #e5d8b449;border-radius:52% 48% 53% 47%;transform:rotate(27deg); }
+.demo-icon { position:absolute;inset:25%;inline-size:50%;block-size:50%;object-fit:contain;transform:rotate(-5deg); }
+.demo-cloud { position:absolute;inline-size:25%;block-size:8%;border-radius:99px;background:#fff9;inset-inline-start:-3%;inset-block-start:22%; }
+.demo-cloud::before { content:"";position:absolute;inline-size:45%;aspect-ratio:1;border-radius:50%;background:#fff9;inset-inline-start:25%;inset-block-end:25%; }
+.demo-cloud--right { inset-inline-start:auto;inset-inline-end:-1%;inset-block-start:67%;scale:.7;opacity:.6; }
+.is-dark .demo-cloud { background:#dfe9ed18; }
+.is-dark .demo-cloud::before { background:#dfe9ed18; }
+.demo-spark { position:absolute;inline-size:4px;block-size:4px;inset-inline-start:21%;inset-block-start:65%;background:#d8c19c;border-radius:50%;box-shadow:130px -135px 0 -1px #c5cbb0,155px -40px 0 -1px #ddbbb3; }
+.is-dark .demo-spark { background:#eee4bd; }
+.main-view__surface.is-dragging { outline:2px dashed #98b9a6;outline-offset:-8px; }
+@media(max-height:340px) { .main-view__surface { inset:5px; }.main-view__stroke{stroke-width:1.5}.main-view__stroke--inside{stroke-width:.65}.demo-spark{display:none} }
+
+/* The message belongs inside the square view. Its shield blocks scene input. */
+.main-view__surface>.house-image { object-fit:cover; object-position:50% 50%; transform:scale(1.08); }
+.view-input-shield { position:absolute; inset:9px; z-index:3; cursor:pointer; touch-action:manipulation; }
+.main-view[data-message-visible="true"] .main-view__surface { pointer-events:none; }
+.view-message { position:absolute; inset-inline:0; inset-block-end:18px; z-index:4; }
+.view-message .message-frame__text { font-size:clamp(12px,3.25cqi,20px); }
+.view-message .message-frame { box-shadow:0 3px 0 #e5eee7,0 7px 20px #3b53401a; }
+@media(max-height:540px) {
+ .view-message { inset-block-end:13px; }
+ .view-message .message-frame { padding-block:16px 12px; }
+ .view-message .message-frame__text { font-size:clamp(10px,3.25cqi,15px); }
+ .view-message .message-frame__sticker { inline-size:54px;block-size:54px;inset-block-start:-34px; }
+ .view-message .message-frame__speaker { inset-inline-start:44px;min-block-size:22px;font-size:10.5px; }
+}
+@media(max-height:340px) {
+ .view-message { inset-block-end:9px; }
+ .view-message .message-frame { inline-size:calc(100% - 14px);padding:12px 6px 10px;border-radius:14px; }
+ .view-message .message-frame__text { font-size:clamp(8px,3.25cqi,11px); }
+ .view-message .message-frame__sticker { inline-size:38px;block-size:38px;inset-block-start:-26px; }
+ .view-message .message-frame__speaker { inset-inline-start:30px;inset-block-start:-11px;min-block-size:18px;font-size:8.5px;padding:1px 7px; }
+ .view-message .message-frame__speaker::before { inline-size:3px;block-size:3px;margin-inline-end:4px; }
+ .view-message .message-frame__sprig { display:none; }
+ .view-message .message-frame__continue { inline-size:28px;block-size:28px;padding-block-end:6px; }
+ .view-message .message-frame__continue span { inline-size:5px;block-size:5px;border-width:1.5px; }
+ .view-input-shield { inset:5px; }
+}
+
+.view-message .message-frame::before { border-color:#e7d7b6; }
+.view-message .message-frame__speaker { box-shadow:0 1px 0 #dfc59666; }
+
+/* Last message recall lives inside the square view, separate from scene input. */
+.message-replay{position:absolute;inset-inline-end:max(14px,3.5%);inset-block-end:max(14px,3.5%);z-index:2;display:flex;align-items:center;justify-content:center;gap:3px;min-block-size:36px;padding:5px 8px;border:1px solid #b4bca2;border-radius:10px 4px 10px 4px;background:#fbfff0ed;box-shadow:0 2px 6px #3c56491c;color:#627451;font-family:inherit;font-size:10.5px;cursor:pointer;touch-action:manipulation;}
+.message-replay svg{inline-size:15px;block-size:15px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;}
+.message-replay:hover:not(:disabled){background:#fffef7;}
+.message-replay:focus-visible{outline:2px solid #829a69;outline-offset:2px;}
+.message-replay:disabled{opacity:.45;cursor:default;}

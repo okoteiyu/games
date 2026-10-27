@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "id": "iron_shield",
+      "name": "鉄の盾",
+      "url": "iron_shield.glb",
+      "sha256": "dce50293a56afb00750ee888ee0ee2187d9074d88f2fe65c9f08c688c12eec5e",
+      "bytes": 164504,
+      "animations": [],
+      "displayInBattle": true
+    },
+    {
+      "id": "aura_shield",
+      "name": "オーラの盾",
+      "url": "aura_shield.glb",
+      "sha256": "49edae3efd936d2dcad43b57e1a0e03589ea96e5d3bc2adeace13434c5b5b5df",
+      "bytes": 11408,
+      "animations": [],
+      "displayInBattle": true
+    }
+  ]
+}

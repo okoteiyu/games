@@ -1,0 +1,113 @@
+.house3d-container{position:absolute;inset:0;background:#eef2e4 url('assets/okoteiyu-house-workspace.png') center/cover no-repeat;}
+.house-webgl{display:block;inline-size:100%;block-size:100%;touch-action:none;}
+.house-webgl:focus-visible{outline:2px solid #829c68;outline-offset:-3px;}
+/* One compact row; only the action text may wrap onto a second line. */
+.house-toolbar{position:absolute;z-index:2;inset-inline:16px;top:14px;display:grid;grid-template-columns:30px 57px minmax(0,1fr) 102px;grid-template-rows:minmax(28px,auto);align-items:center;gap:5px;padding:5px 7px;border:1px solid #bba176;border-radius:13px 5px 12px 5px;background:linear-gradient(115deg,#fffdf7fa,#f6efdef5 68%,#f2e8d6f5);box-shadow:0 3px 10px #65503820,inset 0 1px #fff,inset 0 0 0 2px #ffffff70;color:#735e42;isolation:isolate;touch-action:manipulation;}
+.house-toolbar button{position:static;display:flex;align-items:center;justify-content:center;gap:3px;min-inline-size:0;min-block-size:28px;padding:3px 4px;border:1px solid #c5af88;border-radius:9px 4px 9px 4px;background:linear-gradient(135deg,#fffdf6,#efe5d2);box-shadow:inset 0 1px #fff,0 1px 2px #86673d10;color:#775e3f;font-family:inherit;font-size:10.5px;line-height:1.25;white-space:nowrap;cursor:pointer;touch-action:manipulation;}
+.house-toolbar button:hover:not(:disabled){background:#fffdf4;border-color:#a88b5b;}
+.house-toolbar button:focus-visible{outline:2px solid #98754f;outline-offset:2px;}
+.house-toolbar button:disabled{opacity:.42;cursor:default;box-shadow:none;}
+.house-toolbar button svg{flex:none;inline-size:13px;block-size:13px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;}
+.house-interaction-back{grid-area:1/1;}
+.house-interaction-back span{display:none;}
+.house-camera-toggle{grid-area:1/4;}
+.house-camera-toggle small{font-size:11.5px;color:#a58a61;}
+.house-camera-toggle[aria-pressed=true]{background:linear-gradient(135deg,#f7eedb,#e7d6b5);border-color:#bca170;}
+.house-interaction-label{grid-area:1/2;display:flex;align-items:baseline;justify-content:center;min-inline-size:0;gap:3px;margin:0;line-height:1.1;pointer-events:none;white-space:nowrap;}
+.house-relax-counter__label{font-size:9.5px;color:#947f5f;}
+.house-relax-counter__value{display:flex;align-items:baseline;gap:2px;min-inline-size:0;font-size:9.5px;}
+.house-relax-counter__value strong{min-inline-size:0;max-inline-size:25px;overflow:hidden;text-overflow:ellipsis;font-size:17px;font-weight:650;font-variant-numeric:tabular-nums;color:#6d7952;line-height:1.05;}
+.house-activity{grid-area:1/3;display:flex;align-items:center;gap:4px;min-inline-size:0;padding-inline-start:6px;border-inline-start:1px solid #c6ad825f;line-height:1.35;}
+.house-activity__label{display:flex;align-items:center;gap:3px;flex:none;font-size:8.5px;color:#a18d6b;white-space:nowrap;}
+.house-activity__label i{inline-size:4px;block-size:4px;flex:none;border-radius:50%;background:#9baa7b;}
+.house-activity__value{display:block;flex:1 1 0;max-block-size:2.7em;min-inline-size:0;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font-size:10.5px;line-height:1.35;color:#796348;}
+.house-camera-hint{position:absolute;inline-size:1px;block-size:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;pointer-events:none;}
+.house3d-status{position:absolute;z-index:2;inset-inline:22px;top:35%;padding:12px;background:#fffdf1ed;border:1px solid #c1cda7;border-radius:10px 4px 10px 4px;text-align:center;color:#6e7e55;font-size:12.5px;line-height:1.8;box-shadow:0 4px 16px #64794915;}
+.house3d-status button{display:block;margin:8px auto 0;padding:6px 14px;border:1px solid #afc48a;border-radius:7px;background:#eaf2d7;color:#657a48;font:inherit;cursor:pointer;}
+@media(max-height:540px){
+ .house-toolbar{inset-inline:10px;top:14px;grid-template-columns:22px 35px minmax(0,1fr) 66px;grid-template-rows:minmax(22px,auto);gap:3px;padding:4px 5px;border-radius:10px 4px 9px 4px;}
+ .house-toolbar button{min-block-size:22px;padding:2px;font-size:8.5px;gap:2px;}
+ .house-toolbar button svg{inline-size:10px;block-size:10px;}.house-camera-toggle small{display:none;}
+ .house-interaction-label{gap:2px;}.house-relax-counter__label{font-size:7.5px;}.house-relax-counter__value{font-size:7.5px;gap:1px;}.house-relax-counter__value strong{font-size:13px;max-inline-size:17px;}
+ .house-activity{gap:3px;padding-inline-start:4px;}.house-activity__label{font-size:6.5px;gap:2px;}.house-activity__label i{display:none;}.house-activity__value{font-size:8.5px;}
+}
+@media(max-height:340px){.house-toolbar{inset-inline:8px;top:10px;grid-template-columns:18px 30px minmax(0,1fr) 58px;gap:2px;padding:3px 4px;}.house-toolbar button{font-size:7.5px;}.house-activity{gap:2px;padding-inline-start:3px;}.house-activity__value{font-size:7.5px;}}
+@media(max-height:400px){.house3d-status{inset-inline:13px;padding:7px;font-size:9.5px;}}
+
+/* Give the action description two readable lines on narrow phones. */
+@media(max-width:350px) and (min-height:541px){
+ .house-toolbar{grid-template-columns:26px 45px minmax(0,1fr) 86px;gap:4px;padding-inline:6px;}
+ .house-toolbar button{font-size:9.5px;}.house-camera-toggle small{display:none;}
+ .house-relax-counter__label,.house-relax-counter__value{font-size:8.5px;}.house-relax-counter__value strong{font-size:15px;}
+ .house-activity__value{font-size:10px;}
+}
+@media(max-height:540px){.house-activity__label{display:none;}}
+@media(max-height:340px){.house-activity__value{font-size:7px;}}
+
+/* Larger return target, while retaining the compact single row. */
+.house-toolbar{grid-template-columns:40px 57px minmax(0,1fr) 102px;grid-template-rows:minmax(34px,auto);padding-block:3px;}
+.house-toolbar .house-interaction-back{min-block-size:34px;}
+.house-toolbar .house-interaction-back svg{inline-size:19px;block-size:19px;stroke-width:1.7;}
+@media(max-width:350px) and (min-height:541px){.house-toolbar{grid-template-columns:36px 39px minmax(0,1fr) 82px;}.house-relax-counter__label,.house-relax-counter__value{font-size:8px;}}
+@media(max-height:540px){.house-toolbar{grid-template-columns:30px 31px minmax(0,1fr) 62px;grid-template-rows:minmax(28px,auto);}.house-toolbar .house-interaction-back{min-block-size:28px;}.house-toolbar .house-interaction-back svg{inline-size:16px;block-size:16px;}.house-relax-counter__label,.house-relax-counter__value{font-size:6.5px;}.house-relax-counter__value strong{font-size:13px;}}
+@media(max-height:340px){.house-toolbar{grid-template-columns:26px 27px minmax(0,1fr) 53px;}.house-toolbar .house-interaction-back svg{inline-size:15px;block-size:15px;}}
+
+/* Opaque, isolated painting prevents stale glyphs over the continuously drawn canvas. */
+.house-toolbar{background:#f8f1e3;transform:none;}
+
+.house-toolbar .house-camera-toggle span{display:block;min-inline-size:0;overflow:hidden;white-space:nowrap;}
+
+/* Observation values share the view without intercepting a second tap on the actor. */
+.house-observation{position:absolute;z-index:2;inset-inline:12px;bottom:12px;padding:7px 9px;border:1px solid #bba782;border-radius:11px 4px 10px 4px;background:linear-gradient(115deg,#fffdf5f5,#f0ebdcf2);box-shadow:0 3px 12px #5d4c3220,inset 0 1px #fff;color:#6c5a43;pointer-events:none;font-size:11.5px;line-height:1.35;contain:paint;}
+.house-observation[hidden]{display:none;}
+.house-observation__stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:0 0 5px;}
+.house-observation__stats div{min-inline-size:0;text-align:center;border-inline-end:1px solid #bda77d4d;}.house-observation__stats div:last-child{border:0;}
+.house-observation__stats dt{font-size:11px;color:#8d7b61;}.house-observation__stats dd{margin:0;font-size:15px;font-weight:650;line-height:1.2;font-variant-numeric:tabular-nums;color:#63714c;}
+.house-observation__items{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;}.house-observation__items b{font-weight:600;}
+.house-observation__aura{display:flex;gap:6px;align-items:baseline;margin:3px 0 0;padding-top:3px;border-top:1px solid #bda77d55;}.house-observation__aura span{flex:none;color:#8d7b61;}.house-observation__aura strong{font-weight:600;min-inline-size:0;overflow-wrap:anywhere;}
+.main-view[data-message-visible=true] .house-observation{visibility:hidden;}
+@media(max-height:540px){.house-observation{inset-inline:8px;bottom:8px;padding:5px 6px;font-size:10.5px;}.house-observation__stats{gap:3px;margin-bottom:3px;}.house-observation__stats dt{font-size:10px;}.house-observation__stats dd{font-size:12px;}.house-observation__aura{margin-top:2px;padding-top:2px;}}
+
+/* Fixed opaque text bitmaps are completely repainted, never layered as old DOM glyphs. */
+.house-toolbar .house-painted-label{position:relative;block-size:1.35em;contain:none;isolation:auto;}
+.house-toolbar .house-activity__value.house-painted-label{block-size:2.7em;}
+.house-painted-label>canvas{position:absolute;inset:0;display:block;inline-size:100%;block-size:100%;}
+.house-toolbar .house-painted-label>.house-label-text{position:absolute;inline-size:1px;block-size:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+
+.house-toolbar .house-camera-toggle>.house-painted-label{flex:1 1 0;min-inline-size:0;}
+
+/* Reserve the full two-digit balance at the new cap, rather than clipping a 9. */
+@media(min-height:541px){.house-toolbar{grid-template-columns:40px 64px minmax(0,1fr) 102px;}}
+@media(max-width:350px) and (min-height:541px){.house-toolbar{grid-template-columns:36px 53px minmax(0,1fr) 82px;}}
+.house-relax-counter__value{flex:none;}.house-relax-counter__value strong{flex:none;overflow:visible;}
+@media(max-height:540px){.house-relax-counter__label{display:none;}}
+
+/* Only the bitmap paints glyphs; transparent native text retains layout and accessibility. */
+.house-painted-label{position:relative;}
+.house-painted-label>canvas{pointer-events:none;}
+.house-painted-label[data-painted-flow=true]{display:inline-block;min-inline-size:0;min-block-size:1em;vertical-align:baseline;overflow:hidden;}
+.house-painted-label[data-painted-flow=true]>.house-label-text{position:static;display:block;inline-size:auto;block-size:auto;margin:0;padding:0;clip-path:none;white-space:inherit;color:transparent!important;}
+.house-toolbar .house-painted-label[data-painted-flow=true]{block-size:auto;max-block-size:none;isolation:isolate;}
+.house-toolbar[data-scene=interaction] .house-camera-toggle:disabled,.house-toolbar[data-scene=inspection] .house-camera-toggle:disabled{pointer-events:none;}
+.house-observation{background:#f6f1e6;}.house-observation__stats dd[data-painted-flow]{display:block;}.house-observation__aura strong[data-painted-flow]{flex:1;}
+.current-location>#locationName[data-painted-flow]{display:block;block-size:2.7em;}
+.battle-hp{background:#f8f4e9;}
+
+.battle-hp__value[data-painted-flow]{flex:none;white-space:nowrap;}.battle-hp footer small[data-painted-flow]{min-inline-size:0;}
+
+/* Reserve both painted rows even when native Japanese line breaking keeps a short name on one row. */
+.battle-hp header strong[data-painted-flow]{display:block;flex:1;block-size:2.6em;line-height:1.3;}
+
+/* Stable opaque image layers replace numerical glyphs as a whole, including 99 -> 0. */
+.house-relax-counter__value strong[data-painted-flow]{inline-size:2.3ch;min-inline-size:2.3ch;max-inline-size:none;block-size:1.25em!important;contain:strict;isolation:isolate;background:#f8f1e3;}
+.house-painted-label>.painted-label-image{position:absolute;inset:0;display:block;inline-size:100%;block-size:100%;pointer-events:none;}
+.house-relax-counter__value strong[data-painted-flow]>.house-label-text{position:absolute;inline-size:1px;block-size:1px;clip-path:inset(50%);overflow:hidden;}
+/* The calm counter moved to the header; keep the activity and camera controls in one row. */
+.house-toolbar{grid-template-columns:40px minmax(0,1fr) 102px;}
+.house-toolbar .house-interaction-back{grid-column:1;}.house-toolbar .house-activity{grid-column:2;}.house-toolbar .house-camera-toggle{grid-column:3;}
+.house-observation__experience{display:flex;align-items:center;gap:7px;padding-bottom:5px;margin-bottom:5px;border-bottom:1px solid #bda77d55;color:#8d7b61;font-size:11px;}
+.house-experience-track{flex:1;min-inline-size:16px;block-size:6px;border-radius:10px;background:#ddcfb9;overflow:hidden;}.house-experience-track i{display:block;block-size:100%;inline-size:0;background:linear-gradient(90deg,#c8ab6d,#a48550);border-radius:inherit;}
+.house-observation__experience strong{flex:none;inline-size:85px;block-size:1.3em;font-weight:600;color:#63714c;}
+@media(max-width:350px) and (min-height:541px){.house-toolbar{grid-template-columns:36px minmax(0,1fr) 82px;}}
+@media(max-height:540px){.house-toolbar{grid-template-columns:30px minmax(0,1fr) 62px;}.house-observation__experience{font-size:10px;padding-bottom:3px;margin-bottom:3px;}}
+@media(max-height:340px){.house-toolbar{grid-template-columns:26px minmax(0,1fr) 53px;}}

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "source": "companions/follow.blend",
+  "sourceSha256": "98901a24c903e7dbf93f37a8561e8deee580132b0a6b748e4fe42ab345c60e8b",
+  "approvedCharacterSourceSha256": "cd9914464ae6a6bc6b6fed6af1d2b076165c629abe3bd9af8b577525fc41d9c0",
+  "sourcesUnchanged": true,
+  "url": "actors.glb",
+  "loopClosure": "Last key equals the first after in-place translation removal; source hand phase interpolation corrected only at endpoint.",
+  "clipName": "patrol_walk",
+  "duration": 1,
+  "fps": 24,
+  "units": "metres",
+  "forwardAxis": "+X",
+  "rendererRotationYRadians": 1.5707963267948966,
+  "groundY": 0,
+  "nominalHeights": {
+    "okoteiyu": 0.45,
+    "moaiKun": 0.2
+  },
+  "roots": {
+    "okoteiyu": "OkoteiyuRoot",
+    "moaiKun": "MoaiKunRoot"
+  },
+  "inPlace": true,
+  "sourceForwardSpeedRemoved": 0.095,
+  "toyOffsetAfterRendererRotation": [
+    0.24,
+    0,
+    0.42
+  ],
+  "toyHopDuration": 0.5,
+  "geometry": [
+    {
+      "name": "MoaiKun.Head",
+      "sourcePolygons": 341386,
+      "retainedPolygons": 25602,
+      "maximumApprovedVertexSurfaceErrorMetres": null
+    },
+    {
+      "name": "Okoteiyu.Body",
+      "sourcePolygons": 98304,
+      "retainedPolygons": 47062,
+      "maximumApprovedVertexSurfaceErrorMetres": 1.8745884517556988e-05
+    },
+    {
+      "name": "Okoteiyu.Hand.L",
+      "sourcePolygons": 3072,
+      "retainedPolygons": 2164,
+      "maximumApprovedVertexSurfaceErrorMetres": null
+    },
+    {
+      "name": "Okoteiyu.Hand.R",
+      "sourcePolygons": 3072,
+      "retainedPolygons": 2164,
+      "maximumApprovedVertexSurfaceErrorMetres": null
+    },
+    {
+      "name": "Okoteiyu.Foot.L",
+      "sourcePolygons": 6144,
+      "retainedPolygons": 4354,
+      "maximumApprovedVertexSurfaceErrorMetres": null
+    },
+    {
+      "name": "Okoteiyu.Foot.R",
+      "sourcePolygons": 6144,
+      "retainedPolygons": 4354,
+      "maximumApprovedVertexSurfaceErrorMetres": null
+    },
+    {
+      "name": "Okoteiyu.Tail",
+      "sourcePolygons": 3584,
+      "retainedPolygons": 2534,
+      "maximumApprovedVertexSurfaceErrorMetres": null
+    }
+  ],
+  "bytes": 2718356,
+  "sha256": "fb8390ecce6ceab47b5d4795388f5bd2dae3d3125cd2a4df43c86f70a4350945",
+  "tailAttachmentRevision": "R042"
+}

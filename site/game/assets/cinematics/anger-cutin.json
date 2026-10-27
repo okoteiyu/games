@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "name": "おこていゆの怒りカットイン",
+  "url": "anger-cutin.mp4",
+  "bytes": 2086537,
+  "sha256": "18e6bbf41288161f4e0b519da2218ec738d0540e347b5a23fbb9cfaf8d18831a",
+  "durationSeconds": 8,
+  "aspectRatio": [
+    1,
+    1
+  ],
+  "resolution": [
+    1080,
+    1080
+  ],
+  "fps": 30,
+  "cueSeconds": 5.3,
+  "utterance": {
+    "speaker": "おこていゆ",
+    "kind": "speech",
+    "text": "ｵｺﾃｲﾕ"
+  },
+  "originalMovieUnchanged": true,
+  "voiceIncluded": false
+}

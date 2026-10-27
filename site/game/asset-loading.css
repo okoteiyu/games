@@ -1,0 +1,30 @@
+/* Static markup appears before the game modules and large models are fetched. */
+.asset-loading{position:fixed;inset:0;height:fit-content;box-sizing:border-box;width:min(88vw,360px);max-height:92dvh;margin:auto;padding:24px 22px 22px;border:1px solid #bba37d;border-radius:23px 7px 23px 7px;background:linear-gradient(145deg,#fffdf4,#f4eedc);color:#756046;box-shadow:0 12px 55px #51433130;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans",system-ui,sans-serif;overflow:auto;}
+.asset-loading[open]{display:flex;flex-direction:column;align-items:stretch;}
+.asset-loading:not([open]){display:none;}
+.asset-loading::backdrop{background:#dce5cbd9;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+/* A shadow backdrop also covers the brief pre-module, non-modal open state. */
+body[data-asset-startup=loading] .asset-loading[open]{box-shadow:0 12px 55px #51433130,0 0 0 100vmax #dce5cbe8;}
+.asset-loading__top{display:flex;align-items:center;gap:12px;}
+.asset-loading__emblem{position:relative;flex:none;display:grid;place-items:center;width:46px;height:46px;border:1px solid #d7b98c;border-radius:15px 5px 15px 5px;background:linear-gradient(135deg,#fffcf0,#e7d8b8);box-shadow:inset 0 1px #fff,0 2px 3px #8f76511a;}
+.asset-loading__emblem svg{width:29px;height:29px;fill:none;stroke:#a47c50;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round;}
+.asset-loading__eyebrow{display:block;font-size:9.5px;letter-spacing:.17em;color:#a28b65;}
+.asset-loading h2{margin:5px 0 0;font-size:16px;line-height:1.6;font-weight:600;letter-spacing:.025em;}
+.asset-loading__description{font-size:12.5px;line-height:1.8;margin:17px 0 16px;color:#8a785e;}
+.asset-loading__meter{display:flex;align-items:center;gap:10px;}
+.asset-loading progress{appearance:none;-webkit-appearance:none;display:block;flex:1;min-width:0;height:9px;border:1px solid #c4c7a7;border-radius:99px;overflow:hidden;background:#e6e9d4;}
+.asset-loading progress::-webkit-progress-bar{background:#e6e9d4;border-radius:99px;}
+.asset-loading progress::-webkit-progress-value{border-radius:99px;background:linear-gradient(90deg,#a9ba7e,#839d67);}
+.asset-loading progress::-moz-progress-bar{border-radius:99px;background:linear-gradient(90deg,#a9ba7e,#839d67);}
+.asset-loading__percent{min-width:34px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums;font-weight:600;color:#7e8e57;}
+.asset-loading__details{font-size:10.5px;line-height:1.6;min-height:15px;margin:7px 0 13px;color:#9b896c;font-variant-numeric:tabular-nums;}
+.asset-loading__label{min-height:30px;margin:0;font-size:11.5px;line-height:1.7;overflow-wrap:anywhere;color:#8e7b5d;}
+.asset-loading__error{font-size:11.5px;line-height:1.7;padding:8px 9px;margin:5px 0 10px;border:1px solid #d6b7a5;border-radius:8px 3px;background:#f4e8df;color:#966d5b;overflow-wrap:anywhere;}
+.asset-loading button{align-self:center;margin:13px auto 0;padding:9px 22px;border:1px solid #baa17b;border-radius:11px 4px;background:linear-gradient(135deg,#fffaf0,#ebdcc1);color:#7b6547;font:inherit;font-size:12.5px;cursor:pointer;touch-action:manipulation;}
+.asset-loading button:focus-visible{outline:2px solid #937248;outline-offset:3px;}
+.asset-loading[data-state=error] .asset-loading__percent{color:#a47b64;}
+.asset-loading__fallback{display:grid;justify-items:center;margin-top:12px;font-size:10.5px;line-height:1.7;color:#9b896c;text-align:center;}
+.asset-loading__fallback button{margin-top:7px;}
+.asset-loading [hidden]{display:none !important;}
+@media(max-height:500px){.asset-loading{width:min(88vw,330px);padding:15px 18px;border-radius:17px 5px}.asset-loading__emblem{width:36px;height:36px;border-radius:11px 4px}.asset-loading__emblem svg{width:24px;height:24px}.asset-loading h2{font-size:13px}.asset-loading__description{font-size:11.5px;margin:10px 0}.asset-loading__details{margin-bottom:8px}.asset-loading__label{font-size:10.5px;min-height:22px}.asset-loading__percent{font-size:12.5px}}
+@media(prefers-reduced-motion:reduce){.asset-loading *{scroll-behavior:auto}}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "id": "city_day",
+      "region": "city",
+      "timeOfDay": "day",
+      "url": "city_day.glb",
+      "bytes": 868484,
+      "sha256": "c355a3ee37b86a1a80441e46ce9a77283ca04947b19bc9ff4e4c56567af17167",
+      "sky": "#dce9ec",
+      "ambient": 2.1,
+      "sunIntensity": 2.4,
+      "sunColor": "#fff0da"
+    },
+    {
+      "id": "city_night",
+      "region": "city",
+      "timeOfDay": "night",
+      "url": "city_night.glb",
+      "bytes": 868836,
+      "sha256": "a4cc8feaffa962e5406e3794f808d628499c00d3452f96fe01604e47a168527d",
+      "sky": "#131e34",
+      "ambient": 0.65,
+      "sunIntensity": 0.65,
+      "sunColor": "#b4c9ff"
+    },
+    {
+      "id": "residential_day",
+      "region": "residential",
+      "timeOfDay": "day",
+      "url": "residential_day.glb",
+      "bytes": 617560,
+      "sha256": "b70a0461d38f5750bc045db17eabe1ddbc7071312b135e48d49775660c33786e",
+      "sky": "#dce9ec",
+      "ambient": 2.1,
+      "sunIntensity": 2.4,
+      "sunColor": "#fff0da"
+    },
+    {
+      "id": "residential_night",
+      "region": "residential",
+      "timeOfDay": "night",
+      "url": "residential_night.glb",
+      "bytes": 617892,
+      "sha256": "f1e2f72081ea9f82d35513da396d72cd91b5e0f8d3310d084c0872dae300439e",
+      "sky": "#131e34",
+      "ambient": 0.65,
+      "sunIntensity": 0.65,
+      "sunColor": "#b4c9ff"
+    },
+    {
+      "id": "forest_day",
+      "region": "forest",
+      "timeOfDay": "day",
+      "url": "forest_day.glb",
+      "bytes": 925584,
+      "sha256": "77e8a7a355c0213683c0a0381beeb7695c17c1d7d64b99bcc5be870c079f39a4",
+      "sky": "#dce9ec",
+      "ambient": 2.1,
+      "sunIntensity": 2.4,
+      "sunColor": "#fff0da"
+    },
+    {
+      "id": "forest_night",
+      "region": "forest",
+      "timeOfDay": "night",
+      "url": "forest_night.glb",
+      "bytes": 925596,
+      "sha256": "30d3ba3f52a942b491301f1a21d57c98f703e619fa4afe7cf822c2247b5e3b87",
+      "sky": "#131e34",
+      "ambient": 0.65,
+      "sunIntensity": 0.65,
+      "sunColor": "#b4c9ff"
+    },
+    {
+      "id": "training_day",
+      "region": "training",
+      "timeOfDay": "day",
+      "url": "training_day.glb",
+      "bytes": 112356,
+      "sha256": "e4b1e1868540771d037cf88628552f141220be442fae6c7db1e711d7840b06ac",
+      "sky": "#e8ece6",
+      "ambient": 2.1,
+      "sunIntensity": 2.4,
+      "sunColor": "#fff0da"
+    },
+    {
+      "id": "training_night",
+      "region": "training",
+      "timeOfDay": "night",
+      "url": "training_night.glb",
+      "bytes": 112612,
+      "sha256": "ab598dcaca0d25a602c755a7fbb0663a4faf93ac17c532703e70a67f7f797de9",
+      "sky": "#172439",
+      "ambient": 0.8,
+      "sunIntensity": 0.8,
+      "sunColor": "#c3d4ff"
+    }
+  ],
+  "modelCount": 8,
+  "nativeSource": "source/build_fields.py",
+  "trainingSource": "source/build_training.py"
+}

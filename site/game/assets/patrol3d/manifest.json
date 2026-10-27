@@ -1,0 +1,556 @@
+{
+  "schemaVersion": 1,
+  "units": "metres",
+  "coordinateSystem": "Y up; forward -Z",
+  "modelCount": 12,
+  "roadWidth": 2.8,
+  "junctionCenter": [
+    0,
+    0,
+    -12
+  ],
+  "farEndHiddenByFog": true,
+  "numericGeometryAndAtmosphereAreAuthoringChoices": true,
+  "models": [
+    {
+      "id": "city_morning_road",
+      "region": "city",
+      "timeOfDay": "morning",
+      "kind": "road",
+      "url": "city_morning_road.glb",
+      "bytes": 791404,
+      "sha256": "5ef4dd3825a913c4b39d0e3864f9100a884609b92f4f8d5b42984f26bf9704e4",
+      "triangles": 14256,
+      "meshCount": 15,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          5.938929557800293,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {},
+      "atmosphere": {
+        "background": "#f4dfc7",
+        "fogColor": "#f4dfc7",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.1,
+        "sunColor": "#ffd9aa",
+        "sunIntensity": 2.4,
+        "sunPosition": [
+          -8,
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "id": "city_morning_junction",
+      "region": "city",
+      "timeOfDay": "morning",
+      "kind": "junction",
+      "url": "city_morning_junction.glb",
+      "bytes": 810424,
+      "sha256": "c81a97e9d84d9bb0a4997f9bf04ae2d7da70b51793ecc04df88fe74f473e183a",
+      "triangles": 14520,
+      "meshCount": 24,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          5.938929557800293,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {
+        "front": "Branch.front",
+        "left": "Branch.left",
+        "right": "Branch.right"
+      },
+      "atmosphere": {
+        "background": "#f4dfc7",
+        "fogColor": "#f4dfc7",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.1,
+        "sunColor": "#ffd9aa",
+        "sunIntensity": 2.4,
+        "sunPosition": [
+          -8,
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "id": "city_day_road",
+      "region": "city",
+      "timeOfDay": "day",
+      "kind": "road",
+      "url": "city_day_road.glb",
+      "bytes": 791340,
+      "sha256": "72dd21eb01fe96841d15c09ceca0b921ab78c115f143ee04b2e854a325459d43",
+      "triangles": 14256,
+      "meshCount": 15,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          5.938929557800293,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {},
+      "atmosphere": {
+        "background": "#dce9ec",
+        "fogColor": "#dce9ec",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.4,
+        "sunColor": "#fff5df",
+        "sunIntensity": 2.8,
+        "sunPosition": [
+          -3,
+          9,
+          4
+        ]
+      }
+    },
+    {
+      "id": "city_day_junction",
+      "region": "city",
+      "timeOfDay": "day",
+      "kind": "junction",
+      "url": "city_day_junction.glb",
+      "bytes": 810348,
+      "sha256": "74fa43447b01e97f84d2872619239865f6cc2b73e48f9fdd38758923b9b7725b",
+      "triangles": 14520,
+      "meshCount": 24,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          5.938929557800293,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {
+        "front": "Branch.front",
+        "left": "Branch.left",
+        "right": "Branch.right"
+      },
+      "atmosphere": {
+        "background": "#dce9ec",
+        "fogColor": "#dce9ec",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.4,
+        "sunColor": "#fff5df",
+        "sunIntensity": 2.8,
+        "sunPosition": [
+          -3,
+          9,
+          4
+        ]
+      }
+    },
+    {
+      "id": "residential_morning_road",
+      "region": "residential",
+      "timeOfDay": "morning",
+      "kind": "road",
+      "url": "residential_morning_road.glb",
+      "bytes": 576964,
+      "sha256": "a533d4838b8a1bf78b13a51e9711f36bf7f095e436ac4b89c297fbcb91d0ce49",
+      "triangles": 10144,
+      "meshCount": 16,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          3.5999999046325684,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {},
+      "atmosphere": {
+        "background": "#f4dfc7",
+        "fogColor": "#f4dfc7",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.1,
+        "sunColor": "#ffd9aa",
+        "sunIntensity": 2.4,
+        "sunPosition": [
+          -8,
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "id": "residential_morning_junction",
+      "region": "residential",
+      "timeOfDay": "morning",
+      "kind": "junction",
+      "url": "residential_morning_junction.glb",
+      "bytes": 595984,
+      "sha256": "2c9f1e526401baf068cc37061ca203ae2f3b4f7b15af1d2b55671f2a50977265",
+      "triangles": 10408,
+      "meshCount": 25,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          3.5999999046325684,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {
+        "front": "Branch.front",
+        "left": "Branch.left",
+        "right": "Branch.right"
+      },
+      "atmosphere": {
+        "background": "#f4dfc7",
+        "fogColor": "#f4dfc7",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.1,
+        "sunColor": "#ffd9aa",
+        "sunIntensity": 2.4,
+        "sunPosition": [
+          -8,
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "id": "residential_day_road",
+      "region": "residential",
+      "timeOfDay": "day",
+      "kind": "road",
+      "url": "residential_day_road.glb",
+      "bytes": 576868,
+      "sha256": "613391354789516512cb6d6050a9b419bac87a0099ee73a5c414fd6c7ef780c5",
+      "triangles": 10144,
+      "meshCount": 16,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          3.5999999046325684,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {},
+      "atmosphere": {
+        "background": "#dce9ec",
+        "fogColor": "#dce9ec",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.4,
+        "sunColor": "#fff5df",
+        "sunIntensity": 2.8,
+        "sunPosition": [
+          -3,
+          9,
+          4
+        ]
+      }
+    },
+    {
+      "id": "residential_day_junction",
+      "region": "residential",
+      "timeOfDay": "day",
+      "kind": "junction",
+      "url": "residential_day_junction.glb",
+      "bytes": 595876,
+      "sha256": "8d68455f7cae3668e24ede5eba0dcd2ed405b734611dd4b7a0d8c4577f9ddfdc",
+      "triangles": 10408,
+      "meshCount": 25,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.13500000536441803,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          3.5999999046325684,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {
+        "front": "Branch.front",
+        "left": "Branch.left",
+        "right": "Branch.right"
+      },
+      "atmosphere": {
+        "background": "#dce9ec",
+        "fogColor": "#dce9ec",
+        "fogNear": 17,
+        "fogFar": 48,
+        "ambient": 2.4,
+        "sunColor": "#fff5df",
+        "sunIntensity": 2.8,
+        "sunPosition": [
+          -3,
+          9,
+          4
+        ]
+      }
+    },
+    {
+      "id": "forest_morning_road",
+      "region": "forest",
+      "timeOfDay": "morning",
+      "kind": "road",
+      "url": "forest_morning_road.glb",
+      "bytes": 938016,
+      "sha256": "cbc1a2cb5d2185918b077b7153fe347c7b766bdfc3bb3254315878561cb25576",
+      "triangles": 12652,
+      "meshCount": 7,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.1600000262260437,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          4.061550140380859,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {},
+      "atmosphere": {
+        "background": "#f4dfc7",
+        "fogColor": "#f4dfc7",
+        "fogNear": 13,
+        "fogFar": 42,
+        "ambient": 2.1,
+        "sunColor": "#ffd9aa",
+        "sunIntensity": 2.4,
+        "sunPosition": [
+          -8,
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "id": "forest_morning_junction",
+      "region": "forest",
+      "timeOfDay": "morning",
+      "kind": "junction",
+      "url": "forest_morning_junction.glb",
+      "bytes": 898044,
+      "sha256": "fc0d8d701fe7c6dd6170bb300fe2832dc80c8ce7249279baecd36dbe4dd254ba",
+      "triangles": 12116,
+      "meshCount": 10,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.1600000262260437,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          4.061550140380859,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {
+        "front": "Branch.front",
+        "left": "Branch.left",
+        "right": "Branch.right"
+      },
+      "atmosphere": {
+        "background": "#f4dfc7",
+        "fogColor": "#f4dfc7",
+        "fogNear": 13,
+        "fogFar": 42,
+        "ambient": 2.1,
+        "sunColor": "#ffd9aa",
+        "sunIntensity": 2.4,
+        "sunPosition": [
+          -8,
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "id": "forest_day_road",
+      "region": "forest",
+      "timeOfDay": "day",
+      "kind": "road",
+      "url": "forest_day_road.glb",
+      "bytes": 938024,
+      "sha256": "1b43d0c00fba0716c1659891dd6b1d3cfc53cc16aeb459a16b356cade79a7861",
+      "triangles": 12652,
+      "meshCount": 7,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.1600000262260437,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          4.061550140380859,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {},
+      "atmosphere": {
+        "background": "#dce9ec",
+        "fogColor": "#dce9ec",
+        "fogNear": 13,
+        "fogFar": 42,
+        "ambient": 2.4,
+        "sunColor": "#fff5df",
+        "sunIntensity": 2.8,
+        "sunPosition": [
+          -3,
+          9,
+          4
+        ]
+      }
+    },
+    {
+      "id": "forest_day_junction",
+      "region": "forest",
+      "timeOfDay": "day",
+      "kind": "junction",
+      "url": "forest_day_junction.glb",
+      "bytes": 898044,
+      "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a",
+      "triangles": 12116,
+      "meshCount": 10,
+      "bounds": {
+        "min": [
+          -32.0,
+          -0.1600000262260437,
+          -86.0
+        ],
+        "max": [
+          32.0,
+          4.061550140380859,
+          14.0
+        ]
+      },
+      "junctionCenter": [
+        0,
+        0,
+        -12
+      ],
+      "branchGroups": {
+        "front": "Branch.front",
+        "left": "Branch.left",
+        "right": "Branch.right"
+      },
+      "atmosphere": {
+        "background": "#dce9ec",
+        "fogColor": "#dce9ec",
+        "fogNear": 13,
+        "fogFar": 42,
+        "ambient": 2.4,
+        "sunColor": "#fff5df",
+        "sunIntensity": 2.8,
+        "sunPosition": [
+          -3,
+          9,
+          4
+        ]
+      }
+    }
+  ]
+}

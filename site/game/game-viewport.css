@@ -1,0 +1,37 @@
+/* Full-height game, with height:width >= 12:7 (width/height <= 7/12). */
+html:has(.game-page) { block-size:100%; overflow:hidden;touch-action:manipulation; }
+body.game-page {
+ --game-height:100vh; --game-width-cap:calc(100vh * 7 / 12); --header-height:56px; --ui-reserve:126px;
+ margin:0; block-size:var(--game-height); inline-size:100%; overflow:hidden; overscroll-behavior:none;touch-action:manipulation;
+ display:flex; justify-content:center; align-items:flex-start; background:#eaf0e8; color:#3c5649;
+ font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; color-scheme:light;
+}
+@supports(height:100dvh) { body.game-page { --game-height:100dvh; --game-width-cap:calc(100dvh * 7 / 12); } }
+.game-page *, .game-page *::before, .game-page *::after { box-sizing:border-box; }
+.game-page [hidden] { display:none !important; }
+.game-shell {
+ --available-height:calc(var(--game-height) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+ inline-size:max(1px,min(calc(100vw - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)),var(--game-width-cap),calc(var(--available-height) - var(--ui-reserve))));
+ block-size:var(--game-height); padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px);
+ display:grid; grid-template-rows:auto auto minmax(0,1fr); min-block-size:0;
+ background:linear-gradient(165deg,#fbfcf6,#f5f8ef 66%,#f0f5e8); box-shadow:0 0 40px #536b5410; overflow:hidden;
+}
+.interface-bay { position:relative;min-block-size:0;overflow:hidden; }
+.lower-regions { position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-block-size:0; }
+.lower-left { display:grid;grid-template-rows:minmax(0,2fr) minmax(0,1fr);min-inline-size:0;min-block-size:0;border-inline-end:1px solid #cbbba52b; }
+.lower-left__top { min-inline-size:0;min-block-size:0;padding:10px 6px 5px 10px; }
+.lower-left__bottom { min-block-size:0;border-block-start:1px solid #cbbba522;margin-inline:10px 6px; }
+.lower-right { min-inline-size:0;min-block-size:0; }
+.game-toast { position:fixed; z-index:10; inset-inline-start:50%; inset-block-end:52px; translate:-50% 0; max-inline-size:90vw; padding:9px 14px; background:#fdfef8; border:1px solid #cadbc2; border-radius:12px; box-shadow:0 3px 16px #38593b18; font-size:12.5px; pointer-events:none; opacity:0; transition:opacity .15s; }
+.game-toast.is-visible { opacity:1; }
+@media(max-height:540px) {
+ body.game-page { --header-height:48px;--ui-reserve:108px; }
+ .lower-left__top { padding:5px 4px 2px 6px; }
+ .lower-left__bottom { margin-inline:6px 4px; }
+}
+@media(max-height:340px) {
+ body.game-page { --header-height:40px;--ui-reserve:86px; }
+ .lower-left__top { padding:3px 2px 1px 4px; }
+ .lower-left__bottom { margin-inline:4px 2px; }
+}
+@media(prefers-reduced-motion:reduce) { .game-toast { transition:none; } }

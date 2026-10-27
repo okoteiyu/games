@@ -1,0 +1,8 @@
+.anger-cutin-video{background:#000;object-fit:contain;}
+.anger-cutin-status,.anger-cutin-recovery{position:absolute;z-index:5;inset-inline:28px;top:35%;padding:14px;border:1px solid #bdab8d;border-radius:13px 5px 13px 5px;background:#fffaf0f2;box-shadow:0 5px 18px #30231133;color:#756043;text-align:center;font-size:12.5px;line-height:1.7;}
+.anger-cutin-recovery p{margin:0 0 10px;}
+.anger-cutin-recovery>div{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.anger-cutin-recovery button{min-block-size:36px;padding:7px 10px;border:1px solid #b6bd92;border-radius:9px 4px 9px 4px;background:#eef4d5;color:#62724b;font:inherit;cursor:pointer;touch-action:manipulation;}
+.anger-cutin-recovery button:last-child{background:#f4ebda;border-color:#c9b697;color:#816a49;font-size:11.5px;}
+.anger-cutin-recovery button:focus-visible{outline:2px solid #98754f;outline-offset:2px;}
+@media(max-height:430px){.anger-cutin-status,.anger-cutin-recovery{inset-inline:14px;padding:8px;font-size:9.5px}.anger-cutin-recovery p{margin-bottom:6px}.anger-cutin-recovery>div{gap:5px}.anger-cutin-recovery button{min-block-size:27px;padding:4px 6px;font-size:9.5px}.anger-cutin-recovery button:last-child{font-size:8.5px}}
