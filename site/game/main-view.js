@@ -177,7 +177,7 @@ function syncHomeReservation(queuedAction=null){
   const arrow=button.querySelector('.home-choice__arrow');if(arrow){arrow.textContent=queued?'待':'›';arrow.title=queued?'予約中':'';}
  }
 }
-houseUI=new HouseUI({view,isSimulationPaused:()=>needsVisitorName()||eventVisible||Boolean(gameRuntime&&gameRuntime.scene!=='house'),readCharacter:()=>gameRuntime?.session.observation()??null,onMapUpdate:(life,metadata)=>areaMap.showHouse(life,metadata),isPaused:()=>eventVisible||isModalBlocked(),canExecuteAction:kind=>gameRuntime?.canExecuteHouseAction(kind)??true,onInspect:target=>events.dispatch({type:target.type,kind:'narration',speaker:'ナレーション',text:target.text},{showMessage:true}),onLifeEvent:event=>{
+houseUI=new HouseUI({view,onGrowthGuide:opener=>optionsUI.open('growth-guide',opener),isSimulationPaused:()=>needsVisitorName()||eventVisible||Boolean(gameRuntime&&gameRuntime.scene!=='house'),readCharacter:()=>gameRuntime?.session.observation()??null,onMapUpdate:(life,metadata)=>areaMap.showHouse(life,metadata),isPaused:()=>eventVisible||isModalBlocked(),canExecuteAction:kind=>gameRuntime?.canExecuteHouseAction(kind)??true,onInspect:target=>events.dispatch({type:target.type,kind:'narration',speaker:'ナレーション',text:target.text},{showMessage:true}),onLifeEvent:event=>{
  gameRuntime?.onHouseEvent(event);
  if(event&&Object.hasOwn(event,'queuedAction'))syncHomeReservation(event.queuedAction);
  if(event&&typeof event.text==='string'&&event.text.trim())events.dispatch({type:event.type||'daily',text:event.text},{showMessage:false});

@@ -8,6 +8,7 @@ import {COLLECTION_KINDS,collectionThumbnail,CREATURE_NOTES} from './collection-
 import {CREATURES,CREATURE_CATEGORIES,SUPPORT_ITEMS,DEFENSE_ITEMS} from './game-session.js';
 import { encodeSave, decodeSave, validatePreviewState } from './save-data.js';
 import {describeSaveProgress} from './save-preview.js';
+import {GROWTH_GUIDE_TABS,growthGuideMarkup,selectGrowthGuideTab} from './growth-guide.js';
 import { isModalBlocked, tryOpenModal, releaseModal } from './modal-layer.js';
 
 export const OPTION_ITEMS = [
@@ -43,6 +44,7 @@ const titles=Object.fromEntries(OPTION_ITEMS.map(x=>[x.id,x.label]));
 titles.main='オプション';titles.policy='ポリシー';titles.guideline='ガイドライン';titles.collection='コレクション';titles.maps='マップ';titles.trainings='訓練';
 titles['confirm-patrol-return']='パトロールを中断しますか？';
 titles['ios-editions']='iOS版のご案内';titles.techniques='技';
+titles['growth-guide']='効率的成長の手引き';
 for(const [kind,label]of Object.entries(COLLECTION_KINDS))titles['collection-'+kind]=label;
 const hasRoute=id=>Object.prototype.hasOwnProperty.call(titles,id);
 
@@ -56,6 +58,7 @@ export class OptionsDialog {
   dialog.querySelector('#optionsClose').addEventListener('click',()=>dialog.close());
   this.back.addEventListener('click',()=>this.goBack());
   this.body.addEventListener('click',async event=>{
+   const growthTab=event.target.closest('[data-growth-tab]');if(growthTab){selectGrowthGuideTab(this.body,growthTab.dataset.growthTab);return;}
    const techSlot=event.target.closest('[data-technique-slot]');if(techSlot){this.activeTechniqueSlot=Number(techSlot.dataset.techniqueSlot);this.renderTechniques();return;}
    const tech=event.target.closest('[data-technique-select]');if(tech){this.selectedTechnique=tech.dataset.techniqueSelect;this.renderTechniques();return;}
    const assign=event.target.closest('[data-technique-assign]');if(assign){if(assign.disabled)return;const accepted=await this.onAssignTechnique(Number(assign.dataset.slot),assign.dataset.techniqueAssign||null);this.renderTechniques();if(!accepted)this.body.querySelector('[data-technique-status]').textContent='技を設定できませんでした。';return;}
@@ -83,6 +86,11 @@ export class OptionsDialog {
    const button=event.target.closest('[data-panel]');if(button)this.navigate(button.dataset.panel);
   });
   this.body.addEventListener('change',async event=>{if(!event.target.matches('[data-super-configuration]'))return;await this.onSuperConfiguration(event.target.value);this.renderTechniques();});
+  this.body.addEventListener('keydown',event=>{
+   const tab=event.target.closest('[role=tab][data-growth-tab]');if(!tab||!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+   event.preventDefault();const index=GROWTH_GUIDE_TABS.findIndex(([id])=>id===tab.dataset.growthTab),length=GROWTH_GUIDE_TABS.length;
+   const next=event.key==='Home'?0:event.key==='End'?length-1:(index+(event.key==='ArrowRight'?1:-1)+length)%length;selectGrowthGuideTab(this.body,GROWTH_GUIDE_TABS[next][0]);
+  });
   dialog.addEventListener('close',()=>{if(dialog.open)return;releaseModal(dialog);trigger.setAttribute('aria-expanded','false');this.opener?.setAttribute('aria-expanded','false');this.generation++;this.pending=null;this.body.replaceChildren();if(!isModalBlocked()&&this.opener?.isConnected)this.opener.focus({preventScroll:true});});
   dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
   this.resize=new ResizeObserver(()=>this.updateWidth());this.resize.observe(game);this.updateWidth();
@@ -145,6 +153,8 @@ export class OptionsDialog {
    this.body.innerHTML='<nav class="options-menu" aria-label="ポリシーとガイドライン"><button class="option-item" type="button" data-panel="policy"><span class="option-icon">'+icon('policy')+'</span><span class="option-copy"><span class="option-label">ポリシー</span></span><span class="option-chevron" aria-hidden="true">›</span></button><button class="option-item" type="button" data-panel="guideline"><span class="option-icon">'+icon('book')+'</span><span class="option-copy"><span class="option-label">ガイドライン</span></span><span class="option-chevron" aria-hidden="true">›</span></button></nav>';
   }else if(id==='ios-editions'){
    this.renderIosGuide();
+  }else if(id==='growth-guide'){
+   this.body.innerHTML=growthGuideMarkup();
   }else{
    this.body.innerHTML=empty('policy','内容は、今後掲載します。','');
   }

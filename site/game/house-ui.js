@@ -19,7 +19,7 @@ function activityLabel(life){
 }
 /** Mounts a persistent house renderer in the shared image/video/3D viewport. */
 export class HouseUI {
- constructor({view,isPaused,isSimulationPaused=isPaused,onLifeEvent=()=>{},onInspect=()=>{},onMapUpdate=()=>{},canExecuteAction=()=>true,readCharacter=()=>null,rng=Math.random}){
+ constructor({view,isPaused,isSimulationPaused=isPaused,onLifeEvent=()=>{},onInspect=()=>{},onMapUpdate=()=>{},onGrowthGuide=()=>false,canExecuteAction=()=>true,readCharacter=()=>null,rng=Math.random}){
   Object.assign(this,{view,isPaused,isSimulationPaused,onLifeEvent,onInspect,onMapUpdate,canExecuteAction,readCharacter,rng});this.active=false;this.controller=null;this.loading=null;this.failed=false;
   this.container=document.createElement('div');this.container.className='house3d-container';
   this.status=document.createElement('div');this.status.className='house3d-status';this.status.setAttribute('role','status');this.status.innerHTML='<span></span><button type="button" hidden>再読み込み</button>';
@@ -36,6 +36,9 @@ export class HouseUI {
   this.activity=document.createElement('div');this.activity.className='house-activity';this.activity.innerHTML='<span class="house-activity__label"><i aria-hidden="true"></i>いま</span><span class="house-activity__value" id="houseActivityValue" role="status" aria-live="polite"></span>';this.activityValue=this.activity.querySelector('.house-activity__value');
   this.modePaint=new PaintedLabel(this.button.querySelector('span'),{align:'center',background:'#f6ecd9',fitText:true});this.modePaint.set('ビューイング');this.activityPaint=new PaintedLabel(this.activityValue,{lines:2});
   this.toolbar.append(this.backButton,this.button,this.activity,this.hint);
+  this.growthGuideButton=document.createElement('button');this.growthGuideButton.type='button';this.growthGuideButton.className='growth-guide-trigger';this.growthGuideButton.id='growthGuideTrigger';this.growthGuideButton.setAttribute('aria-controls','optionsDialog');this.growthGuideButton.setAttribute('aria-haspopup','dialog');this.growthGuideButton.setAttribute('aria-expanded','false');
+  this.growthGuideButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6C8 3 4 5 3 6v13c3-2 6-2 9 0 3-2 6-2 9 0V6c-3-2-6-2-9 0Zm0 0v13"/></svg><span>効率的成長の手引き</span>';this.toolbar.append(this.growthGuideButton);
+  this.growthGuideButton.addEventListener('click',()=>{if(this.active&&!this.isPaused()&&!isModalBlocked())onGrowthGuide(this.growthGuideButton);});
   this.observationCard=document.createElement('section');this.observationCard.id='characterObservation';this.observationCard.className='house-observation';this.observationCard.hidden=true;this.observationCard.setAttribute('aria-label','詳細観測中のおこていゆの強さと装備');
   this.observationCard.innerHTML='<dl class="house-observation__stats">'+[['level','Lv.'],['hp','HP'],['attack','攻撃'],['ki','気'],['speed','速さ']].map(([id,label])=>'<div><dt>'+label+'</dt><dd data-observe="'+id+'"></dd></div>').join('')+'</dl><div class="house-observation__items"><span>サポート <b data-observe="support"></b></span><span>防御 <b data-observe="defense"></b></span></div><p class="house-observation__aura"><span>オーラ</span><strong data-observe="aura"></strong></p>';
   this.observationCard.insertAdjacentHTML('afterbegin','<div class="house-observation__experience" aria-label="経験値"><span>経験値</span><span class="house-experience-track" id="experienceGauge" role="progressbar" aria-label="次のレベルまでの経験値" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></span><strong id="experienceValue">0 / 15</strong></div>');
@@ -51,6 +54,7 @@ export class HouseUI {
   this.detailPointers=new Set();this.consumeDetailClick=false;
   this.view.element.addEventListener('pointerdown',event=>{
    this.consumeDetailClick=false;const c=this.controller;
+   if(event.target.closest?.('.growth-guide-trigger'))return;
    if(!c||!['interaction','inspection'].includes(c.sceneMode)||!c.canTapScene()||(event.pointerType==='mouse'&&event.button!==0))return;
    c.pointerDown(event);this.detailPointers.add(event.pointerId);event.stopImmediatePropagation();
   },true);
@@ -71,6 +75,8 @@ export class HouseUI {
   this.toolbar.hidden=!this.active;this.toolbar.dataset.scene=sceneMode;
   this.button.hidden=false;this.backButton.hidden=false;this.hint.hidden=false;
   this.button.disabled=!this.controller?.ready||blocked||transitioning||interaction;
+  // Keep its opener focusable while its own native modal owns background input.
+  this.growthGuideButton.disabled=!this.controller?.ready||(blocked&&!document.querySelector('#optionsDialog[open][data-route="growth-guide"]'));
   this.backButton.disabled=!this.controller?.ready||blocked||transitioning||!interaction;
   this.backButton.title=interaction?'元の3Dビューに戻る':'おこていゆや家具をタップすると、詳細観測モードになります';
   this.button.title=interaction?'ビュー内のどこでもタップ、または戻るボタンで詳細観測を終了します':'ビューイング／追従モードを切り替える';
