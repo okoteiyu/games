@@ -3,8 +3,8 @@ import {ADDED_CREATURES} from './creature-expansion.js';
 export const PATROL_CATEGORIES=Object.freeze(['normal','threat']);
 export const ENCOUNTER_PROFILES=Object.freeze({
  ...Object.fromEntries(Object.entries(ADDED_CREATURES).map(([id,{levelBand,spawnRegions,spawnTimes}])=>[id,Object.freeze({levelBand,spawnRegions,spawnTimes})])),
- horarara_horaran:Object.freeze({levelBand:Object.freeze({min:1,max:98}),spawnRegions:Object.freeze(['forest','residential']),spawnTimes:Object.freeze(['day','night'])}),
- moai_king:Object.freeze({levelBand:Object.freeze({min:5,max:98}),spawnRegions:Object.freeze(['forest','residential','city']),spawnTimes:Object.freeze(['day','night'])})
+ horarara_horaran:Object.freeze({levelBand:Object.freeze({min:1,max:100}),spawnRegions:Object.freeze(['forest','residential']),spawnTimes:Object.freeze(['day','night'])}),
+ moai_king:Object.freeze({levelBand:Object.freeze({min:5,max:100}),spawnRegions:Object.freeze(['forest','residential','city']),spawnTimes:Object.freeze(['day','night'])})
 });
 export const TRAINING_COURSES=Object.freeze({
  easy:Object.freeze({id:'easy',label:'訓練（易）',min:1,max:25,categories:Object.freeze(['normal','threat'])}),
