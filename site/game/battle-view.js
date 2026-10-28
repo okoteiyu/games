@@ -1,5 +1,6 @@
 import {AURA_STYLES as auraStyles} from './aura-styles.js';
 import {TECHNIQUES} from './technique-rules.js';
+import {AttackEffects} from './attack-effects.js';
 import { getBattleRegionAt } from './patrol-map.js';
 import * as THREE from './vendor/three/three.module.js';
 import { GLTFLoader } from './vendor/three/addons/loaders/GLTFLoader.js';
@@ -72,9 +73,9 @@ export class BattleView{
    this.actors=Object.fromEntries(records.map((record,index)=>[states[index].id||(index?'enemy':'player'),record]));
    const player=this.actors.player,enemies=records.slice(1);
    for(const record of records){record.anchor.visible=true;record.hitAt=-Infinity;record.superAt=-Infinity;record.currentClip=null;record.currentActionId=null;record.mixer.stopAllAction();}
-   const maxHeight=Math.max(...records.map(record=>record.height));this.separation=Math.max(1.05,maxHeight*1.05);
+   const maxHeight=Math.max(...records.map(record=>record.height));this.separation=Math.max(1.05,maxHeight*1.05,...enemies.map(record=>record.forwardExtent?record.forwardExtent+player.height*.7+Math.max(.35,maxHeight*.22):0));
    const offset=Math.max(.22,maxHeight*.22);player.anchor.position.set(-offset,0,this.separation/2);
-   const widths=enemies.map(enemy=>Math.max(.45,enemy.height*.9,(enemy.fitRadius||0)*2)),gap=.18,total=widths.reduce((sum,width)=>sum+width,0)+gap*(enemies.length-1);let cursor=offset-total/2;
+   const widths=enemies.map(enemy=>Math.max(.45,enemy.height*.9,(enemy.halfWidth??enemy.fitRadius??0)*2)),gap=.18,total=widths.reduce((sum,width)=>sum+width,0)+gap*(enemies.length-1);let cursor=offset-total/2;
    for(let index=0;index<enemies.length;index++){const enemy=enemies[index];enemy.anchor.position.set(cursor+widths[index]/2,0,-this.separation/2);cursor+=widths[index]+gap;enemy.facing.rotation.y=Math.atan2(player.anchor.position.x-enemy.anchor.position.x,player.anchor.position.z-enemy.anchor.position.z);}
    this.cameraAim=new THREE.Vector3(0,maxHeight*.5,-this.separation*.05);
    this.fieldManifest??=await loadAssetJson(new URL('fields.json',this.baseUrl));
@@ -149,7 +150,7 @@ export class BattleView{
    this.scene.add(anchor);anchor.visible=false;
    const height=number(definition.height??definition.height_m??definition.canonical_height_m,id==='moai_king'?2.5:id==='okoteiyu'?.45:.4);
    const record={id,instanceId,definition,anchor,facing,hitRoot,attackRoot,model,height,clips:gltf.animations,mixer:new THREE.AnimationMixer(model),actions:new Map(),hitAt:-Infinity,superAt:-Infinity,currentClip:null,currentActionId:null,fixedGround:findNode(model,'Combat.GroundFrame')};
-   if(definition.expansionRevision){model.updateWorldMatrix(true,true);const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());record.fitRadius=Math.max(size.x,size.z)/2;}
+   if(definition.expansionRevision){model.updateWorldMatrix(true,true);const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());record.fitRadius=Math.max(size.x,size.z)/2;if(definition.expansionRevision==='R089'){record.visualBounds=bounds;record.forwardExtent=Math.max(0,bounds.max.z);record.halfWidth=Math.max(Math.abs(bounds.min.x),Math.abs(bounds.max.x));}}
    record.appearance={};for(const [name,names]of Object.entries(definition.appearance||{}))record.appearance[name]=(Array.isArray(names)?names:[]).map(name=>findNode(record.model,name)).filter(Boolean);
    if(id==='okoteiyu'){this.prepareAuraMaterials(record);record.glow=this.makeGlow(height);hitRoot.add(record.glow);}
    record.model.traverse(node=>{if(node.isMesh){node.frustumCulled=true;node.castShadow=false;node.receiveShadow=false;if(definition.softAlpha){for(const material of Array.isArray(node.material)?node.material:[node.material])if(material.transparent){material.depthWrite=false;material.side=THREE.DoubleSide;}}}});
@@ -163,7 +164,17 @@ export class BattleView{
  applyAuraColor(record,auraId){
   const id=auraStyles[auraId]?auraId:'okoteiyu';if(record.auraId===id)return;
   record.auraId=id;const style=auraStyles[id],tint=new THREE.Color(style.color);record.auraColor=style.color;
-  for(const entry of record.auraMaterials||[]){if(entry.color)entry.material.color.copy(entry.color).multiply(tint);if(entry.emissive)entry.material.emissive.copy(entry.emissive).multiply(tint);if(entry.emissiveIntensity!==undefined)entry.material.emissiveIntensity=entry.emissiveIntensity*style.emissiveScale;}
+  for(const [i,entry]of (record.auraMaterials||[]).entries()){const color=style.palette?new THREE.Color(style.palette[i%style.palette.length]):tint;if(entry.color)entry.material.color.copy(entry.color).multiply(color);if(entry.emissive)entry.material.emissive.copy(entry.emissive).multiply(color);if(entry.emissiveIntensity!==undefined)entry.material.emissiveIntensity=entry.emissiveIntensity*style.emissiveScale;}
+  if(record.glow){record.glow.userData.baseMap??=record.glow.material.map;record.glow.material.map=style.palette?this.paletteAuraTexture(id,style.palette):record.glow.userData.baseMap;record.glow.material.needsUpdate=true;}
+ }
+ paletteAuraTexture(id,palette){
+  this.auraTextureCache??=new Map();if(this.auraTextureCache.has(id))return this.auraTextureCache.get(id);
+  const size=128,canvas=document.createElement('canvas');canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(size,size),colors=palette.map(c=>new THREE.Color(c)),highContrast=palette.some(c=>c===0x08090e);
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+   const dx=(x-size/2)/(size/2),dy=(y-size/2)/(size/2),r=Math.hypot(dx,dy),angle=(Math.atan2(dy,dx)/Math.PI/2+1)%1,u=(angle+.07*Math.sin(r*15))*colors.length,index=Math.floor((u+colors.length)%colors.length),mix=((u%1)+1)%1,color=colors[index].clone().lerp(colors[(index+1)%colors.length],highContrast?THREE.MathUtils.smoothstep(mix,.4,.6):mix),i=(y*size+x)*4;
+   pixels.data[i]=Math.round(THREE.MathUtils.clamp(color.r,0,1)*255);pixels.data[i+1]=Math.round(THREE.MathUtils.clamp(color.g,0,1)*255);pixels.data[i+2]=Math.round(THREE.MathUtils.clamp(color.b,0,1)*255);pixels.data[i+3]=Math.round(Math.max(0,1-Math.abs(r-.65)/.32)*Math.max(0,Math.min(1,(1-r)*5))*190);
+  }
+  ctx.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;this.auraTextureCache.set(id,texture);return texture;
  }
  makeGlow(height){
   const canvas=document.createElement('canvas');canvas.width=canvas.height=128;const context=canvas.getContext('2d');
@@ -230,15 +241,23 @@ export class BattleView{
   record.currentClip=chosen?.name||null;record.currentActionId=current?.id??null;
   record.hitRoot.position.set(0,0,-record.height*(role==='player'?.06:.16)*combatOffset(this.time-record.hitAt));
   const attackElapsed=current?number(current.elapsed,this.time-number(current.startedAt,this.time)):Infinity;
-  record.attackRoot.position.set(0,0,role!=='player'&&current?record.height*.16*combatOffset(attackElapsed):0);
+  record.attackRoot.position.set(0,0,current&&(role!=='player'||motion==='common_attack')?record.height*(role==='player'?.06:.16)*combatOffset(attackElapsed):0);
   if(role!=='player')this.sampleEnemyEffects(record,current);
+  const effectKind=TECHNIQUES[technique]?.effect;
+  if(effectKind||record.attackEffects){
+   record.attackEffects??=new AttackEffects(record);record.anchor.updateWorldMatrix(true,true);
+   const target=role==='player'?this.actors[this.snapshot?.targetId]||this.actors.enemy:this.actors.player;
+   const muzzle=effectKind==='shell'?findNode(record.model,'Vehicle.Muzzle'):null,origin=muzzle?muzzle.getWorldPosition(new THREE.Vector3()):record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*.60,0));
+   const point=target?.anchor.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,target.height*.58,0));
+   record.attackEffects.sample(effectKind,current?{...current,elapsed:attackElapsed}:null,origin,point);
+  }
   const appearance=record.appearance;
   if(role==='player'){
    this.applyAuraColor(record,state.auraId);
    for(const node of appearance.whiteAuraNodes||[])node.visible=auraActive;
    for(const node of appearance.superNodes||[])node.visible=superActive;
    for(const node of appearance.rayNodes||[])node.visible=motion==='energy_ray';
-   if(record.glow){record.glow.visible=auraActive||superActive;record.glow.material.color.set(superActive&&(!auraActive||record.auraId==='okoteiyu')?0xd5ef59:record.auraColor);record.glow.material.opacity=superActive?.8:.52;record.glow.scale.set(record.height*(superActive?1.75:1.48),record.height*(superActive?1.85:1.55),1);}
+   if(record.glow){const style=auraStyles[record.auraId]||auraStyles.okoteiyu;record.glow.visible=auraActive||superActive;record.glow.material.color.set(style.palette?0xffffff:superActive&&(!auraActive||record.auraId==='okoteiyu')?0xd5ef59:record.auraColor);record.glow.material.opacity=superActive?.8:style.emphasis?.95:style.palette?.72:.52;record.glow.scale.set(record.height*(superActive||style.emphasis?1.85:1.48),record.height*(superActive||style.emphasis?1.95:1.55),1);}
   }
  }
  updatePose(){
@@ -266,6 +285,14 @@ export class BattleView{
   const tangent=Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2));let distance=.5;
   // Fit both canonical bodies plus their soft effects, reserving space for HP.
   for(const actor of Object.values(this.actors)){
+   if(actor.visualBounds){
+    const b=actor.visualBounds,pad=actor.height*.12;actor.facing.updateWorldMatrix(true,false);
+    for(const x of [b.min.x-pad,b.max.x+pad])for(const y of [b.min.y-pad,b.max.y+pad])for(const z of [b.min.z-pad,b.max.z+pad]){
+     const relative=new THREE.Vector3(x,y,z).applyMatrix4(actor.facing.matrixWorld).sub(this.cameraAim),vertical=relative.dot(up);
+     distance=Math.max(distance,relative.dot(direction)+Math.max(Math.abs(relative.dot(right))/(tangent*this.camera.aspect*.88),Math.abs(vertical)/(tangent*room)));
+    }
+    continue;
+   }
    const large=actor.height>1,radius=Math.max(actor.height*(large?.42:.7),(actor.fitRadius||0)*1.08);
    for(const x of [-radius,radius])for(const y of [-.02,actor.height*(large?1.2:1.55)])for(const z of [-radius,radius]){
     const relative=new THREE.Vector3(x,y,z).add(actor.anchor.position).sub(this.cameraAim),vertical=relative.dot(up);
@@ -279,5 +306,5 @@ export class BattleView{
  setActive(active){this.active=Boolean(active);if(this.active){this.resize();this.updatePose();this.render();}}
  getDiagnostics(){return {field:this.field?.id||null,awakeningCutin:this.cutin?{...this.cutin}:null,ready:this.ready,loading:this.loading,active:this.active,error:this.lastError,contextLost:this.contextLost,time:this.time,renderFrames:this.renderFrames,size:{width:this.width||0,height:this.height||0},actors:Object.fromEntries(Object.entries(this.actors).map(([role,actor])=>[role,{id:actor.id,height:actor.height,position:actor.anchor.position.toArray(),facingY:actor.facing.rotation.y,currentClip:actor.currentClip,shield:actor.shield?{id:this.snapshot?.player?.equipment?.defense,visible:actor.shield.visible,position:actor.shield.position.toArray(),animations:0}:null,auraId:actor.auraId||null,auraColor:actor.auraColor===undefined?null:'#'+actor.auraColor.toString(16).padStart(6,'0'),auraMaterialCount:actor.auraMaterials?.length||0,hitOffset:actor.hitRoot.position.toArray(),attackOffset:actor.attackRoot.position.toArray(),fixedGroundWorld:actor.fixedGround?.getWorldPosition(new THREE.Vector3()).toArray()||null,meshCount:(()=>{let count=0;actor.model.traverse(node=>{if(node.isMesh)count++;});return count;})()}]))};}
  disposeObject(object){const geometries=new Set(),materials=new Set(),textures=new Set();object?.traverse(node=>{if(node.geometry)geometries.add(node.geometry);for(const material of Array.isArray(node.material)?node.material:node.material?[node.material]:[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value);}});for(const value of geometries)value.dispose();for(const value of materials)value.dispose();for(const value of textures)if(value!==this.shadowTexture)value.dispose();}
- destroy(){if(this.destroyed)return;this.destroyed=true;this.active=false;this.resizeObserver?.disconnect();for(const stop of this.listeners)stop();const resources=new THREE.Group();for(const record of this.actorCache.values()){record.mixer.stopAllAction();resources.add(record.anchor);}for(const template of this.templateCache.values())resources.add(template.scene);this.disposeObject(resources);this.clearStage();this.shadowTexture?.dispose();this.environmentTarget?.dispose();this.actorCache.clear();this.actorPromises.clear();this.templateCache.clear();this.templatePromises.clear();this.renderer?.dispose();this.canvas?.remove();}
+ destroy(){if(this.destroyed)return;this.destroyed=true;this.active=false;this.resizeObserver?.disconnect();for(const stop of this.listeners)stop();const resources=new THREE.Group();for(const record of this.actorCache.values()){record.mixer.stopAllAction();resources.add(record.anchor);}for(const template of this.templateCache.values())resources.add(template.scene);this.disposeObject(resources);this.clearStage();this.shadowTexture?.dispose();for(const texture of this.auraTextureCache?.values()||[])texture.dispose();this.auraTextureCache?.clear();this.environmentTarget?.dispose();this.actorCache.clear();this.actorPromises.clear();this.templateCache.clear();this.templatePromises.clear();this.renderer?.dispose();this.canvas?.remove();}
 }

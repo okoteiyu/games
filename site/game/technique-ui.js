@@ -1,12 +1,13 @@
 import {TECHNIQUES,availableTechniqueIds,SUPER_CONFIGURATIONS,superStateDetails,playerTechniqueLevel,techniquePower} from './technique-rules.js';
 import {creatureStats,applyAuraStats,applySuperStats,playerStats} from './game-session.js';
 import {collectionThumbnail} from './collection-data.js';
+import {additionalEffectsText} from './additional-effects.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=value=>Number(value).toLocaleString('ja-JP',{maximumFractionDigits:2});
 export function profileStats(player){return player.stats||playerStats(player);}
 export function superDetailsMarkup(player,{editable=false,disabled=false}={}){
  const state=superStateDetails(player),stats=profileStats(player),boosted=applySuperStats(stats,state.multiplier),attack=boosted.attack,ki=boosted.ki;
- return '<section class="super-configuration"><h3>'+esc(state.name)+'</h3>'+(editable?'<label>カスタム設定<select data-super-configuration'+(disabled?' disabled':'')+'>'+Object.values(SUPER_CONFIGURATIONS).map(c=>'<option value="'+c.id+'"'+(c.id===state.configuration?' selected':'')+'>'+esc(c.label)+'</option>').join('')+'</select></label><p class="option-note">接頭辞を含む追加のカスタム設定は、今後増えていきます。</p>':'<p>カスタム設定：'+esc(state.configurationLabel)+'</p>')+'<dl class="collection-facts"><div><dt>レベル</dt><dd>'+state.level+' / '+state.maxLevel+'</dd></div><div><dt>発動中の攻撃力</dt><dd>'+number(attack)+'（+'+number(attack-stats.attack)+'）</dd></div><div><dt>発動中の気</dt><dd>'+number(ki)+'（+'+number(ki-stats.ki)+'）</dd></div><div><dt>行動速度</dt><dd>'+state.multiplier.toFixed(2)+'倍</dd></div><div><dt>効果時間</dt><dd>'+state.duration.toFixed(2)+'秒</dd></div></dl><p>1戦闘に1回。自分または相手のHPが25%以下になると自動で発動します。かけごえでも発動を指示できます。効果中は攻撃技だけを使います。</p></section>';
+ return '<section class="super-configuration"><h3>'+esc(state.name)+'</h3>'+(editable?'<label>カスタム設定<select data-super-configuration'+(disabled?' disabled':'')+'>'+Object.values(SUPER_CONFIGURATIONS).map(c=>'<option value="'+c.id+'"'+(c.id===state.configuration?' selected':'')+'>'+esc(c.label)+'</option>').join('')+'</select></label><p class="option-note">接頭辞を含む追加のカスタム設定は、今後増えていきます。</p>':'<p>カスタム設定：'+esc(state.configurationLabel)+'</p>')+'<p class="option-note">'+esc(additionalEffectsText(SUPER_CONFIGURATIONS[state.configuration].additionalEffects))+'</p><dl class="collection-facts"><div><dt>レベル</dt><dd>'+state.level+' / '+state.maxLevel+'</dd></div><div><dt>発動中の攻撃力</dt><dd>'+number(attack)+'（+'+number(attack-stats.attack)+'）</dd></div><div><dt>発動中の気</dt><dd>'+number(ki)+'（+'+number(ki-stats.ki)+'）</dd></div><div><dt>行動速度</dt><dd>'+state.multiplier.toFixed(2)+'倍</dd></div><div><dt>効果時間</dt><dd>'+state.duration.toFixed(2)+'秒</dd></div></dl><p>1戦闘に1回。自分または相手のHPが25%以下になると自動で発動します。かけごえでも発動を指示できます。効果中は攻撃技だけを使います。</p></section>';
 }
 /** The record book lists names only. Technique details live in the collection. */
 export function repertoireMarkup(ids){

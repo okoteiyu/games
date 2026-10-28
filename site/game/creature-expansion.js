@@ -1,5 +1,6 @@
-/** R067 confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
-const definitions=[
+import {NEW_CREATURE_DEFINITIONS} from './creature-expansion-c.js';
+/** Confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
+const definitions=[...NEW_CREATURE_DEFINITIONS,
  {
   "id": "fae_dragon",
   "name": "妖竜",
@@ -272,4 +273,4 @@ const definitions=[
   "description": "赤い体をもつドラゴンの珍生物。"
  }
 ];
-export const ADDED_CREATURES=Object.freeze(Object.fromEntries(definitions.map(creature=>[creature.id,Object.freeze({...creature,levelBand:Object.freeze(creature.levelBand),spawnRegions:Object.freeze(creature.spawnRegions),spawnTimes:Object.freeze(creature.spawnTimes),ranks:Object.freeze(creature.ranks),techniques:Object.freeze(creature.techniques)})])));
+export const ADDED_CREATURES=Object.freeze(Object.fromEntries(definitions.map(creature=>[creature.id,Object.freeze({...creature,levelBand:Object.freeze(creature.levelBand),spawnRegions:Object.freeze(creature.spawnRegions),spawnTimes:Object.freeze(creature.spawnTimes),ranks:Object.freeze(creature.ranks),techniques:Object.freeze(creature.techniques),additionalEffects:Object.freeze(creature.additionalEffects||[]),auraAdditionalEffects:Object.freeze(creature.auraAdditionalEffects||[])})])));

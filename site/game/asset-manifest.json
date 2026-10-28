@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
-  "fileCount": 93,
-  "totalBytes": 92608602,
+  "fileCount": 120,
+  "totalBytes": 94549009,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 17726,
+      "bytes": 22295,
       "priority": 2,
-      "sha256": "187f0e0781d1238a4cae54a5bb5b66f2b379e6744274ea3c9971846e4d1f998e"
+      "sha256": "9114e6cbe4962bc4538034f984cafdaaa1084cb164af77d759c5e8d9625744ba"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -747,6 +747,222 @@
       "bytes": 42171,
       "priority": 3,
       "sha256": "a16b6054289d37645c57628fb83795156ab0e3a4458b4ed3cb7e6eea9540da35"
+    },
+    {
+      "url": "assets/battle3d/wind_kurukuru.glb?v=c9cac4a17c8c4551f758880b7d9bbac2664c2aa5a53b6497985c29817ae9140f",
+      "label": "風のクルクル",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "c9cac4a17c8c4551f758880b7d9bbac2664c2aa5a53b6497985c29817ae9140f",
+      "bytes": 364468
+    },
+    {
+      "url": "assets/battle3d/steel_maru.glb?v=4d4b5f0a5e4365f842d833b9fb7fd7d3aa7adfe314fc6dfc3fe593f106b3e5f3",
+      "label": "鋼丸",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "4d4b5f0a5e4365f842d833b9fb7fd7d3aa7adfe314fc6dfc3fe593f106b3e5f3",
+      "bytes": 159184
+    },
+    {
+      "url": "assets/battle3d/eleki_kun.glb?v=da0da3fe36dd801443d8f3026d48a461d53c41e628e84a256c2da39e2c9546ad",
+      "label": "エレキ君",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "da0da3fe36dd801443d8f3026d48a461d53c41e628e84a256c2da39e2c9546ad",
+      "bytes": 190596
+    },
+    {
+      "url": "assets/battle3d/armored_tank.glb?v=ea2b141fc007255978c46154111965395eec688ee2da1efe9fa21f88b86ba322",
+      "label": "堅牢な自力移動戦車",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "ea2b141fc007255978c46154111965395eec688ee2da1efe9fa21f88b86ba322",
+      "bytes": 641108
+    },
+    {
+      "url": "assets/battle3d/railway_cannon.glb?v=8bdaf12cf9a02adee85152f1daa4b1984ce0515f81ece3427e2be8a8f711a7a9",
+      "label": "自力移動列車砲",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "8bdaf12cf9a02adee85152f1daa4b1984ce0515f81ece3427e2be8a8f711a7a9",
+      "bytes": 291188
+    },
+    {
+      "url": "assets/battle3d/star_soul.glb?v=dd0f2d223099580a9924da891b9baad31c66d0ca1aa654aba7126fa208b2ba0b",
+      "label": "星の魂",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "dd0f2d223099580a9924da891b9baad31c66d0ca1aa654aba7126fa208b2ba0b",
+      "bytes": 28024
+    },
+    {
+      "url": "assets/battle3d/void_space.glb?v=1ebca784bed1ab1dd29cade70c2ed4484d23728e8b56579b08812910b03105c5",
+      "label": "ヴォイドスペース",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "1ebca784bed1ab1dd29cade70c2ed4484d23728e8b56579b08812910b03105c5",
+      "bytes": 117948
+    },
+    {
+      "url": "assets/battle3d/perfect_cosmos.glb?v=44b2a2df8560b7a9f3318cd8982511f23deeddcc6d18bf522d81e2ebeb02e22f",
+      "label": "Perfect Cosmos",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "44b2a2df8560b7a9f3318cd8982511f23deeddcc6d18bf522d81e2ebeb02e22f",
+      "bytes": 50416
+    },
+    {
+      "url": "assets/collection/technique-void_wave.svg",
+      "label": "ヴォイドウェーブのアイコン",
+      "type": "image",
+      "priority": 3,
+      "sha256": "f74b14b2e104a2d40d4e28f8e48e6c4fbe7e53d75999487b8c664a7e121793c1",
+      "bytes": 482
+    },
+    {
+      "url": "assets/collection/technique-cannon_shell.svg",
+      "label": "砲撃のアイコン",
+      "type": "image",
+      "priority": 3,
+      "sha256": "f434d3687121e6aab62e340fe0aa608ea5b3aac11174a79ffe26c6a5ff764118",
+      "bytes": 714
+    },
+    {
+      "url": "assets/collection/aura-void_space.webp",
+      "label": "ヴォイドスペースのオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "f6e965e5de1a2a2d747ab1537262ce6632946862e4e005f759046d46a542d919",
+      "bytes": 6188
+    },
+    {
+      "url": "assets/collection/aura-star_soul.webp",
+      "label": "星の魂のオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "67352fb92ff94b9e9d148510221bbef806a5e597777b532f084002021dec9c17",
+      "bytes": 6964
+    },
+    {
+      "url": "assets/collection/aura-wind_kurukuru.webp",
+      "label": "風のクルクルのオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "fb8f69f32d5cb8e1349d641706ba93b5b31b0b8852883f4f5127b2ae302ccd4a",
+      "bytes": 4172
+    },
+    {
+      "url": "assets/collection/aura-railway_cannon.webp",
+      "label": "自力移動列車砲のオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "6918b33dfe50201cc78966644950f316f4c0e4dd7e0ae5b156bc49615012e7fd",
+      "bytes": 10152
+    },
+    {
+      "url": "assets/collection/steel_maru.webp",
+      "label": "鋼丸",
+      "type": "image",
+      "priority": 3,
+      "sha256": "b7b117a01fd8ca8ad4457c7f67ea3ba723b44f177ac56bee3cecf8bfcb4b2efb",
+      "bytes": 4614
+    },
+    {
+      "url": "assets/collection/void_space.webp",
+      "label": "ヴォイドスペース",
+      "type": "image",
+      "priority": 3,
+      "sha256": "5b116133a252afab96d764d059f34e0463e1f4cdfac3ffca85232166013ebc02",
+      "bytes": 3358
+    },
+    {
+      "url": "assets/collection/wind_kurukuru.webp",
+      "label": "風のクルクル",
+      "type": "image",
+      "priority": 3,
+      "sha256": "63fd8c4ee28989595a5cb7c5e072a1d81789c3c0257dc275ca644169e9b4a5a5",
+      "bytes": 3424
+    },
+    {
+      "url": "assets/collection/aura-eleki_kun.webp",
+      "label": "エレキ君のオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137",
+      "bytes": 4272
+    },
+    {
+      "url": "assets/collection/aura-perfect_cosmos.webp",
+      "label": "Perfect Cosmosのオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "e802b0856558edd580593ddbb5b5b498b79d18cc1c4f318f83b514071631fd53",
+      "bytes": 9208
+    },
+    {
+      "url": "assets/collection/railway_cannon.webp",
+      "label": "自力移動列車砲",
+      "type": "image",
+      "priority": 3,
+      "sha256": "cbe5386d355354d902706434ef5e0a12402b4f482f367593dbfd82c836b450b2",
+      "bytes": 8358
+    },
+    {
+      "url": "assets/collection/technique-cosmos_wave.svg",
+      "label": "コスモスウェーブのアイコン",
+      "type": "image",
+      "priority": 3,
+      "sha256": "c93ec48bfc903d5767ae5536f336360cbb8fb3229a37b99267b5520e90ba40d9",
+      "bytes": 766
+    },
+    {
+      "url": "assets/collection/perfect_cosmos.webp",
+      "label": "Perfect Cosmos",
+      "type": "image",
+      "priority": 3,
+      "sha256": "05e53e9ca0c7ae065cc2306401f5997d73e860b79edd6880df99827dbde09c14",
+      "bytes": 1904
+    },
+    {
+      "url": "assets/collection/star_soul.webp",
+      "label": "星の魂",
+      "type": "image",
+      "priority": 3,
+      "sha256": "2f0c65762a33ae3b8e68f03b5eda6d8c15c380bc94fc3fa9140057eda4626c57",
+      "bytes": 3304
+    },
+    {
+      "url": "assets/collection/eleki_kun.webp",
+      "label": "エレキ君",
+      "type": "image",
+      "priority": 3,
+      "sha256": "99f9805c26769c48253b76ce1148e5782b887b841c0d4ac711022f7961ce34ed",
+      "bytes": 7154
+    },
+    {
+      "url": "assets/collection/aura-armored_tank.webp",
+      "label": "堅牢な自力移動戦車のオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "76a8fb7800f95ee810f29d68cc2102f1a36837b40d938e43280871fae5bff4a9",
+      "bytes": 4872
+    },
+    {
+      "url": "assets/collection/aura-steel_maru.webp",
+      "label": "鋼丸のオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "b6533c27047d1d259cbf3989c962c73963932079c27db62a106bc50261f54735",
+      "bytes": 4300
+    },
+    {
+      "url": "assets/collection/armored_tank.webp",
+      "label": "堅牢な自力移動戦車",
+      "type": "image",
+      "priority": 3,
+      "sha256": "dff8727047d6f797c7424625d74cbd5e25679513341822a01823c05c0c086e5c",
+      "bytes": 8700
     }
   ]
 }

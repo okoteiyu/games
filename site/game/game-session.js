@@ -1,4 +1,5 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
+import {NO_ADDITIONAL_EFFECTS} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {currentTimeOfDay} from './world-time.js';
@@ -15,9 +16,9 @@ const EPSILON=1e-10;
 const STAT_KEYS=['hp','attack','ki','speed'];
 export const CREATURE_CATEGORIES=Object.freeze({normal:Object.freeze({label:'通常',description:'パトロールなどに登場する、特別ではない珍生物。'}),threat:Object.freeze({label:'脅威',description:'通常カテゴリに比べて戦闘力が高い種族。'}),unique:Object.freeze({label:'ユニーク',description:'その個体しか存在せず、ストーリーやイベントに登場する。レベルなどは固定。'})});
 export const CREATURES=Object.freeze({
- okoteiyu:Object.freeze({id:'okoteiyu',techniques:Object.freeze(['punch','energy_ray','charged_punch','charged_energy_ray','energy_punch']),name:'おこていゆ',height:.45,ranks:Object.freeze({hp:4,attack:6,ki:5,speed:5})}),
- horarara_horaran:Object.freeze({...ENCOUNTER_PROFILES.horarara_horaran,id:'horarara_horaran',techniques:Object.freeze(['normal_attack','energy_ray']),name:'ホラララホララン',category:'normal',height:.4,ranks:Object.freeze({hp:5,attack:5,ki:5,speed:5})}),
- moai_king:Object.freeze({...ENCOUNTER_PROFILES.moai_king,id:'moai_king',techniques:Object.freeze(['normal_attack','energy_ray']),name:'モアイの戦士',category:'normal',height:2.5,ranks:Object.freeze({hp:14,attack:9,ki:9,speed:2})}),
+ okoteiyu:Object.freeze({id:'okoteiyu',techniques:PLAYER_TECHNIQUE_IDS,additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,name:'おこていゆ',height:.45,ranks:Object.freeze({hp:4,attack:6,ki:5,speed:5})}),
+ horarara_horaran:Object.freeze({...ENCOUNTER_PROFILES.horarara_horaran,id:'horarara_horaran',additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,techniques:Object.freeze(['normal_attack','energy_ray']),name:'ホラララホララン',category:'normal',height:.4,ranks:Object.freeze({hp:5,attack:5,ki:5,speed:5})}),
+ moai_king:Object.freeze({...ENCOUNTER_PROFILES.moai_king,id:'moai_king',additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,techniques:Object.freeze(['normal_attack','energy_ray']),name:'モアイの戦士',category:'normal',height:2.5,ranks:Object.freeze({hp:14,attack:9,ki:9,speed:2})}),
  ...ADDED_CREATURES
 });
 export const PATROL_CALM_COST=1;
