@@ -725,9 +725,9 @@
       "id": "void_space",
       "name": "ヴォイドスペース",
       "url": "void_space.glb",
-      "height": 1,
-      "height_m": 1,
-      "canonical_height_m": 1,
+      "height": 0.8,
+      "height_m": 0.8,
+      "canonical_height_m": 0.8,
       "height_status": "confirmed",
       "motionRoot": "Combat.MotionRoot",
       "forwardAxis": "+Z",
@@ -739,8 +739,9 @@
       },
       "softAlpha": false,
       "expansionRevision": "R089",
-      "bytes": 117948,
-      "sha256": "1ebca784bed1ab1dd29cade70c2ed4484d23728e8b56579b08812910b03105c5"
+      "bytes": 118012,
+      "sha256": "6b8ab37ddf3ce5fe5ec01e97229eac7ce64002bb89ed063aeea76ee49a8a4583",
+      "appearanceRevision": "R091"
     },
     "perfect_cosmos": {
       "id": "perfect_cosmos",
@@ -763,6 +764,28 @@
       "bytes": 51708,
       "sha256": "6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
       "appearanceRevision": "R090"
+    },
+    "chaos": {
+      "id": "chaos",
+      "name": "カオス",
+      "url": "chaos.glb",
+      "height": 0.8,
+      "height_m": 0.8,
+      "canonical_height_m": 0.8,
+      "height_status": "confirmed",
+      "motionRoot": "Combat.MotionRoot",
+      "forwardAxis": "+Z",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "softAlpha": true,
+      "expansionRevision": "R089",
+      "bytes": 635760,
+      "sha256": "d4661de42c338ac18511d4d81126a1207a8352ac633d47f95b16e702fbb4e856",
+      "appearanceRevision": "R091"
     }
   },
   "commonMotion": {
@@ -789,5 +812,5 @@
   },
   "existingApprovedSourcesUnchanged": true,
   "prototypeDerivatives": true,
-  "creatureExpansionRevision": "R089"
+  "creatureExpansionRevision": "R091"
 }

@@ -1,11 +1,11 @@
 import {techniqueMaxLevel,SUPER_MAX_LEVEL,playerTechniqueLevel,availableTechniqueIds} from './technique-rules.js';
 /** The current reward lineup; new rewards can be added here without changing the draw. */
 export const OKOTEIYU_EVENT_REWARDS=Object.freeze([
- Object.freeze({id:'super_state_level_up',label:'スーパーおこていゆ状態',percent:38,levelKey:'superLevel',maxLevel:SUPER_MAX_LEVEL}),
+ Object.freeze({id:'super_state_level_up',label:'スーパーおこていゆ状態',percent:37,levelKey:'superLevel',maxLevel:SUPER_MAX_LEVEL}),
  Object.freeze({id:'unlock_energy_ray',label:'エネルギーレイ',percent:12,levelKey:'energyRayLevel',techniqueId:'energy_ray',unlockKey:'energyRayUnlocked'}),
  Object.freeze({id:'punch_level_up',label:'パンチ',percent:12,levelKey:'punchLevel',techniqueId:'punch'}),
  ...[['charged_punch','溜めパンチ'],['charged_energy_ray','溜めエネルギーレイ'],['energy_punch','エネルギーパンチ']].map(([techniqueId,label])=>Object.freeze({id:'unlock_'+techniqueId,label,techniqueId,percent:12,collectionLevel:true})),
- ...[['void_wave','ヴォイドウェーブ'],['cosmos_wave','コスモスウェーブ']].map(([techniqueId,label])=>Object.freeze({id:'unlock_'+techniqueId,label,techniqueId,percent:1,collectionLevel:true}))
+ ...[['void_wave','ヴォイドウェーブ'],['cosmos_wave','コスモスウェーブ'],['chaos_wave','カオスウェーブ']].map(([techniqueId,label])=>Object.freeze({id:'unlock_'+techniqueId,label,techniqueId,percent:1,collectionLevel:true}))
 ]);
 export function eligibleOkoteiyuRewards(player){
  return OKOTEIYU_EVENT_REWARDS.filter(item=>{

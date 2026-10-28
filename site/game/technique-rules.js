@@ -8,9 +8,10 @@ export const TECHNIQUES=Object.freeze({
  cannon_shell:Object.freeze({id:'cannon_shell',maxLevel:50,name:'砲撃',duration:2,motion:'common_attack',effect:'shell',description:'体を動かして、勢いよく砲弾を放つ攻撃。',power:'攻撃力 × 3 ＋ 技レベル × 5'}),
  void_wave:Object.freeze({id:'void_wave',maxLevel:1,name:'ヴォイドウェーブ',duration:2,motion:'common_attack',effect:'void_wave',description:'漆黒の波を放つ、気を使う攻撃。',power:'気 × 4'}),
  cosmos_wave:Object.freeze({id:'cosmos_wave',maxLevel:1,name:'コスモスウェーブ',duration:2,motion:'common_attack',effect:'cosmos_wave',description:'華やかな虹色の波を放つ、気を使う攻撃。',power:'気 × 4'}),
+ chaos_wave:Object.freeze({id:'chaos_wave',maxLevel:1,name:'カオスウェーブ',duration:2,motion:'common_attack',effect:'chaos_wave',description:'攻撃力と気を合わせ、青・紫・白・黒の混沌とした波を放つ攻撃。',power:'（攻撃力 ＋ 気） × 2'}),
  enemy_attack:Object.freeze({id:'enemy_attack',maxLevel:30,name:'共通攻撃',duration:.5,description:'体全体を一瞬前へ動かし、すぐに元の位置へ戻る攻撃。',power:'攻撃力をそのまま威力にする'})
 });
-export const ADDED_TECHNIQUE_IDS=Object.freeze(['charged_punch','charged_energy_ray','energy_punch','void_wave','cosmos_wave','cannon_shell']);
+export const ADDED_TECHNIQUE_IDS=Object.freeze(['charged_punch','charged_energy_ray','energy_punch','void_wave','cosmos_wave','cannon_shell','chaos_wave']);
 export const PLAYER_TECHNIQUE_IDS=Object.freeze(['punch','energy_ray',...ADDED_TECHNIQUE_IDS]);
 export const SUPER_MAX_LEVEL=100;
 export function techniqueMaxLevel(id,definitions=TECHNIQUES){const max=definitions[id]?.maxLevel;if(!Number.isSafeInteger(max)||max<1)throw new RangeError('技の最大レベルが設定されていません。');return max;}
@@ -25,6 +26,7 @@ export function techniquePower(id,stats,level){
  if(id==='normal_attack'||id==='punch')return stats.attack+level;
  if(id==='cannon_shell')return stats.attack*3+5*level;
  if(id==='void_wave'||id==='cosmos_wave')return stats.ki*4;
+ if(id==='chaos_wave')return (stats.attack+stats.ki)*2;
  if(id==='enemy_attack')return stats.attack;
  throw new RangeError('不明な技です。');
 }

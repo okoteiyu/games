@@ -205,7 +205,7 @@ export const NEW_CREATURE_DEFINITIONS=[
   "id": "void_space",
   "name": "ヴォイドスペース",
   "category": "threat",
-  "height": 1,
+  "height": 0.8,
   "levelBand": {
    "min": 1,
    "max": 100
@@ -272,6 +272,44 @@ export const NEW_CREATURE_DEFINITIONS=[
   ],
   "auraEmphasis": true,
   "description": "顔をもたない、鮮やかな青・シアン・紫がはっきり見える、柔らかく低密度のモヤの塊。",
+  "additionalEffects": [],
+  "auraAdditionalEffects": []
+ },
+ {
+  "id": "chaos",
+  "name": "カオス",
+  "category": "threat",
+  "height": 0.8,
+  "levelBand": {
+   "min": 1,
+   "max": 100
+  },
+  "spawnRegions": [
+   "forest",
+   "residential",
+   "city"
+  ],
+  "spawnTimes": [
+   "day",
+   "night"
+  ],
+  "ranks": {
+   "hp": 10,
+   "attack": 10,
+   "ki": 10,
+   "speed": 0
+  },
+  "techniques": [
+   "chaos_wave"
+  ],
+  "auraColor": "#7728c4",
+  "auraPalette": [
+   "#08090e",
+   "#7728c4",
+   "#08090e",
+   "#5b15a7"
+  ],
+  "description": "混沌とした禍々しい雰囲気を感じる、恐ろしい珍生物。黒・紫・青・白の渦巻く模様をもつ、モヤ状の真球。",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  }

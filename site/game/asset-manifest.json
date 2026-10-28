@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
-  "fileCount": 120,
-  "totalBytes": 94552661,
+  "fileCount": 124,
+  "totalBytes": 95212068,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 22337,
+      "bytes": 22961,
       "priority": 2,
-      "sha256": "e7f970794a50fe1f4b8110353c51f351af6d89f39dcfb4f08dfaf9e7628055fb"
+      "sha256": "97b7c53ea60ce48ee6904789f886bd639870af8561591b5cd7a6ff1f9e88c43b"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -797,12 +797,12 @@
       "bytes": 28024
     },
     {
-      "url": "assets/battle3d/void_space.glb?v=1ebca784bed1ab1dd29cade70c2ed4484d23728e8b56579b08812910b03105c5",
+      "url": "assets/battle3d/void_space.glb?v=6b8ab37ddf3ce5fe5ec01e97229eac7ce64002bb89ed063aeea76ee49a8a4583",
       "label": "ヴォイドスペース",
       "type": "binary",
       "priority": 3,
-      "sha256": "1ebca784bed1ab1dd29cade70c2ed4484d23728e8b56579b08812910b03105c5",
-      "bytes": 117948
+      "sha256": "6b8ab37ddf3ce5fe5ec01e97229eac7ce64002bb89ed063aeea76ee49a8a4583",
+      "bytes": 118012
     },
     {
       "url": "assets/battle3d/perfect_cosmos.glb?v=6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
@@ -963,6 +963,38 @@
       "priority": 3,
       "sha256": "dff8727047d6f797c7424625d74cbd5e25679513341822a01823c05c0c086e5c",
       "bytes": 8700
+    },
+    {
+      "url": "assets/battle3d/chaos.glb?v=d4661de42c338ac18511d4d81126a1207a8352ac633d47f95b16e702fbb4e856",
+      "label": "カオス",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "d4661de42c338ac18511d4d81126a1207a8352ac633d47f95b16e702fbb4e856",
+      "bytes": 635760
+    },
+    {
+      "url": "assets/collection/chaos.webp",
+      "label": "カオスの画像",
+      "type": "image",
+      "priority": 3,
+      "sha256": "7f4d3e2f65e8b4b80a6acf0f452d77b6ce59025fd76cf7b00d3e4bbada682063",
+      "bytes": 15120
+    },
+    {
+      "url": "assets/collection/aura-chaos.webp",
+      "label": "カオスのオーラ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "9f2999dfd092f9d9f512bd2e42ea14218d45e3acab01e436cca0edee6cdac4ee",
+      "bytes": 6896
+    },
+    {
+      "url": "assets/collection/technique-chaos_wave.svg",
+      "label": "カオスウェーブのアイコン",
+      "type": "image",
+      "priority": 3,
+      "sha256": "01538c782e7373bd564df3332533fd388b4f27358686235208c690df00c32f8e",
+      "bytes": 943
     }
   ]
 }

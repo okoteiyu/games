@@ -1,11 +1,12 @@
 import * as THREE from './vendor/three/three.module.js';
 
 /** Runtime effects are independent of the user's shared attack/recoil motion. */
-function softRingTexture(rainbow=false){
- const size=128,canvas=document.createElement('canvas');canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(size,size),color=new THREE.Color();
+function softRingTexture(kind='void_wave'){
+ const size=128,canvas=document.createElement('canvas');canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(size,size),color=new THREE.Color(),chaosColors=[0x08090e,0x8027ca,0x2459eb,0xf5f5ff].map(c=>new THREE.Color(c));
  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
   const dx=(x-size/2)/(size/2),dy=(y-size/2)/(size/2),r=Math.hypot(dx,dy),angle=Math.atan2(dy,dx),i=(y*size+x)*4;
-  const wave=Math.exp(-(((r-.60)/.13)**2))+.28*Math.exp(-(((r-.34)/.11)**2));color.set(rainbow?0xffffff:0x030308);if(rainbow)color.setHSL((angle/Math.PI/2+1)%1,.9,.68);
+  const wave=Math.exp(-(((r-.60)/.13)**2))+.28*Math.exp(-(((r-.34)/.11)**2));color.set(0x030308);if(kind==='cosmos_wave')color.setHSL((angle/Math.PI/2+1)%1,.9,.68);
+  if(kind==='chaos_wave'){const u=((angle/Math.PI/2+1+.12*Math.sin(r*12))%1+1)%1*4,index=Math.floor(u);color.copy(chaosColors[index]).lerp(chaosColors[(index+1)%4],u-index);}
   pixels.data[i]=Math.round(color.r*255);pixels.data[i+1]=Math.round(color.g*255);pixels.data[i+2]=Math.round(color.b*255);pixels.data[i+3]=Math.round(Math.min(1,wave)*255*Math.max(0,Math.min(1,(1-r)*6)));
  }
  ctx.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
@@ -20,7 +21,7 @@ export class AttackEffects{
    const tip=new THREE.Mesh(new THREE.ConeGeometry(.055,.12,16),metal);tip.rotation.x=Math.PI/2;tip.position.z=.18;group.add(tip);
    const trail=new THREE.Mesh(new THREE.ConeGeometry(.06,.48,16,1,true),new THREE.MeshBasicMaterial({color:0xffdf95,transparent:true,opacity:.27,depthWrite:false,blending:THREE.AdditiveBlending}));trail.rotation.x=-Math.PI/2;trail.position.z=-.27;group.add(trail);
   }else{
-   const map=softRingTexture(kind==='cosmos_wave');
+   const map=softRingTexture(kind);
    for(let i=0;i<3;i++){const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,opacity:.8,depthWrite:false,toneMapped:false}));group.add(sprite);parts.push(sprite);}
   }
   const effect={group,parts,kind};this.effects.set(kind,effect);return effect;
