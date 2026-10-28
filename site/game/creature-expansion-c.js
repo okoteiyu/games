@@ -1,4 +1,4 @@
-/** R089 species. Heights are in metres; level limits are inclusive. */
+/** Confirmed species. Heights are in metres; level limits are inclusive. */
 export const NEW_CREATURE_DEFINITIONS=[
  {
   "id": "wind_kurukuru",
@@ -238,7 +238,7 @@ export const NEW_CREATURE_DEFINITIONS=[
   "id": "perfect_cosmos",
   "name": "Perfect Cosmos",
   "category": "threat",
-  "height": 1,
+  "height": 1.5,
   "levelBand": {
    "min": 1,
    "max": 100
@@ -271,7 +271,7 @@ export const NEW_CREATURE_DEFINITIONS=[
    "#e48cff"
   ],
   "auraEmphasis": true,
-  "description": "顔をもたない、淡く美しい虹色の、密度の低いモヤの塊。",
+  "description": "顔をもたない、鮮やかな青・シアン・紫がはっきり見える、柔らかく低密度のモヤの塊。",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  }

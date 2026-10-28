@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
   "fileCount": 120,
-  "totalBytes": 94549009,
+  "totalBytes": 94552661,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 22295,
+      "bytes": 22337,
       "priority": 2,
-      "sha256": "9114e6cbe4962bc4538034f984cafdaaa1084cb164af77d759c5e8d9625744ba"
+      "sha256": "e7f970794a50fe1f4b8110353c51f351af6d89f39dcfb4f08dfaf9e7628055fb"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -805,12 +805,12 @@
       "bytes": 117948
     },
     {
-      "url": "assets/battle3d/perfect_cosmos.glb?v=44b2a2df8560b7a9f3318cd8982511f23deeddcc6d18bf522d81e2ebeb02e22f",
+      "url": "assets/battle3d/perfect_cosmos.glb?v=6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
       "label": "Perfect Cosmos",
       "type": "binary",
       "priority": 3,
-      "sha256": "44b2a2df8560b7a9f3318cd8982511f23deeddcc6d18bf522d81e2ebeb02e22f",
-      "bytes": 50416
+      "sha256": "6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
+      "bytes": 51708
     },
     {
       "url": "assets/collection/technique-void_wave.svg",
@@ -921,8 +921,8 @@
       "label": "Perfect Cosmos",
       "type": "image",
       "priority": 3,
-      "sha256": "05e53e9ca0c7ae065cc2306401f5997d73e860b79edd6880df99827dbde09c14",
-      "bytes": 1904
+      "sha256": "4df470e6090f86f4218594fc1cbf1ac204345b521bd3403970aba51640b88130",
+      "bytes": 4222
     },
     {
       "url": "assets/collection/star_soul.webp",

@@ -746,9 +746,9 @@
       "id": "perfect_cosmos",
       "name": "Perfect Cosmos",
       "url": "perfect_cosmos.glb",
-      "height": 1,
-      "height_m": 1,
-      "canonical_height_m": 1,
+      "height": 1.5,
+      "height_m": 1.5,
+      "canonical_height_m": 1.5,
       "height_status": "confirmed",
       "motionRoot": "Combat.MotionRoot",
       "forwardAxis": "+Z",
@@ -760,8 +760,9 @@
       },
       "softAlpha": true,
       "expansionRevision": "R089",
-      "bytes": 50416,
-      "sha256": "44b2a2df8560b7a9f3318cd8982511f23deeddcc6d18bf522d81e2ebeb02e22f"
+      "bytes": 51708,
+      "sha256": "6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
+      "appearanceRevision": "R090"
     }
   },
   "commonMotion": {
