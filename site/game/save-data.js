@@ -1,6 +1,7 @@
 /* Encrypted transport for UI and optional home-only prototype state. */
 import { normalizeRankPoints, getRankProgress } from './rank-progress.js';
 import { validateSessionState } from './game-session.js';
+import { validateVisitorProgress } from './visitor-profile.js';
 const FORMAT = 'okoteiyu-ui-preview';
 const VERSION = 1;
 const ITERATIONS = 210000;
@@ -52,8 +53,8 @@ export function validatePreviewState(state) {
       safeState.rankPoints = points;
     }
   }
-  // The v1 UI-only payload remains valid. Prototype state is an optional,
-  // separately validated extension; it never includes an in-progress battle.
+  // Progress never includes an in-progress battle. An unnamed save must
+  // provide the exact initial level and calm points.
   if (hasPrototype) {
     const prototype = state.prototype;
     if (state.location !== 'おこていゆハウス' ||
@@ -62,8 +63,11 @@ export function validatePreviewState(state) {
     let session;
     try { session = validateSessionState(prototype.session); }
     catch { throw invalidState(); }
+    validateVisitorProgress(session,prototype.relaxStreak);
     safeState.prototype = { session, relaxStreak: Math.min(99,prototype.relaxStreak) };
   }
+  // UI-only legacy data cannot establish the required initial level and calm points.
+  if(!hasPrototype)throw invalidState();
   return safeState;
 }
 

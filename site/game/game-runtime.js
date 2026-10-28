@@ -1,4 +1,5 @@
 import {TECHNIQUES} from './technique-rules.js';
+import {isInitialProgress,normalizeVisitorName,validateVisitorProgress} from './visitor-profile.js';
 import {battleResultMessage} from './battle-result.js';
 import {currentTimeOfDay} from './world-time.js';
 import {TRAINING_COURSES} from './encounter-rules.js';
@@ -27,9 +28,15 @@ export class GameRuntime {
  log(type,text){this.showMessage({type,text},{record:true,showMessage:false});}
  isRelaxing(){return /^(eating|bed_lie|bed_rise|chair_sit|chair_rise)$/.test(this.house.controller?.life?.phase||'');}
  isHouseReady(){return Boolean(this.house.controller?.ready&&this.house.controller?.life);}
+ registerVisitorName(value){
+  const name=normalizeVisitorName(value);
+  if(!name)throw new Error('名前を入力してください。');
+  if(this.scene!=='house'||!isInitialProgress(this.session.state,this.house.getConsecutiveRelaxActions()))throw new Error('名前を登録できる初期状態ではありません。');
+  this.session.state.visitorName=name;this.sync();return true;
+ }
  homeCommands(){
   const commands=this.session.commandAvailability(this.house.getConsecutiveRelaxActions(),{isRelaxing:this.isRelaxing()});
-  if(!this.isHouseReady()){
+  if(!this.isHouseReady()||!this.session.state.visitorName){
    for(const key of ['patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
    commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));
   }
@@ -153,7 +160,7 @@ export class GameRuntime {
   this.messages.push({type:outcome?.changed?'growth':'anger',text:'おこていゆイベントが起きた。 '+text});this.sync();
  }
  exportProgress({browser=false}={}){if(this.scene!=='house')throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
- importProgress(progress){if(this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');if(progress){this.session.importState(progress.session);this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);}else this.session.state.angerPoints=0;this.session.state.interferenceUsedSinceBattle=false;this.sync();}
+ importProgress(progress){if(this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');validateVisitorProgress(progress?.session,progress?.relaxStreak);this.session.importState(progress.session);this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);this.session.state.interferenceUsedSinceBattle=false;this.sync();}
  assignTechnique(slot,id){if(this.scene!=='house')return false;const accepted=this.session.assignTechnique(slot,id);this.sync();return accepted;}
  setSuperConfiguration(id){if(this.scene!=='house')return false;const accepted=this.session.setSuperConfiguration(id);this.sync();return accepted;}
  equipItem(kind,id){if(this.scene!=='house')return false;const accepted=this.session.equipItem(kind,id);this.house.updateLifeStatus();this.sync();return accepted;}

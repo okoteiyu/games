@@ -1,5 +1,6 @@
 import {setPaintedText} from './painted-label.js';
 import {BrowserSave} from './browser-save.js';
+import {VisitorNamePopup} from './visitor-name.js';
 import {installPasswordViewportGuard} from './password-viewport.js';
 import { GameRuntime } from './game-runtime.js';
 import { HouseUI } from './house-ui.js';
@@ -30,6 +31,7 @@ export class SquareSceneView {
 
 installPasswordViewportGuard();
 let patrolUI=null,houseUI=null,gameRuntime=null;
+const needsVisitorName=()=>!gameRuntime?.session.state.visitorName;
 const view=new SquareSceneView(document.querySelector('#mainView'));
 const areaMap=new AreaMap(document.querySelector('#areaMap'));areaMap.showHouse();
 const events=new GameEvents({onMessage:payload=>presentMessage(payload)});
@@ -93,6 +95,15 @@ hideEvent();
 if(new URLSearchParams(location.search).get('event')==='demo')showEvent(samples[0],{record:false});
 const input=document.querySelector('#mediaFile');
 const popup=new NoticePopup({game:document.querySelector('#game')});
+let startupRestoreError=null;
+const visitorNamePopup=new VisitorNamePopup({game:document.querySelector('#game'),onRegister:name=>{gameRuntime.registerVisitorName(name);browserSave.resetFailure();return true;}});
+function ensureVisitorName(){
+ if(!startupNoticeShown)return;
+ if(startupRestoreError){if(popup.open({type:'error',title:'保存データを復元できませんでした',message:startupRestoreError}))startupRestoreError=null;return;}
+ if(needsVisitorName())visitorNamePopup.open();
+}
+// Native dialog close listeners release the shared modal owner first.
+document.addEventListener('close',()=>setTimeout(ensureVisitorName,0),true);
 let toastTimer;
 function toast(text){const box=document.querySelector('#toast');box.textContent=text;box.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>box.classList.remove('is-visible'),2600);}
 input.addEventListener('change',()=>{try{const file=input.files[0];if(file){view.setFile(file);toast('選んだ素材を端末内で表示しています。');}}catch(error){popup.open({type:'error',message:error.message});}input.value='';});
@@ -111,7 +122,7 @@ const optionsUI=new OptionsDialog({
  onEquipItem:(kind,id)=>gameRuntime?.equipItem(kind,id)??false,
  onSelectMap:(id,tier='easy')=>{if(id==='training')return gameRuntime?.requestTraining(tier)??false;if(id==='patrol')return gameRuntime?.requestPatrol()??false;if(id==='house'){if(!gameRuntime?.cancelPatrol())return false;view.setHouse();setLocation('おこていゆハウス');hideEvent();return true;}return false;},
  readState:({browser=false}={})=>({rank:document.querySelector('#rankValue').textContent,location:document.querySelector('#locationName').textContent,gauges:{experience:Number(document.querySelector('#experienceGauge').getAttribute('aria-valuenow'))/100},rankPoints:rankHint.getPoints(),...(gameRuntime?{prototype:gameRuntime.exportProgress({browser})}: {})}),
- applyState:state=>{validatePatrolTransfer(state);gameRuntime?.importProgress(state.prototype);if(state.rankPoints!=null)setRankPoints(state.rankPoints);else setRank(state.rank);setLocation('おこていゆハウス');view.setHouse();gameRuntime?.sync();if(window.mainViewPreview?.browserSave?.initialized)window.mainViewPreview.browserSave.resetFailure();}
+ applyState:state=>{validatePatrolTransfer(state);gameRuntime?.importProgress(state.prototype);if(state.rankPoints!=null)setRankPoints(state.rankPoints);else setRank(state.rank);setLocation('おこていゆハウス');view.setHouse();gameRuntime?.sync();if(window.mainViewPreview?.browserSave?.initialized)window.mainViewPreview.browserSave.resetFailure();if(needsVisitorName()&&optionsUI.dialog.open)optionsUI.dialog.close();}
 
 });
 function setLocation(label){setPaintedText(document.querySelector('#locationName'),label,{background:'bronze',align:'center',lines:2});document.querySelector('#homeChoices').hidden=label!=='おこていゆハウス';}
@@ -140,7 +151,7 @@ let startupNoticeShown=false;
 export function showStartupNotice(){if(startupNoticeShown)return false;const shown=popup.showStartup();if(shown)startupNoticeShown=true;return shown;}
 window.mainViewPreview.showStartupNotice=showStartupNotice;
 if(!window.assetStartup)showStartupNotice();
-if(new URLSearchParams(location.search).get('options')==='open')popup.dialog.addEventListener('close',()=>optionsUI.open(),{once:true});
+if(new URLSearchParams(location.search).get('options')==='open')popup.dialog.addEventListener('close',()=>{if(!needsVisitorName())optionsUI.open();},{once:true});
 
 document.querySelector('#collectionTrigger').addEventListener('click',event=>optionsUI.open('collection',event.currentTarget));
 document.querySelector('#mapTrigger').addEventListener('click',event=>optionsUI.open('maps',event.currentTarget));
@@ -164,7 +175,7 @@ function syncHomeReservation(queuedAction=null){
   const arrow=button.querySelector('.home-choice__arrow');if(arrow){arrow.textContent=queued?'待':'›';arrow.title=queued?'予約中':'';}
  }
 }
-houseUI=new HouseUI({view,isSimulationPaused:()=>eventVisible||Boolean(gameRuntime&&gameRuntime.scene!=='house'),readCharacter:()=>gameRuntime?.session.observation()??null,onMapUpdate:(life,metadata)=>areaMap.showHouse(life,metadata),isPaused:()=>eventVisible||isModalBlocked(),canExecuteAction:kind=>gameRuntime?.canExecuteHouseAction(kind)??true,onInspect:target=>events.dispatch({type:target.type,kind:'narration',speaker:'ナレーション',text:target.text},{showMessage:true}),onLifeEvent:event=>{
+houseUI=new HouseUI({view,isSimulationPaused:()=>needsVisitorName()||eventVisible||Boolean(gameRuntime&&gameRuntime.scene!=='house'),readCharacter:()=>gameRuntime?.session.observation()??null,onMapUpdate:(life,metadata)=>areaMap.showHouse(life,metadata),isPaused:()=>eventVisible||isModalBlocked(),canExecuteAction:kind=>gameRuntime?.canExecuteHouseAction(kind)??true,onInspect:target=>events.dispatch({type:target.type,kind:'narration',speaker:'ナレーション',text:target.text},{showMessage:true}),onLifeEvent:event=>{
  gameRuntime?.onHouseEvent(event);
  if(event&&Object.hasOwn(event,'queuedAction'))syncHomeReservation(event.queuedAction);
  if(event&&typeof event.text==='string'&&event.text.trim())events.dispatch({type:event.type||'daily',text:event.text},{showMessage:false});
@@ -178,10 +189,10 @@ for(const {action,button} of homeActionButtons){
  });
 }
 gameRuntime=new GameRuntime({view,house:houseUI,patrol:patrolUI,homeElement:document.querySelector('#homeChoices'),
- isPaused:()=>eventVisible||isModalBlocked(),isModalPaused:()=>isModalBlocked(),isMessageVisible:()=>eventVisible,
+ isPaused:()=>needsVisitorName()||eventVisible||isModalBlocked(),isModalPaused:()=>needsVisitorName()||isModalBlocked(),isMessageVisible:()=>eventVisible,
  showMessage:(payload,{record=true,showMessage=true}={})=>showMessage?showEvent(payload,{record}):events.dispatch(payload,{showMessage:false}),hideMessage:hideEvent,setLocation,setGauges,toast,readMessagePage:()=>({page:message.page,pages:message.pages.length}),advanceMessagePage:()=>message.advance()});
 window.mainViewPreview.game=gameRuntime;
-const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>gameRuntime.scene==='house'&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready),onError:text=>toast(text)});
+const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>gameRuntime.scene==='house'&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready),onError:(text,error)=>{toast(text);if(browserSave.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
 gameRuntime.onProgressChange=()=>{browserSave.saveNow();optionsUI.refreshGameView();};
 window.addEventListener('pagehide',()=>browserSave.saveNow());document.addEventListener('visibilitychange',()=>{if(document.hidden)browserSave.saveNow();});
 window.mainViewPreview.browserSave=browserSave;

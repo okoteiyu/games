@@ -1,5 +1,6 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS} from './initial-state.js';
+import {normalizeVisitorName} from './visitor-profile.js';
 import {currentTimeOfDay} from './world-time.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers} from './equipment-rules.js';
 export {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers} from './equipment-rules.js';
@@ -170,14 +171,14 @@ export function validateSessionState(saved){
  const interferenceUsedSinceBattle=saved.interferenceUsedSinceBattle===undefined?false:saved.interferenceUsedSinceBattle;
  if(typeof interferenceUsedSinceBattle!=='boolean')throw new TypeError('Interference lock must be boolean.');
  const patrolUsedSinceRecovery=saved.patrolUsedSinceRecovery??false;if(typeof patrolUsedSinceRecovery!=='boolean')throw new TypeError('Patrol cooldown must be boolean.');
- return clone({schemaVersion:1,player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount});
+ return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount});
 }
 
 export class GameSession{
  constructor({rng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
   if(typeof rng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
   this.rng=rng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
-  this.state={schemaVersion:1,location:'home',player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null};
+  this.state={schemaVersion:1,visitorName:null,location:'home',player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null};
   if(state!==null)this.importState(state);
  }
  emit(type,detail={}){const event={type,...detail};this.eventLog.push(clone(event));if(this.eventLog.length>120)this.eventLog.shift();this.onEvent(event);return event;}
@@ -353,7 +354,7 @@ export class GameSession{
   // before the cut-in. Loading this checkpoint resumes at home, not on a route.
   const departing=allowDepartureCheckpoint&&['patrol','training'].includes(this.state.location);
   if((this.state.location!=='home'&&!departing)||this.state.battle||this.state.pendingAngerEvent&&!allowPending)throw new Error('Save only at home, outside patrol, battle, and the anger cut-in.');
-  return clone({schemaVersion:1,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount});
+  return clone({schemaVersion:1,visitorName:this.state.visitorName,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount});
  }
  importState(saved){
   if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)throw new Error('Load only at home, outside an event.');

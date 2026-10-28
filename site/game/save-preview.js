@@ -10,7 +10,7 @@ export function describeSaveProgress(state){
  const recorded=Object.entries(CREATURES).filter(([id,creature])=>id==='okoteiyu'||Object.hasOwn(CREATURE_CATEGORIES,creature.category)&&(player.journal[id]?.encounters||0)>0).length;
  const items=(ids,definitions)=>ids.map(id=>({name:definitions[id].name,quantity:'1個'}));
  return {
-  rows:[['おこていゆのレベル','Lv.'+player.level],['サポートもちもの',support.length+'種類'],['防御もちもの',defense.length+'種類'],['オーラ',auras.length+'種類'],['習得済みの技',availableTechniqueIds(player).length+'種類'],['記録帳の珍生物',recorded+'種類（おこていゆを含む）']],
+  rows:[['あなたの名前',state.prototype.session.visitorName||'未登録'],['おこていゆのレベル','Lv.'+player.level],['サポートもちもの',support.length+'種類'],['防御もちもの',defense.length+'種類'],['オーラ',auras.length+'種類'],['習得済みの技',availableTechniqueIds(player).length+'種類'],['記録帳の珍生物',recorded+'種類（おこていゆを含む）']],
   inventory:[
    {label:'サポートもちもの',items:items(support,SUPPORT_ITEMS)},
    {label:'防御もちもの',items:items(defense,DEFENSE_ITEMS)},
