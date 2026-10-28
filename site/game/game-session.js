@@ -32,7 +32,7 @@ export const PROTOTYPE_CHOICES=Object.freeze({
  firstAttack:'Wait one jittered interval; the next interval starts when the current motion completes.',
  jitterDistribution:'Uniform over minus/plus ten percent, redrawn for every action.',
  simultaneousCompletions:'Player completes first, then opponents in stable order; a fatigued actor cancels only its own unfinished action.',
- enemyCommonAttack:'Normal attack is attack times 0.8 plus technique level; Energy Ray uses ki times 1.1 plus technique level. Enemy technique levels are capped by their individual technique definition.',
+ enemyCommonAttack:'Normal attack matches Punch: attack plus technique level, with a 0.5 second motion. Energy Ray uses ki times 1.1 plus technique level. Enemy technique levels are capped by their individual technique definition.',
  automaticTechnique:'Player cycles through the equipped slots; each opponent cycles through its assigned repertoire. A call chooses the next equipped attack once.',
  awakening:'Reserve the single use, finish the current player attack, then a fixed 1.5 second awakening; enemy continues.',
  superDuration:'Count from the beginning of awakening, including its 1.5 seconds.',
