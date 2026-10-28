@@ -143,3 +143,6 @@ body[data-password-keyboard] .options-dialog{max-block-size:calc(var(--password-
 /* Blue fill shows equipped items and assigned techniques; green shows selection. */
 .collection-tile[data-equipped=true]{border-color:#9aafd0;background:#e0eafa;color:#3d5576;}
 .collection-tile[data-equipped=true][aria-pressed=true]{border-color:#5f7c3d;background:#e0eafa;box-shadow:0 0 0 1px #5f7c3d;}
+
+.collection-detail .collection-equip[data-collection-equip=""],
+.collection-detail .collection-equip[data-technique-assign=""]{background:#f8dbe5;border-color:#d699b1;color:#86455f;}
