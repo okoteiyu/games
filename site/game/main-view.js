@@ -156,7 +156,7 @@ if(new URLSearchParams(location.search).get('options')==='open')popup.dialog.add
 document.querySelector('#collectionTrigger').addEventListener('click',event=>optionsUI.open('collection',event.currentTarget));
 document.querySelector('#mapTrigger').addEventListener('click',event=>optionsUI.open('maps',event.currentTarget));
 
-patrolUI=new PatrolUI({view,isSupportEquipped:()=>gameRuntime?.session.player.equipment.support==='moai_kun',mapPanel:areaMap,homeElement:document.querySelector('#homeChoices'),
+patrolUI=new PatrolUI({view,isSupportEquipped:()=>gameRuntime?.session.player.equipment.support==='moai_kun',canStart:()=>gameRuntime?.scene==='patrol'&&gameRuntime.session.state.location==='patrol',mapPanel:areaMap,homeElement:document.querySelector('#homeChoices'),
  enemyProvider:(map,options)=>gameRuntime.session.makePatrolEnemies(map,options),
  onEncounter:(enemy,stage)=>gameRuntime.onEncounter(enemy,stage),
  onEnter:()=>{houseUI?.leaveHouse();setLocation('道中');},

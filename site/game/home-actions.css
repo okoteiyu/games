@@ -18,3 +18,9 @@
 .home-actions__heading h2{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;}
 @container home-actions (max-height:140px){.home-actions__heading>span{font-size:5.5px}.home-actions__heading h2{font-size:7.5px}.home-choice__icon,.home-choice__arrow{display:none}.home-choice{padding:2px 4px;border-radius:7px 3px 7px 3px}.home-choice__label{font-size:clamp(5.5px,6.93cqi,11.5px);line-height:1.25}}
 @media(prefers-reduced-motion:reduce){.home-choice{transition:none}}
+
+/* The post-battle bonus replaces the icon and arrow without shrinking the label. */
+.home-choice__bonus{flex:none;padding:2px 5px;border:1px solid #b58c48;border-radius:7px 2px;background:linear-gradient(#fff3ca,#efd79f);color:#79581f;font-size:clamp(7px,4.6cqi,10px);font-weight:600;line-height:1.4;white-space:nowrap;box-shadow:inset 0 1px 0 #fff9;}
+.home-choice__bonus[hidden]{display:none;}
+.home-choice[data-bonus=true] .home-choice__icon,.home-choice[data-bonus=true] .home-choice__arrow{display:none;}
+.home-choice[data-bonus=true]{border-color:#b7ad69;background:linear-gradient(120deg,#fff8de,#e7efc8);}

@@ -178,7 +178,7 @@ export class GameSession{
  constructor({rng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
   if(typeof rng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
   this.rng=rng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
-  this.state={schemaVersion:1,visitorName:null,location:'home',player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null};
+  this.state={schemaVersion:1,visitorName:null,location:'home',player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null};
   if(state!==null)this.importState(state);
  }
  emit(type,detail={}){const event={type,...detail};this.eventLog.push(clone(event));if(this.eventLog.length>120)this.eventLog.shift();this.onEvent(event);return event;}
@@ -187,33 +187,39 @@ export class GameSession{
  observation(){const aura=this.player.auras[this.player.equippedAura];return {level:this.player.level,experience:{current:this.player.xp,required:this.player.level<100?requiredLevelExperience(this.player.level):null},stats:playerStats(this.player),equipment:{support:this.player.equipment.support||'none',defense:this.player.equipment.defense||'none'},items:{support:SUPPORT_ITEMS[this.player.equipment.support]?.name||'なし',defense:DEFENSE_ITEMS[this.player.equipment.defense]?.name||'なし'},aura:aura?{id:this.player.equippedAura,name:aura.name,level:aura.level}:null};}
  snapshot(){return clone({...this.state,player:{...this.player,stats:playerStats(this.player),nextLevelExperience:this.player.level<100?requiredLevelExperience(this.player.level):null},battle:this.snapshotBattle()});}
  commandAvailability(relaxStreak=0){
-  const home=this.state.location==='home'&&!this.state.pendingAngerEvent,points=Math.max(0,Number(relaxStreak)||0);
+  const home=this.state.location==='home'&&!this.state.pendingAngerEvent,points=Number.isSafeInteger(relaxStreak)&&relaxStreak>=0?relaxStreak:0,interfereBonus=home&&this.state.interferenceBonusAvailable;
   const trainings=Object.fromEntries(Object.keys(TRAINING_COURSES).map(tier=>[tier,home&&points>=1&&eligibleTrainingCreatures(this.player,tier).length>0])),patrolAvailable=Object.values(CREATURES).some(c=>patrolSpeciesEligible(c,this.player.level,null,currentTimeOfDay(this.now())));
-  return {patrol:home&&points>=PATROL_CALM_COST&&patrolAvailable,patrolAvailable,training:trainings.easy,trainings,meal:home,research:home,rest:home,food:home,chair:home,bed:home,interfere:home&&(!this.state.interferenceUsedSinceBattle||points>=3),commandsLocked:false,recovered:points>=3};
+  return {patrol:home&&points>=PATROL_CALM_COST&&patrolAvailable,patrolAvailable,training:trainings.easy,trainings,meal:home,research:home,rest:home,food:home,chair:home,bed:home,interfere:home&&(interfereBonus||points>=3),interfereBonus,commandsLocked:false,recovered:points>=3};
  }
- requestInterference({relaxStreak=0}={}){
+ requestInterference({relaxStreak=0,spendCalmPoints=null}={}){
   if(!this.commandAvailability(relaxStreak).interfere)return {ok:false,reason:'interference-unavailable'};
-  this.state.interferenceUsedSinceBattle=true;
-  return {ok:true,calmPointsSpent:Math.min(3,Math.max(0,Number(relaxStreak)||0)),...this.addAngerPoint({reason:'relax-interference'})};
+  const bonusUsed=this.state.interferenceBonusAvailable,calmPointsCost=bonusUsed?0:3,calmCostCommitted=spendCalmPoints!==null;
+  if(calmCostCommitted&&calmPointsCost>0&&spendCalmPoints(calmPointsCost)!==true)return {ok:false,reason:'not-enough-calm'};
+  this.state.interferenceUsedSinceBattle=true;this.state.interferenceBonusAvailable=false;
+  return {ok:true,bonusUsed,calmPointsSpent:calmPointsCost,...this.addAngerPoint({reason:'relax-interference',calmPointsCost,calmCostCommitted})};
  }
- requestPatrol({relaxStreak=0}={}){
+ requestPatrol({relaxStreak=0,spendCalmPoints=null}={}){
   if(this.state.location!=='home')return {ok:false,reason:'not-home',resetRelaxStreak:false};
   if(this.state.pendingAngerEvent)return {ok:false,reason:'anger-event-pending',resetRelaxStreak:false};
   if(!Object.values(CREATURES).some(c=>patrolSpeciesEligible(c,this.player.level,null,currentTimeOfDay(this.now()))))return {ok:false,reason:'no-patrol-opponents',resetRelaxStreak:false};
-  if(!(Number(relaxStreak)>=PATROL_CALM_COST))return {ok:false,reason:'not-recovered',resetRelaxStreak:false};
-  this.state.location='patrol';this.state.patrolCount++;this.emit('patrol-start',{patrolCount:this.state.patrolCount,calmPointsCost:PATROL_CALM_COST});return {ok:true,calmPointsCost:PATROL_CALM_COST,resetRelaxStreak:false};
+  if(!Number.isSafeInteger(relaxStreak)||relaxStreak<PATROL_CALM_COST)return {ok:false,reason:'not-recovered',resetRelaxStreak:false};
+  const calmCostCommitted=spendCalmPoints!==null;
+  if(calmCostCommitted&&spendCalmPoints(PATROL_CALM_COST)!==true)return {ok:false,reason:'not-recovered',resetRelaxStreak:false};
+  this.state.location='patrol';this.state.patrolCount++;this.emit('patrol-start',{patrolCount:this.state.patrolCount,calmPointsCost:PATROL_CALM_COST,calmCostCommitted});return {ok:true,calmPointsCost:PATROL_CALM_COST,resetRelaxStreak:false};
  }
- requestTraining({relaxStreak=0,tier='easy'}={}){
+ requestTraining({relaxStreak=0,tier='easy',spendCalmPoints=null}={}){
   if(this.state.location!=='home')return {ok:false,reason:'not-home'};
   if(this.state.pendingAngerEvent)return {ok:false,reason:'anger-event-pending'};
   if(!Object.hasOwn(TRAINING_COURSES,tier))return {ok:false,reason:'unknown-training'};
   if(!eligibleTrainingCreatures(this.player,tier).length)return {ok:false,reason:'no-training-opponents'};
   if(!this.commandAvailability(relaxStreak).trainings[tier])return {ok:false,reason:'not-enough-calm'};
-  const enemy=createTrainingEnemy({player:this.player,tier,rng:()=>this.random()});this.state.location='training';this.emit('training-start',{calmPointsCost:1,tier,enemy});return {ok:true,calmPointsCost:1,tier,enemy};
+  const enemy=createTrainingEnemy({player:this.player,tier,rng:()=>this.random()}),calmCostCommitted=spendCalmPoints!==null;
+  if(calmCostCommitted&&spendCalmPoints(1)!==true)return {ok:false,reason:'not-enough-calm'};
+  this.state.location='training';this.emit('training-start',{calmPointsCost:1,calmCostCommitted,tier,enemy});return {ok:true,calmPointsCost:1,tier,enemy};
  }
- addAngerPoint({reason='system'}={}){
+ addAngerPoint({reason='system',calmPointsCost=reason==='relax-interference'?3:0,calmCostCommitted=false}={}){
   if(this.state.location!=='home'||this.state.pendingAngerEvent)return {ok:false,reason:this.state.location!=='home'?'not-home':'anger-event-pending'};
-  this.state.angerPoints++;this.state.pendingAngerEvent=this.state.angerPoints>=3;this.state.commandsLocked=false;this.emit('anger-point',{reason,angerPoints:this.state.angerPoints,calmPointsCost:reason==='relax-interference'?3:0,commandsLocked:false});
+  this.state.angerPoints++;this.state.pendingAngerEvent=this.state.angerPoints>=3;this.state.commandsLocked=false;this.emit('anger-point',{reason,angerPoints:this.state.angerPoints,calmPointsCost,calmCostCommitted,commandsLocked:false});
   if(this.state.angerPoints>=3){this.state.pendingAngerEvent=true;this.emit('anger-ready',{angerPoints:this.state.angerPoints});}
   return {angerPoints:this.state.angerPoints,angerReady:this.state.pendingAngerEvent,commandsLocked:false};
  }
@@ -341,7 +347,7 @@ export class GameSession{
  setSuperConfiguration(id){if(this.state.location!=='home'||this.state.pendingAngerEvent||!Object.hasOwn(SUPER_CONFIGURATIONS,id))return false;this.player.superConfiguration=id;this.emit('super-configuration',{id});return true;}
  equipItem(kind,id){if(this.state.location!=='home'||this.state.pendingAngerEvent||!['support','defense'].includes(kind))return false;if(id!==null&&!this.player.ownedItems[kind].includes(id))return false;this.player.equipment[kind]=id;this.emit('item-equipped',{kind,id});return true;}
  returnHomeAfterBattle(){
-  const b=this.state.battle;if(!b||b.phase!=='ended')return false;this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};this.state.battle=null;this.state.location='home';this.state.commandsLocked=false;this.state.interferenceUsedSinceBattle=false;this.state.patrolUsedSinceRecovery=false;this.emit('home-return',{afterBattle:true,resetRelaxStreak:false});return true;
+  const b=this.state.battle;if(!b||b.phase!=='ended')return false;this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};this.state.battle=null;this.state.location='home';this.state.commandsLocked=false;this.state.interferenceUsedSinceBattle=false;this.state.interferenceBonusAvailable=true;this.state.patrolUsedSinceRecovery=false;this.emit('home-return',{afterBattle:true,resetRelaxStreak:false});return true;
  }
  snapshotBattle(){
   const b=this.state.battle;if(!b)return null;
@@ -359,6 +365,6 @@ export class GameSession{
  importState(saved){
   if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)throw new Error('Load only at home, outside an event.');
   const normalized=validateSessionState(saved);
-  this.state={...normalized,commandsLocked:false,interferenceUsedSinceBattle:false,patrolUsedSinceRecovery:false,angerPoints:normalized.angerPoints,location:'home',pendingAngerEvent:normalized.pendingAngerEvent??false,battle:null,lastBattle:null};return this.snapshot();
+  this.state={...normalized,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,angerPoints:normalized.angerPoints,location:'home',pendingAngerEvent:normalized.pendingAngerEvent??false,battle:null,lastBattle:null};return this.snapshot();
  }
 }

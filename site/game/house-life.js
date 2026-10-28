@@ -266,7 +266,7 @@ export class HouseLifeDirector {
   this.logHistory({event:'relax-reset',reason,previous,consecutiveRelaxActions:0});
   this.emit('daily','',{phase:'relax-reset',reason,previous,consecutiveRelaxActions:0});return true;
  }
- spendCalmPoints(count){if(!Number.isSafeInteger(count)||count<0)throw new RangeError('穏やかポイントの消費数が正しくありません。');const previous=this.consecutiveRelaxActions;this.consecutiveRelaxActions=Math.max(0,previous-count);this.emit('daily','',{phase:'calm-spent',previous,consecutiveRelaxActions:this.consecutiveRelaxActions});return true;}
+ spendCalmPoints(count){if(!Number.isSafeInteger(count)||count<0)throw new RangeError('穏やかポイントの消費数が正しくありません。');const previous=this.consecutiveRelaxActions;if(!Number.isSafeInteger(previous)||previous<count)return false;if(count===0)return true;this.consecutiveRelaxActions=previous-count;this.emit('daily','',{phase:'calm-spent',previous,consecutiveRelaxActions:this.consecutiveRelaxActions});return true;}
  onAngerPointGain(){return this.spendCalmPoints(3);}
  restoreConsecutiveRelaxActions(count){
   if(!Number.isSafeInteger(count)||count<0)throw new RangeError('回復回数が正しくありません。');

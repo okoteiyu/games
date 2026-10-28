@@ -51,7 +51,11 @@ export class GameRuntime {
   if(syncKey===this.syncKey){this.onProgressChange?.();return;}this.syncKey=syncKey;
   for(const button of this.homeElement.querySelectorAll('[data-home-choice]')){
    const key=button.dataset.homeChoice;button.disabled=this.scene!=='house'||this.isPaused()||!availability[key];
-   if(key==='interfere')button.title=availability.interfere?'怒りポイントが1増えます。':'もう一度ちょっかいをかけるには、穏やかになるのを待ちましょう。';
+   if(key==='interfere'){
+    const bonus=Boolean(availability.interfereBonus),badge=button.querySelector('.home-choice__bonus');if(badge)badge.hidden=!bonus;button.dataset.bonus=String(bonus);
+    button.title=bonus?'ボーナス：穏やかポイントを使わずにちょっかいをかけられます。':availability.interfere?'穏やかポイントを3使って、ちょっかいをかけます。':'穏やかポイントが3たまるか、次の戦闘から帰るまで待ちましょう。';
+    button.setAttribute('aria-label','ちょっかいをかける。'+button.title);
+   }
    else button.title='';
   }
   this.setGauges({experience:state.player.nextLevelExperience?state.player.xp/state.player.nextLevelExperience:1,anger:state.angerPoints/3,calm:streak});
@@ -61,27 +65,27 @@ export class GameRuntime {
  requestInterference(){
   if(this.isPaused()||document.hidden||this.scene!=='house')return {ok:false,reason:'paused'};
   if(!this.isHouseReady())return {ok:false,reason:'house-not-ready'};
-  const result=this.session.requestInterference({relaxStreak:this.house.getConsecutiveRelaxActions(),isRelaxing:this.isRelaxing()});this.sync();return result;
+  const result=this.session.requestInterference({relaxStreak:this.house.getConsecutiveRelaxActions(),spendCalmPoints:count=>this.house.spendCalmPoints(count),isRelaxing:this.isRelaxing()});this.sync();return result;
  }
  requestPatrol(){
   if(this.isPaused()||document.hidden||this.scene!=='house')return {ok:false,reason:'paused'};
   if(!this.isHouseReady())return {ok:false,reason:'house-not-ready'};
-  const result=this.session.requestPatrol({relaxStreak:this.house.getConsecutiveRelaxActions()});
+  const result=this.session.requestPatrol({relaxStreak:this.house.getConsecutiveRelaxActions(),spendCalmPoints:count=>this.house.spendCalmPoints(count)});
   if(result.ok){this.sync();this.pendingEncounter=null;this.departureDestination={kind:'patrol'};this.startSceneCutin('departure');}
   this.sync();return result;
  }
  requestTraining(tier='easy'){
   if(this.isPaused()||document.hidden||this.scene!=='house')return {ok:false,reason:'paused'};
   if(!this.isHouseReady())return {ok:false,reason:'house-not-ready'};
-  const result=this.session.requestTraining({relaxStreak:this.house.getConsecutiveRelaxActions(),tier});
+  const result=this.session.requestTraining({relaxStreak:this.house.getConsecutiveRelaxActions(),tier,spendCalmPoints:count=>this.house.spendCalmPoints(count)});
   if(result.ok){this.sync();this.pendingEncounter=null;this.departureDestination={kind:'training',tier,enemy:result.enemy};this.startSceneCutin('departure');}
   this.sync();return result;
  }
  onSessionEvent(event){
   if(event.type==='anger-point'){
-   if(event.calmPointsCost)this.house.onAngerPointGain();
+   if(event.calmPointsCost&&!event.calmCostCommitted)this.house.spendCalmPoints(event.calmPointsCost);
    this.say({type:'anger',text:event.reason==='relax-interference'?'少しむっとしたようだ。何か、おいしいものでも用意しようか。':'まだ、ひと息つきたかったようだ。しばらく、そっとしておこう。'});
-  }else if(event.type==='training-start'||event.type==='patrol-start')this.house.spendCalmPoints(event.calmPointsCost);
+  }else if((event.type==='training-start'||event.type==='patrol-start')&&!event.calmCostCommitted)this.house.spendCalmPoints(event.calmPointsCost);
   else if(event.type==='anger-ready')this.pendingCutin=true;
   else if(event.type==='battle-end')this.resultDelay=.5;
   else if(event.type==='damage')this.log(event.actor!=='player'?'enemy':'action',(event.actorName||(event.actor!=='player'?'珍生物':'おこていゆ'))+'の攻撃。'+Number(event.amount.toFixed(2))+'のダメージ。');
@@ -116,6 +120,9 @@ export class GameRuntime {
   this.sceneCutin.play(kind);this.sync();
  }
  finishSceneCutin(kind){
+  // Ignore stale or duplicate completion callbacks; only a paid departure may enter the route.
+  if(this.scene!=='scene-cutin'||this.sceneCutin.kind!==kind)return false;
+  if(kind==='departure'&&(!this.departureDestination||this.session.state.location!==this.departureDestination.kind))return false;
   this.sceneCutin.stop();this.messageLocked=false;this.hideMessage();
   if(kind==='departure'){
    const destination=this.departureDestination;this.departureDestination=null;
@@ -125,6 +132,7 @@ export class GameRuntime {
    this.scene='battle';this.returnHomeAfterBattle({automatic:true});
   }
   this.sync();
+  return true;
  }
  advanceResultMessage(dt){
   if(!['win','loss'].includes(this.sceneCutin.kind)||!this.sceneCutin.ready||!this.readMessagePage)return;

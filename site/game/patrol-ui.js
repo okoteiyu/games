@@ -8,8 +8,8 @@ import { REGION_LABELS } from './patrol-map.js';
 const directions=[['left','左'],['front','前'],['right','右']];
 
 export class PatrolUI {
- constructor({now=()=>new Date(),isSupportEquipped=()=>true,view,mapPanel,homeElement,onEnter,onLeave,onEvent,isPaused,hideMessage,rng=Math.random,enemyProvider=null,onEncounter=null}){
-  Object.assign(this,{now,isSupportEquipped,view,mapPanel,homeElement,onEnter,onLeave,onEvent,isPaused,hideMessage,rng,enemyProvider,onEncounter});this.active=false;this.model=null;this.progress=0;this.timeOfDay=currentTimeOfDay(this.now());this.renderer=null;this.rendererLoading=null;this.rendererFailed=false;this.rendererGeneration=0;this.throwPending=null;this.turn=null;
+ constructor({now=()=>new Date(),isSupportEquipped=()=>true,canStart=()=>true,view,mapPanel,homeElement,onEnter,onLeave,onEvent,isPaused,hideMessage,rng=Math.random,enemyProvider=null,onEncounter=null}){
+  Object.assign(this,{now,isSupportEquipped,canStart,view,mapPanel,homeElement,onEnter,onLeave,onEvent,isPaused,hideMessage,rng,enemyProvider,onEncounter});this.active=false;this.model=null;this.progress=0;this.timeOfDay=currentTimeOfDay(this.now());this.renderer=null;this.rendererLoading=null;this.rendererFailed=false;this.rendererGeneration=0;this.throwPending=null;this.turn=null;
   this.renderMount=document.createElement('div');this.renderMount.className='patrol-webgl-mount';
   this.overlayObserver=new MutationObserver(()=>{this.layoutForkArrows();this.scheduleForkLayout();});this.overlayObserver.observe(this.view.element,{attributes:true,attributeFilter:['data-message-visible']});
   this.panel=document.createElement('section');this.panel.className='lower-right patrol-actions';this.panel.id='patrolChoices';this.panel.hidden=true;this.panel.setAttribute('aria-label','道中での選択肢');
@@ -27,12 +27,12 @@ export class PatrolUI {
   document.body.append(this.mapDialog);this.mapDialog.querySelector('button').addEventListener('click',()=>this.mapDialog.close());
   this.mapDialog.addEventListener('close',()=>{releaseModal(this.mapDialog);this.mapTrigger.setAttribute('aria-expanded','false');this.mapTrigger.disabled=!this.active;if(!isModalBlocked()&&this.mapTrigger.isConnected)this.mapTrigger.focus({preventScroll:true});});
   this.mapDialog.addEventListener('click',event=>{if(event.target!==this.mapDialog)return;const r=this.mapDialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)this.mapDialog.close();});
-  this.panel.addEventListener('click',e=>{const button=e.target.closest('[data-direction]');if(button&&!button.disabled)this.throwFairy(button.dataset.fairy,button.dataset.direction);const action=e.target.closest('[data-patrol-action]');if(action&&!isModalBlocked()){this.returnHome();if(action.dataset.patrolAction==='again')this.start();}});
+  this.panel.addEventListener('click',e=>{const button=e.target.closest('[data-direction]');if(button&&!button.disabled)this.throwFairy(button.dataset.fairy,button.dataset.direction);const action=e.target.closest('[data-patrol-action]');if(action?.dataset.patrolAction==='home'&&!isModalBlocked())this.returnHome();});
   this.lastTime=performance.now();const frame=time=>{const dt=Math.min(.1,(time-this.lastTime)/1000);this.lastTime=time;if(this.active){this.refreshTimeOfDay();if(!this.isPaused()&&!document.hidden&&!this.throwPending&&!this.renderer?.eggplantBusy&&this.renderer?.ready&&!this.renderer.loading&&!this.renderer.failed&&!this.renderer.contextLost&&!this.rendererFailed)this.tick(dt);this.paintMotion();}this.raf=requestAnimationFrame(frame);};this.raf=requestAnimationFrame(frame);
  }
  emit(text,type='move',showMessage=true){this.onEvent({text,type,speaker:'ナレーション',kind:'narration'},{showMessage});}
  start(){
-  if(isModalBlocked())return false;
+  if(isModalBlocked()||this.active||!this.canStart())return false;
   this.refreshTimeOfDay();this.throwPending=null;this.renderer?.cancelEggplantThrow();
   this.model=new PatrolState({rng:this.rng});if(this.enemyProvider)this.model.providedEnemies=this.enemyProvider(this.model.map,{timeOfDay:this.timeOfDay});this.model.start();this.active=true;this.turn=null;this.progress=0;this.approachTried=false;this.throwDirection=null;
   this.hideMessage();this.onEnter();this.view.clear();this.buildScene();this.panel.hidden=false;this.sync();this.emit('おこていゆは、珍生物パトロールへ出かけた。あなたはこっそり後をつける。','move',false);return true;
