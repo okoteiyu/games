@@ -1,5 +1,6 @@
 import {setPaintedText} from './painted-label.js';
 import {BrowserSave} from './browser-save.js';
+import {installBonusButtonLayout} from './bonus-button-layout.js';
 import {VisitorNamePopup} from './visitor-name.js';
 import {installPasswordViewportGuard} from './password-viewport.js';
 import { GameRuntime } from './game-runtime.js';
@@ -30,6 +31,7 @@ export class SquareSceneView {
 }
 
 installPasswordViewportGuard();
+installBonusButtonLayout(document.querySelector('[data-home-choice="interfere"]'));
 let patrolUI=null,houseUI=null,gameRuntime=null;
 const needsVisitorName=()=>!gameRuntime?.session.state.visitorName;
 const view=new SquareSceneView(document.querySelector('#mainView'));

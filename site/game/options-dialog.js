@@ -165,7 +165,7 @@ export class OptionsDialog {
   const equipped=kind==='aura'?player.equippedAura:player.equipment?.[kind];
   let selected=this.selectedCollection[kind];if(!entries.some(e=>e.id===selected))selected=entries.some(e=>e.id===equipped)?equipped:entries[0]?.id;this.selectedCollection[kind]=selected;
   const item=entries.find(e=>e.id===selected),isEquipped=Boolean(item&&equipped===item.id);
-  const grid=entries.map(entry=>'<button type="button" class="collection-tile" data-collection-select="'+escapeHtml(entry.id)+'" data-kind="'+kind+'" aria-pressed="'+String(selected===entry.id)+'">'+this.thumbnail(kind,entry.id,entry.name)+'<span class="collection-tile__name">'+escapeHtml(entry.name)+'</span>'+(entry.id===equipped?'<span class="collection-equipped">装備中</span>':'')+'</button>').join('');
+  const grid=entries.map(entry=>'<button type="button" class="collection-tile" data-collection-select="'+escapeHtml(entry.id)+'" data-kind="'+kind+'" data-equipped="'+String(entry.id===equipped)+'" aria-label="'+escapeHtml(entry.name+(entry.id===equipped?'（装備中）':''))+'" aria-pressed="'+String(selected===entry.id)+'">'+this.thumbnail(kind,entry.id,entry.name)+'<span class="collection-tile__name">'+escapeHtml(entry.name)+'</span>'+'</button>').join('');
   let detail='<div class="collection-detail collection-detail--empty"><p>まだ'+COLLECTION_KINDS[kind]+'を持っていません。</p></div>';
   if(item){
    const auraDetail=kind==='aura'?(item.id==='okoteiyu'?'全パラメータが1.2倍になります。レベル1で固定です。':'元の珍生物のパラメータランクとオーラレベルに応じて、能力値が加算されます。'):'',progress=kind==='aura'?'<p class="collection-detail__meta">Lv.'+count(item.level)+' · '+(item.id==='okoteiyu'?'固定':item.level>=30?'最大レベル':'次のレベルまで '+count(item.progress)+'/3')+'</p>':'';

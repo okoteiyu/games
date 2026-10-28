@@ -24,3 +24,5 @@
 .home-choice__bonus[hidden]{display:none;}
 .home-choice[data-bonus=true] .home-choice__icon,.home-choice[data-bonus=true] .home-choice__arrow{display:none;}
 .home-choice[data-bonus=true]{border-color:#b7ad69;background:linear-gradient(120deg,#fff8de,#e7efc8);}
+.home-choice[data-bonus=true][data-bonus-compact=true]{border:2px solid #d87820;gap:0;}
+.home-choice[data-bonus=true][data-bonus-compact=true] .home-choice__bonus{display:none;}
