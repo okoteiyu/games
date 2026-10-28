@@ -196,7 +196,7 @@ export class GameSession{
   const bonusUsed=this.state.interferenceBonusAvailable,calmPointsCost=bonusUsed?0:3,calmCostCommitted=spendCalmPoints!==null;
   if(calmCostCommitted&&calmPointsCost>0&&spendCalmPoints(calmPointsCost)!==true)return {ok:false,reason:'not-enough-calm'};
   this.state.interferenceUsedSinceBattle=true;this.state.interferenceBonusAvailable=false;
-  return {ok:true,bonusUsed,calmPointsSpent:calmPointsCost,...this.addAngerPoint({reason:'relax-interference',calmPointsCost,calmCostCommitted})};
+  return {ok:true,bonusUsed,calmPointsSpent:calmPointsCost,...this.addAngerPoint({reason:'relax-interference',calmPointsCost,calmCostCommitted,bonusUsed})};
  }
  requestPatrol({relaxStreak=0,spendCalmPoints=null}={}){
   if(this.state.location!=='home')return {ok:false,reason:'not-home',resetRelaxStreak:false};
@@ -217,9 +217,9 @@ export class GameSession{
   if(calmCostCommitted&&spendCalmPoints(1)!==true)return {ok:false,reason:'not-enough-calm'};
   this.state.location='training';this.emit('training-start',{calmPointsCost:1,calmCostCommitted,tier,enemy});return {ok:true,calmPointsCost:1,tier,enemy};
  }
- addAngerPoint({reason='system',calmPointsCost=reason==='relax-interference'?3:0,calmCostCommitted=false}={}){
+ addAngerPoint({reason='system',calmPointsCost=reason==='relax-interference'?3:0,calmCostCommitted=false,bonusUsed=false}={}){
   if(this.state.location!=='home'||this.state.pendingAngerEvent)return {ok:false,reason:this.state.location!=='home'?'not-home':'anger-event-pending'};
-  this.state.angerPoints++;this.state.pendingAngerEvent=this.state.angerPoints>=3;this.state.commandsLocked=false;this.emit('anger-point',{reason,angerPoints:this.state.angerPoints,calmPointsCost,calmCostCommitted,commandsLocked:false});
+  this.state.angerPoints++;this.state.pendingAngerEvent=this.state.angerPoints>=3;this.state.commandsLocked=false;this.emit('anger-point',{reason,angerPoints:this.state.angerPoints,calmPointsCost,calmCostCommitted,bonusUsed,commandsLocked:false});
   if(this.state.angerPoints>=3){this.state.pendingAngerEvent=true;this.emit('anger-ready',{angerPoints:this.state.angerPoints});}
   return {angerPoints:this.state.angerPoints,angerReady:this.state.pendingAngerEvent,commandsLocked:false};
  }

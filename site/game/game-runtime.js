@@ -84,7 +84,8 @@ export class GameRuntime {
  onSessionEvent(event){
   if(event.type==='anger-point'){
    if(event.calmPointsCost&&!event.calmCostCommitted)this.house.spendCalmPoints(event.calmPointsCost);
-   this.say({type:'anger',text:event.reason==='relax-interference'?'少しむっとしたようだ。何か、おいしいものでも用意しようか。':'まだ、ひと息つきたかったようだ。しばらく、そっとしておこう。'});
+   const bonusNote=event.bonusUsed?'\nボーナスのため、穏やかポイントは減りませんでした。':'';
+   this.say({type:'anger',text:(event.reason==='relax-interference'?'少しむっとしたようだ。何か、おいしいものでも用意しようか。':'まだ、ひと息つきたかったようだ。しばらく、そっとしておこう。')+bonusNote});
   }else if((event.type==='training-start'||event.type==='patrol-start')&&!event.calmCostCommitted)this.house.spendCalmPoints(event.calmPointsCost);
   else if(event.type==='anger-ready')this.pendingCutin=true;
   else if(event.type==='battle-end')this.resultDelay=.5;
