@@ -3,7 +3,7 @@ import {NEW_CREATURE_DEFINITIONS} from './creature-expansion-c.js';
 const definitions=[...NEW_CREATURE_DEFINITIONS,
  {
   "id": "fae_dragon",
-  "name": "妖竜",
+  "name": "妖龍",
   "category": "threat",
   "height": 0.55,
   "levelBand": {
@@ -28,7 +28,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "normal_attack"
   ],
   "auraColor": "#ff7fbe",
-  "description": "小さな体に怪しげな雰囲気をまとう、紫色のドラゴン。"
+  "description": "怪しい雰囲気を感じる龍。強そう...な感じはしないけど強いみたい。"
  },
  {
   "id": "transparent_knight",
@@ -56,7 +56,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "normal_attack"
   ],
   "auraColor": "#16131c",
-  "description": "黒くぼやけた輪郭をもつ騎士の珍生物。"
+  "description": "夜に出会ったから透明だと勘違いしてつけた名前。ちなみに強い。"
  },
  {
   "id": "punim",
@@ -87,7 +87,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "energy_ray"
   ],
   "auraColor": "#ff7fbe",
-  "description": "明るいピンク色のスライム。2本の柔らかな触角をもっています。"
+  "description": "何だか親近感を覚える珍生物。プニプニしてるからプニム☺️"
  },
  {
   "id": "crystal_striker",
@@ -115,7 +115,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "charged_punch"
   ],
   "auraColor": "#88dfff",
-  "description": "水色のクリスタルのような全身をもつ、二足歩行の猿のような珍生物。"
+  "description": "クリスタルのように硬い拳で殴ってくる。こわい😢"
  },
  {
   "id": "unknown_low",
@@ -146,7 +146,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "normal_attack"
   ],
   "auraColor": "#16131c",
-  "description": "体全体がぼやけた、黒いモヤの塊。"
+  "description": "み、見えなかった💦 でもそこまで強くないかも！"
  },
  {
   "id": "unknown_danger",
@@ -177,7 +177,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "normal_attack"
   ],
   "auraColor": "#16131c",
-  "description": "体全体がぼやけた、黒いモヤの塊。"
+  "description": "み、見えなかった💦 しかも強い😢"
  },
  {
   "id": "unknown_extreme",
@@ -208,7 +208,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "normal_attack"
   ],
   "auraColor": "#16131c",
-  "description": "体全体がぼやけた、黒いモヤの塊。"
+  "description": "み、見えなかった💦 ほんで強すぎ😭😭😭"
  },
  {
   "id": "gold_moai",
@@ -240,7 +240,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "normal_attack"
   ],
   "auraColor": "#ffc84f",
-  "description": "モアイの戦士と同じ体をもつ、金色の珍生物。"
+  "description": "金色のモアイ！？何だかスーパーおこていゆ状態みたいだね！仲間だね🌀 でも強い😭😭😭"
  },
  {
   "id": "dragon",
@@ -270,7 +270,7 @@ const definitions=[...NEW_CREATURE_DEFINITIONS,
    "charged_energy_ray"
   ],
   "auraColor": "#ff5545",
-  "description": "赤い体をもつドラゴンの珍生物。"
+  "description": "普通の雰囲気のドラゴン。強そうに見えるような見えないような。でも強い。"
  }
 ];
 export const ADDED_CREATURES=Object.freeze(Object.fromEntries(definitions.map(creature=>[creature.id,Object.freeze({...creature,levelBand:Object.freeze(creature.levelBand),spawnRegions:Object.freeze(creature.spawnRegions),spawnTimes:Object.freeze(creature.spawnTimes),ranks:Object.freeze(creature.ranks),techniques:Object.freeze(creature.techniques),additionalEffects:Object.freeze(creature.additionalEffects||[]),auraAdditionalEffects:Object.freeze(creature.auraAdditionalEffects||[])})])));

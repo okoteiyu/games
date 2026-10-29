@@ -490,7 +490,7 @@
       "type": "json",
       "bytes": 22947,
       "priority": 2,
-      "sha256": "c27afcb7ada1de7c983a58cb564c7213b2383c1b7614635bff5f5d1bc2f78343"
+      "sha256": "8af91e53b26885ea2ec28caa2239f6eea06e37bdbe61b8239434aff8a1c7cada"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -518,7 +518,7 @@
     },
     {
       "url": "assets/battle3d/fae_dragon.glb?v=0e451d1a32ab569a9bd3deab64cb07ad2160c4e1beb608f19a6c4568a7b900b5",
-      "label": "妖竜",
+      "label": "妖龍",
       "type": "binary",
       "bytes": 672492,
       "priority": 3,
@@ -766,7 +766,7 @@
     },
     {
       "url": "assets/battle3d/eleki_kun.glb?v=da0da3fe36dd801443d8f3026d48a461d53c41e628e84a256c2da39e2c9546ad",
-      "label": "エレキ君",
+      "label": "エレキくん",
       "type": "binary",
       "priority": 3,
       "sha256": "da0da3fe36dd801443d8f3026d48a461d53c41e628e84a256c2da39e2c9546ad",
@@ -790,7 +790,7 @@
     },
     {
       "url": "assets/battle3d/star_soul.glb?v=dd0f2d223099580a9924da891b9baad31c66d0ca1aa654aba7126fa208b2ba0b",
-      "label": "星の魂",
+      "label": "星の塊",
       "type": "binary",
       "priority": 3,
       "sha256": "dd0f2d223099580a9924da891b9baad31c66d0ca1aa654aba7126fa208b2ba0b",
@@ -798,7 +798,7 @@
     },
     {
       "url": "assets/battle3d/void_space.glb?v=6b8ab37ddf3ce5fe5ec01e97229eac7ce64002bb89ed063aeea76ee49a8a4583",
-      "label": "ヴォイド",
+      "label": "黒丸",
       "type": "binary",
       "priority": 3,
       "sha256": "6b8ab37ddf3ce5fe5ec01e97229eac7ce64002bb89ed063aeea76ee49a8a4583",
@@ -806,7 +806,7 @@
     },
     {
       "url": "assets/battle3d/perfect_cosmos.glb?v=6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
-      "label": "コスモス",
+      "label": "虹のやつ",
       "type": "binary",
       "priority": 3,
       "sha256": "6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
@@ -830,7 +830,7 @@
     },
     {
       "url": "assets/collection/aura-void_space.webp",
-      "label": "ヴォイドのオーラ",
+      "label": "黒丸のオーラ",
       "type": "image",
       "priority": 3,
       "sha256": "f6e965e5de1a2a2d747ab1537262ce6632946862e4e005f759046d46a542d919",
@@ -838,7 +838,7 @@
     },
     {
       "url": "assets/collection/aura-star_soul.webp",
-      "label": "星の魂のオーラ",
+      "label": "星の塊のオーラ",
       "type": "image",
       "priority": 3,
       "sha256": "67352fb92ff94b9e9d148510221bbef806a5e597777b532f084002021dec9c17",
@@ -870,7 +870,7 @@
     },
     {
       "url": "assets/collection/void_space.webp",
-      "label": "ヴォイド",
+      "label": "黒丸",
       "type": "image",
       "priority": 3,
       "sha256": "5b116133a252afab96d764d059f34e0463e1f4cdfac3ffca85232166013ebc02",
@@ -886,7 +886,7 @@
     },
     {
       "url": "assets/collection/aura-eleki_kun.webp",
-      "label": "エレキ君のオーラ",
+      "label": "エレキくんのオーラ",
       "type": "image",
       "priority": 3,
       "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137",
@@ -894,7 +894,7 @@
     },
     {
       "url": "assets/collection/aura-perfect_cosmos.webp",
-      "label": "コスモスのオーラ",
+      "label": "虹のやつのオーラ",
       "type": "image",
       "priority": 3,
       "sha256": "e802b0856558edd580593ddbb5b5b498b79d18cc1c4f318f83b514071631fd53",
@@ -918,7 +918,7 @@
     },
     {
       "url": "assets/collection/perfect_cosmos.webp",
-      "label": "コスモス",
+      "label": "虹のやつ",
       "type": "image",
       "priority": 3,
       "sha256": "4df470e6090f86f4218594fc1cbf1ac204345b521bd3403970aba51640b88130",
@@ -926,7 +926,7 @@
     },
     {
       "url": "assets/collection/star_soul.webp",
-      "label": "星の魂",
+      "label": "星の塊",
       "type": "image",
       "priority": 3,
       "sha256": "2f0c65762a33ae3b8e68f03b5eda6d8c15c380bc94fc3fa9140057eda4626c57",
@@ -934,7 +934,7 @@
     },
     {
       "url": "assets/collection/eleki_kun.webp",
-      "label": "エレキ君",
+      "label": "エレキくん",
       "type": "image",
       "priority": 3,
       "sha256": "99f9805c26769c48253b76ce1148e5782b887b841c0d4ac711022f7961ce34ed",
@@ -966,7 +966,7 @@
     },
     {
       "url": "assets/battle3d/chaos.glb?v=d4661de42c338ac18511d4d81126a1207a8352ac633d47f95b16e702fbb4e856",
-      "label": "カオス",
+      "label": "カオス君",
       "type": "binary",
       "priority": 3,
       "sha256": "d4661de42c338ac18511d4d81126a1207a8352ac633d47f95b16e702fbb4e856",
@@ -982,7 +982,7 @@
     },
     {
       "url": "assets/collection/aura-chaos.webp",
-      "label": "カオスのオーラ",
+      "label": "カオス君のオーラ",
       "type": "image",
       "priority": 3,
       "sha256": "9f2999dfd092f9d9f512bd2e42ea14218d45e3acab01e436cca0edee6cdac4ee",

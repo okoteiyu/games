@@ -26,7 +26,7 @@ export const NEW_CREATURE_DEFINITIONS=[
    "normal_attack"
   ],
   "auraColor": "#c1e5a6",
-  "description": "小さな竜巻の渦の中心に目をもつ珍生物。",
+  "description": "おこていゆはクルクルしたものが好きだけど、こいつはあんまりかな😢",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  },
@@ -56,13 +56,13 @@ export const NEW_CREATURE_DEFINITIONS=[
    "charged_energy_ray"
   ],
   "auraColor": "#999da4",
-  "description": "メタリックな正十二面体に、ふたつの目をもつ珍生物。",
+  "description": "そこら辺の岩かと思って蹴ってたら怒らせちゃった。",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  },
  {
   "id": "eleki_kun",
-  "name": "エレキ君",
+  "name": "エレキくん",
   "category": "normal",
   "height": 0.8,
   "levelBand": {
@@ -87,7 +87,7 @@ export const NEW_CREATURE_DEFINITIONS=[
    "charged_energy_ray"
   ],
   "auraColor": "#ffe34a",
-  "description": "電気をまとった、銀色の3脚付きオービスの姿の珍生物。",
+  "description": "ビームを撃つ為だけに作られたみたいな体してる！！！",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  },
@@ -119,7 +119,7 @@ export const NEW_CREATURE_DEFINITIONS=[
    "cannon_shell"
   ],
   "auraColor": "#080a10",
-  "description": "シンプルでシャープな、黒色の自力移動戦車。",
+  "description": "ただでさえ強いのに... 一応珍生物らしい",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  },
@@ -156,14 +156,14 @@ export const NEW_CREATURE_DEFINITIONS=[
    "#08090e",
    "#f7bf32"
   ],
-  "description": "黒く鋭い輪郭をもつ、巨大な自力移動列車砲。",
+  "description": "こんなのがうちの近くに居たなんて💦",
   "additionalEffects": [],
   "auraAdditionalEffects": [],
   "auraEmphasis": true
  },
  {
   "id": "star_soul",
-  "name": "星の魂",
+  "name": "星の塊",
   "category": "normal",
   "height": 0.35,
   "levelBand": {
@@ -197,13 +197,13 @@ export const NEW_CREATURE_DEFINITIONS=[
    "#849bff",
    "#dc8aff"
   ],
-  "description": "顔をもたない、シンプルな星型の珍生物。",
+  "description": "星ってこんな形なんだ！",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  },
  {
   "id": "void_space",
-  "name": "ヴォイド",
+  "name": "黒丸",
   "category": "threat",
   "height": 0.8,
   "levelBand": {
@@ -230,13 +230,13 @@ export const NEW_CREATURE_DEFINITIONS=[
   ],
   "auraColor": "#030308",
   "auraEmphasis": true,
-  "description": "顔も模様もない、真っ黒な真球の珍生物。",
+  "description": "黒い丸です。ちなみに強いです。",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  },
  {
   "id": "perfect_cosmos",
-  "name": "コスモス",
+  "name": "虹のやつ",
   "category": "threat",
   "height": 1.5,
   "levelBand": {
@@ -271,13 +271,13 @@ export const NEW_CREATURE_DEFINITIONS=[
    "#e48cff"
   ],
   "auraEmphasis": true,
-  "description": "顔をもたない、鮮やかな青・シアン・紫がはっきり見える、柔らかく低密度のモヤの塊。",
+  "description": "なんかもう、そう呼ぶしかなくない！？と思いました☺️",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  },
  {
   "id": "chaos",
-  "name": "カオス",
+  "name": "カオス君",
   "category": "threat",
   "height": 0.8,
   "levelBand": {
@@ -309,7 +309,7 @@ export const NEW_CREATURE_DEFINITIONS=[
    "#08090e",
    "#5b15a7"
   ],
-  "description": "混沌とした禍々しい雰囲気を感じる、恐ろしい珍生物。黒・紫・青・白の渦巻く模様をもつ、モヤ状の真球。",
+  "description": "見た目がカオス💦 あんまり触りたくない😢",
   "additionalEffects": [],
   "auraAdditionalEffects": []
  }

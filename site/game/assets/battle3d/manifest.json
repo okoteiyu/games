@@ -231,7 +231,7 @@
     },
     "fae_dragon": {
       "id": "fae_dragon",
-      "name": "妖竜",
+      "name": "妖龍",
       "url": "fae_dragon.glb",
       "sha256": "0e451d1a32ab569a9bd3deab64cb07ad2160c4e1beb608f19a6c4568a7b900b5",
       "bytes": 672492,
@@ -639,7 +639,7 @@
     },
     "eleki_kun": {
       "id": "eleki_kun",
-      "name": "エレキ君",
+      "name": "エレキくん",
       "url": "eleki_kun.glb",
       "height": 0.8,
       "height_m": 0.8,
@@ -702,7 +702,7 @@
     },
     "star_soul": {
       "id": "star_soul",
-      "name": "星の魂",
+      "name": "星の塊",
       "url": "star_soul.glb",
       "height": 0.35,
       "height_m": 0.35,
@@ -723,7 +723,7 @@
     },
     "void_space": {
       "id": "void_space",
-      "name": "ヴォイド",
+      "name": "黒丸",
       "url": "void_space.glb",
       "height": 0.8,
       "height_m": 0.8,
@@ -745,7 +745,7 @@
     },
     "perfect_cosmos": {
       "id": "perfect_cosmos",
-      "name": "コスモス",
+      "name": "虹のやつ",
       "url": "perfect_cosmos.glb",
       "height": 1.5,
       "height_m": 1.5,
@@ -767,7 +767,7 @@
     },
     "chaos": {
       "id": "chaos",
-      "name": "カオス",
+      "name": "カオス君",
       "url": "chaos.glb",
       "height": 0.8,
       "height_m": 0.8,
