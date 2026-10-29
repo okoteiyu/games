@@ -38,7 +38,7 @@ export class BattleUI{
  }
  setSnapshot(snapshot){this.snapshot=snapshot;this.controller?.setSnapshot(snapshot);this.updateControls();}
  handleEvent(event){this.controller?.handleEvent(event);const type=event?.type||event?.kind;if(type==='damage'||type==='hit'){const box=this.hud.querySelector('[data-battle-actor="'+(event.target||event.actor)+'"]');if(box){box.classList.remove('is-hit');void box.offsetWidth;box.classList.add('is-hit');}}}
- advance(dt){if(!this.active)return;this.updateControls();if(!this.isPaused()&&!isModalBlocked())this.controller?.advance(dt);}
+ advance(dt){if(!this.active)return;if(!this.isPaused()&&!isModalBlocked())this.controller?.advance(dt);this.updateControls();}
  updateControls(){
   const snapshot=this.snapshot;if(!snapshot)return;
   const enemies=opponents(snapshot),ids=enemies.map(enemy=>enemy.id||'enemy'),hudKey=ids.join('|');if(this.hudKey!==hudKey){this.hudKey=hudKey;releasePaintedLabels(this.hud);this.hud.innerHTML=hpMarkup('player')+'<div class="battle-hud__opponents">'+ids.map(hpMarkup).join('')+'</div>';}this.hud.dataset.enemyCount=String(enemies.length);this.panel.hidden=!this.active;this.hud.hidden=!this.active||!this.ready||Boolean(this.controller?.cutin);

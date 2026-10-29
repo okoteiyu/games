@@ -1,6 +1,7 @@
 import {AURA_STYLES as auraStyles} from './aura-styles.js';
 import {TECHNIQUES} from './technique-rules.js';
 import {AttackEffects} from './attack-effects.js';
+import {SuperAwakeningStage} from './super-awakening-stage.js';
 import { getBattleRegionAt } from './patrol-map.js';
 import * as THREE from './vendor/three/three.module.js';
 import { GLTFLoader } from './vendor/three/addons/loaders/GLTFLoader.js';
@@ -61,15 +62,17 @@ export class BattleView{
  }
  async load(snapshot,stage={}){
   const generation=this.fieldGeneration=(this.fieldGeneration||0)+1;this.timeRequest=null;this.atmosphereTarget=null;
-  this.loading=true;this.ready=false;this.lastError=null;this.snapshot=snapshot;this.stageOptions=stage;this.time=number(snapshot?.time);this.endVisualTime=null;
+  this.loading=true;this.ready=false;this.lastError=null;this.snapshot=snapshot;this.stageOptions=stage;this.time=number(snapshot?.time);this.endVisualTime=null;this.cutin=null;
   if(this.canvas)this.canvas.style.visibility='hidden';
   this.onStatus('戦闘のモデルを読み込んでいます…');
   try{
    this.createRenderer();
    this.manifest??=await loadAssetJson(new URL('manifest.json',this.baseUrl));
-   const states=[snapshot.player,...opponents(snapshot)],records=await Promise.all(states.map((state,index)=>this.loadActor(index?species(state):'okoteiyu',state.id||(index?'enemy':'player'))));
+   const states=[snapshot.player,...opponents(snapshot)];
+   const [records,awakeningActor]=await Promise.all([Promise.all(states.map((state,index)=>this.loadActor(index?species(state):'okoteiyu',state.id||(index?'enemy':'player')))),this.loadActor('okoteiyu','super-awakening')]);
    if(this.destroyed||generation!==this.fieldGeneration)return false;
    for(const record of this.actorCache.values())record.anchor.visible=false;
+   this.awakeningStage??=new SuperAwakeningStage();this.awakeningStage.mount(awakeningActor);this.awakeningActor=awakeningActor;
    this.actors=Object.fromEntries(records.map((record,index)=>[states[index].id||(index?'enemy':'player'),record]));
    const player=this.actors.player,enemies=records.slice(1);
    for(const record of records){record.anchor.visible=true;record.hitAt=-Infinity;record.superAt=-Infinity;record.currentClip=null;record.currentActionId=null;record.mixer.stopAllAction();}
@@ -225,7 +228,7 @@ export class BattleView{
  }
  sampleActor(record,state,role){
   if(!record||!state)return;
-  const current=role==='player'&&this.cutin?{technique:'super_awaken',duration:this.cutin.duration,elapsed:this.cutin.elapsed,id:'awakening-cutin'}:state.action,technique=current?.technique||null,motion=TECHNIQUES[technique]?.motion||technique,superActive=Boolean(state.superActive??this.snapshot?.super?.active),auraActive=state.auraId!==null&&state.auraId!=='none';
+  const current=state.action,technique=current?.technique||null,motion=TECHNIQUES[technique]?.motion||technique,superActive=Boolean(state.superActive??this.snapshot?.super?.active),auraActive=state.auraId!==null&&state.auraId!=='none';
   const idle=this.resolveClip(record,'idle');
   let clip=null,key='idle';
   if(role==='player'&&current){
@@ -267,15 +270,7 @@ export class BattleView{
   for(const [id,shield]of player.shields||[])shield.visible=this.snapshot.player.equipment?.defense===id&&!this.cutin;
   this.sampleActor(player,this.snapshot.player,'player');for(const state of states)this.sampleActor(this.actors[state.id||'enemy'],state,state.id||'enemy');this.scene.updateMatrixWorld(true);
  }
- advance(dt){if(this.destroyed||!this.active||!this.ready||this.contextLost)return;this.updateAtmosphere(dt);if(this.endVisualTime!==null)this.time+=Math.max(0,number(dt));if(this.cutin){this.cutin.elapsed+=Math.max(0,number(dt));if(this.cutin.elapsed>=this.cutin.duration)this.cutin=null;}this.updatePose();this.fitCamera();this.applyAwakeningCamera();this.render();}
- applyAwakeningCamera(){
-  if(!this.cutin)return;
-  const player=this.actors.player,elapsed=this.cutin.elapsed,duration=this.cutin.duration;
-  const blend=ease(Math.min(elapsed/.22,(duration-elapsed)/.22,1)),yaw=player.facing.rotation.y;
-  const aim=player.anchor.position.clone().add(new THREE.Vector3(0,player.height*.62,0));
-  const close=aim.clone().add(new THREE.Vector3(Math.sin(yaw)*player.height*2,player.height*.28,Math.cos(yaw)*player.height*2));
-  const normal=this.camera.position.clone(),q=this.camera.quaternion.clone();this.camera.clearViewOffset();this.camera.position.lerpVectors(normal,close,blend);this.camera.lookAt(aim);this.camera.quaternion.slerpQuaternions(q,this.camera.quaternion.clone(),blend);this.camera.updateMatrixWorld(true);
- }
+ advance(dt){if(this.destroyed||!this.active||!this.ready||this.contextLost)return;this.updateAtmosphere(dt);if(this.endVisualTime!==null)this.time+=Math.max(0,number(dt));if(this.cutin){this.cutin.elapsed+=Math.max(0,number(dt));if(this.cutin.elapsed>=this.cutin.duration)this.cutin=null;}this.updatePose();this.fitCamera();this.render();}
  fitCamera(){
   if(!this.cameraAim||!this.actors.player||!this.actors.enemy)return;
   const direction=new THREE.Vector3(0,.4,1).normalize(),right=new THREE.Vector3(1,0,0),up=new THREE.Vector3().crossVectors(direction,right).normalize();
@@ -302,9 +297,20 @@ export class BattleView{
   this.camera.position.copy(this.cameraAim).addScaledVector(direction,distance);this.camera.lookAt(this.cameraAim);if(this.scene.fog){const height=Math.max(...Object.values(this.actors).map(actor=>actor.height));this.scene.fog.near=distance+height*3;this.scene.fog.far=distance+height*22;}this.camera.updateMatrixWorld(true);
  }
  resize(){if(!this.renderer)return;const box=this.container.getBoundingClientRect();if(box.width<1||box.height<1)return;this.width=Math.round(box.width);this.height=Math.round(box.height);this.renderer.setSize(this.width,this.height,false);this.camera.aspect=this.width/this.height;this.camera.updateProjectionMatrix();this.fitCamera();this.render();}
- render(){if(this.ready&&this.active&&!this.destroyed&&!this.contextLost){this.renderer.render(this.scene,this.camera);this.canvas.style.visibility='visible';this.renderFrames++;}}
+ render(){
+  if(!this.ready||!this.active||this.destroyed||this.contextLost)return;
+  const awakening=Boolean(this.cutin&&this.awakeningStage&&this.awakeningActor);
+  if(awakening){
+   this.sampleActor(this.awakeningActor,{...this.snapshot.player,superActive:true,action:{technique:'super_awaken',duration:this.cutin.duration,elapsed:this.cutin.elapsed,id:'awakening-cutin'}},'player');
+   this.awakeningStage.scene.environment=this.scene.environment;this.awakeningStage.scene.environmentIntensity=this.scene.environmentIntensity;
+   this.awakeningStage.sample(this.cutin.elapsed,this.cutin.duration,{width:this.width,height:this.height,pixelRatio:this.renderer.getPixelRatio()});
+   this.renderer.render(this.awakeningStage.scene,this.awakeningStage.camera);
+  }else this.renderer.render(this.scene,this.camera);
+  const presentation=awakening?'super-awakening':'battle';if(this.canvas.dataset.presentation!==presentation){this.canvas.dataset.presentation=presentation;this.canvas.setAttribute('aria-label',awakening?'星々が煌めく宇宙で、マッスルポーズを取るスーパーおこていゆ状態への覚醒':'おこていゆと珍生物の戦闘。攻撃はその場で行い、疲れると戦闘が終わります。');}
+  this.canvas.style.visibility='visible';this.renderFrames++;
+ }
  setActive(active){this.active=Boolean(active);if(this.active){this.resize();this.updatePose();this.render();}}
  getDiagnostics(){return {field:this.field?.id||null,awakeningCutin:this.cutin?{...this.cutin}:null,ready:this.ready,loading:this.loading,active:this.active,error:this.lastError,contextLost:this.contextLost,time:this.time,renderFrames:this.renderFrames,size:{width:this.width||0,height:this.height||0},actors:Object.fromEntries(Object.entries(this.actors).map(([role,actor])=>[role,{id:actor.id,height:actor.height,position:actor.anchor.position.toArray(),facingY:actor.facing.rotation.y,currentClip:actor.currentClip,shield:actor.shield?{id:this.snapshot?.player?.equipment?.defense,visible:actor.shield.visible,position:actor.shield.position.toArray(),animations:0}:null,auraId:actor.auraId||null,auraColor:actor.auraColor===undefined?null:'#'+actor.auraColor.toString(16).padStart(6,'0'),auraMaterialCount:actor.auraMaterials?.length||0,hitOffset:actor.hitRoot.position.toArray(),attackOffset:actor.attackRoot.position.toArray(),fixedGroundWorld:actor.fixedGround?.getWorldPosition(new THREE.Vector3()).toArray()||null,meshCount:(()=>{let count=0;actor.model.traverse(node=>{if(node.isMesh)count++;});return count;})()}]))};}
  disposeObject(object){const geometries=new Set(),materials=new Set(),textures=new Set();object?.traverse(node=>{if(node.geometry)geometries.add(node.geometry);for(const material of Array.isArray(node.material)?node.material:node.material?[node.material]:[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value);}});for(const value of geometries)value.dispose();for(const value of materials)value.dispose();for(const value of textures)if(value!==this.shadowTexture)value.dispose();}
- destroy(){if(this.destroyed)return;this.destroyed=true;this.active=false;this.resizeObserver?.disconnect();for(const stop of this.listeners)stop();const resources=new THREE.Group();for(const record of this.actorCache.values()){record.mixer.stopAllAction();resources.add(record.anchor);}for(const template of this.templateCache.values())resources.add(template.scene);this.disposeObject(resources);this.clearStage();this.shadowTexture?.dispose();for(const texture of this.auraTextureCache?.values()||[])texture.dispose();this.auraTextureCache?.clear();this.environmentTarget?.dispose();this.actorCache.clear();this.actorPromises.clear();this.templateCache.clear();this.templatePromises.clear();this.renderer?.dispose();this.canvas?.remove();}
+ destroy(){if(this.destroyed)return;this.destroyed=true;this.active=false;this.resizeObserver?.disconnect();for(const stop of this.listeners)stop();const resources=new THREE.Group();for(const record of this.actorCache.values()){record.mixer.stopAllAction();resources.add(record.anchor);}for(const template of this.templateCache.values())resources.add(template.scene);this.disposeObject(resources);this.awakeningStage?.dispose();this.clearStage();this.shadowTexture?.dispose();for(const texture of this.auraTextureCache?.values()||[])texture.dispose();this.auraTextureCache?.clear();this.environmentTarget?.dispose();this.actorCache.clear();this.actorPromises.clear();this.templateCache.clear();this.templatePromises.clear();this.renderer?.dispose();this.canvas?.remove();}
 }
