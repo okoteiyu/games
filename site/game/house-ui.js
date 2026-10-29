@@ -20,7 +20,7 @@ function activityLabel(life){
 /** Mounts a persistent house renderer in the shared image/video/3D viewport. */
 export class HouseUI {
  constructor({view,isPaused,isSimulationPaused=isPaused,onLifeEvent=()=>{},onInspect=()=>{},onMapUpdate=()=>{},onGrowthGuide=()=>false,canExecuteAction=()=>true,readCharacter=()=>null,rng=Math.random}){
-  Object.assign(this,{view,isPaused,isSimulationPaused,onLifeEvent,onInspect,onMapUpdate,canExecuteAction,readCharacter,rng});this.active=false;this.controller=null;this.loading=null;this.failed=false;
+  Object.assign(this,{view,isPaused,isSimulationPaused,onLifeEvent,onInspect,onMapUpdate,canExecuteAction,readCharacter,rng});this.active=false;this.controller=null;this.loading=null;this.loadGeneration=0;this.failed=false;
   this.container=document.createElement('div');this.container.className='house3d-container';
   this.status=document.createElement('div');this.status.className='house3d-status';this.status.setAttribute('role','status');this.status.innerHTML='<span></span><button type="button" hidden>再読み込み</button>';
   this.status.querySelector('button').addEventListener('click',()=>this.retry());
@@ -108,24 +108,29 @@ export class HouseUI {
  }
  async ensureLoaded(){
   if(this.loading)return this.loading;
+  // A startup retry can supersede show() while its dynamic import is pending.
+  const generation=++this.loadGeneration,current=()=>generation===this.loadGeneration;
   this.failed=false;this.status.hidden=!this.active;this.status.querySelector('span').textContent='3Dビューを読み込んでいます…';this.status.querySelector('button').hidden=true;
   this.loading=(async()=>{try{
    const {HouseView}=await import('./house-view.js');
+   if(!current())return false;
    if(!this.active)this.container.remove();
-   this.controller=new HouseView({container:this.container,assetUrl:new URL('./assets/house3d/house.glb',import.meta.url).href,metadataUrl:new URL('./assets/house3d/metadata.json',import.meta.url).href,enableInteraction:true,isPaused:()=>this.isPaused()||isModalBlocked(),isSimulationPaused:()=>this.isSimulationPaused(),canExecuteAction:(kind,context)=>this.canExecuteAction(kind,context),rng:()=>this.rng(),onInspect:target=>{if(this.active)this.onInspect(target);},getInspectionInsets:()=>{const surface=this.container.getBoundingClientRect(),toolbar=this.toolbar.getBoundingClientRect();return {top:toolbar.bottom-surface.top+8,bottom:surface.height*.29};},onLifeStateChange:()=>this.updateLifeStatus(),onLifeEvent:event=>{this.updateLifeStatus();this.onLifeEvent(event);},onInteractionChange:state=>{this.updateControls();if(state.sceneMode==='room'&&!state.transitioning&&this.active&&!this.isPaused()&&!isModalBlocked())this.controller?.canvas.focus({preventScroll:true});},onStatus:text=>{this.status.querySelector('span').textContent=text;this.status.hidden=!this.active||!text;},onError:error=>this.showError(error)});
-   this.controller.setActive(this.active);const ready=await this.controller.load();if(!ready&&!this.failed)this.showError(new Error('3Dビューを読み込めませんでした。'));this.updateControls();return ready;
-  }catch(error){this.showError(error);return false;}})();return this.loading;
+   const controller=new HouseView({container:this.container,assetUrl:new URL('./assets/house3d/house.glb',import.meta.url).href,metadataUrl:new URL('./assets/house3d/metadata.json',import.meta.url).href,enableInteraction:true,isPaused:()=>this.isPaused()||isModalBlocked(),isSimulationPaused:()=>this.isSimulationPaused(),canExecuteAction:(kind,context)=>this.canExecuteAction(kind,context),rng:()=>this.rng(),onInspect:target=>{if(current()&&this.active)this.onInspect(target);},getInspectionInsets:()=>{const surface=this.container.getBoundingClientRect(),toolbar=this.toolbar.getBoundingClientRect();return {top:toolbar.bottom-surface.top+8,bottom:surface.height*.29};},onLifeStateChange:()=>{if(current())this.updateLifeStatus();},onLifeEvent:event=>{if(current()){this.updateLifeStatus();this.onLifeEvent(event);}},onInteractionChange:state=>{if(!current())return;this.updateControls();if(state.sceneMode==='room'&&!state.transitioning&&this.active&&!this.isPaused()&&!isModalBlocked())this.controller?.canvas.focus({preventScroll:true});},onStatus:text=>{if(current()){this.status.querySelector('span').textContent=text;this.status.hidden=!this.active||!text;}},onError:error=>{if(current())this.showError(error);}});
+   this.controller=controller;controller.setActive(this.active);const ready=await controller.load();
+   if(!current()){controller.destroy();return false;}
+   if(!ready&&!this.failed)this.showError(new Error('3Dビューを読み込めませんでした。'));this.updateControls();return ready;
+  }catch(error){if(current())this.showError(error);return false;}})();return this.loading;
  }
  showError(error){this.failed=true;this.status.querySelector('span').textContent='3D表示を読み込めませんでした。通信とWebGLの対応状況をご確認ください。';this.status.querySelector('button').hidden=false;this.status.hidden=!this.active;this.updateControls();}
  async prepareForStartup({retry=false}={}){
-  if(retry){this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;this.failed=false;}
+  if(retry){this.loadGeneration++;this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;this.failed=false;}
   return this.ensureLoaded();
  }
  async retry(){
   if(this.isPaused()||isModalBlocked())return false;
   const calm=this.retryCalmPoints??this.controller?.life?.consecutiveRelaxActions;
   this.retryCalmPoints=calm;
-  this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;
+  this.loadGeneration++;this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;
   const ready=await this.ensureLoaded();
   if(ready&&Number.isSafeInteger(calm)){this.restoreConsecutiveRelaxActions(calm);this.retryCalmPoints=null;}
   return ready;
