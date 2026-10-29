@@ -27,7 +27,7 @@ export const PROTOTYPE_CHOICES=Object.freeze({
  initialRecovery:`A fresh game starts with ${INITIAL_CALM_POINTS} calm points; saved progress retains its stored balance.`,
  unlockedCommandsAfterBattle:true,angerPointsRetainedBetweenBattles:true,
  angerOutcomeAtCap:'Remove capped rewards and draw from the remaining relative weights; no reward when all entries are capped.',
- statOrder:'Base -> equipped aura -> equipment parameter multipliers -> attack and ki super multiplier; truncate resulting stats to one decimal and clamp speed to at least one.',
+ statOrder:'Base -> equipped aura -> equipment parameter multipliers -> attack and ki super multiplier; retain precision through all modifiers, then truncate once to one decimal and clamp speed to at least one.',
  winPrediction:'Use maximum aura-adjusted self parameters and mean opponent parameters, excluding held equipment and temporary super; multiply by 0.7 to (opponent count minus one).',
  firstAttack:'Wait one jittered interval; the next interval starts when the current motion completes.',
  jitterDistribution:'Uniform over minus/plus ten percent, redrawn for every action.',
@@ -52,18 +52,19 @@ export function truncateStat(value){finite(value,'stat');if(value<0)throw new Ra
 export function normalizeStat(stat,value){const rounded=truncateStat(value);return stat==='speed'?Math.max(1,rounded):rounded;}
 export function applySuperStats(stats,multiplier=1){
  finite(multiplier,'super multiplier');if(multiplier<=0)throw new RangeError('Invalid super multiplier.');
- return {...stats,speed:normalizeStat('speed',stats.speed),attack:truncateStat(stats.attack*multiplier),ki:truncateStat(stats.ki*multiplier)};
+ return Object.fromEntries(STAT_KEYS.map(key=>[key,normalizeStat(key,finite(stats[key],key)*(['attack','ki'].includes(key)?multiplier:1))]));
 }
 export function creatureStats(speciesId,level){
  const {ranks}=checkedCreature(speciesId);integer(level,'character level',1,106);
  return Object.fromEntries(STAT_KEYS.map(key=>[key,parameterValue(ranks[key],level,key)]));
 }
 export function parameterValue(rank,level,stat='attack'){integer(rank,'parameter rank',0,15);integer(level,'character level',1,106);if(!STAT_KEYS.includes(stat))throw new RangeError('Unknown parameter.');return normalizeStat(stat,(rank===0?1:rank*level*6/10)*(stat==='hp'?5:1));}
-export function applyAuraStats(stats,auraId='okoteiyu',auraLevel=1){
- if(auraId===null)return Object.fromEntries(STAT_KEYS.map(key=>[key,normalizeStat(key,finite(stats[key],key))]));
+function auraStatValues(stats,auraId='okoteiyu',auraLevel=1){
+ if(auraId===null)return Object.fromEntries(STAT_KEYS.map(key=>[key,finite(stats[key],key)]));
  const aura=checkedCreature(auraId);integer(auraLevel,'aura level',1,auraId==='okoteiyu'?1:30);
- return Object.fromEntries(STAT_KEYS.map(key=>{const base=finite(stats[key],key);if(base<=0)throw new RangeError('A combat stat must be positive.');return[key,normalizeStat(key,auraId==='okoteiyu'?base*1.2:base+aura.ranks[key]*auraLevel*6/10*(key==='hp'?5:1))];}));
+ return Object.fromEntries(STAT_KEYS.map(key=>{const base=finite(stats[key],key);if(base<=0)throw new RangeError('A combat stat must be positive.');return[key,auraId==='okoteiyu'?base*1.2:base+aura.ranks[key]*auraLevel*6/10*(key==='hp'?5:1)];}));
 }
+export function applyAuraStats(stats,auraId='okoteiyu',auraLevel=1){return applySuperStats(auraStatValues(stats,auraId,auraLevel));}
 export function statTotal(stats){return STAT_KEYS.reduce((sum,key)=>sum+finite(stats[key],key),0);}
 export function defeatedEnemyExperience(speciesId,level){
  const {ranks}=checkedCreature(speciesId);integer(level,'opponent level',1,106);
@@ -95,7 +96,13 @@ function recordJournalEncounter(player,enemy){
  const speciesId=enemy.speciesId,entry=player.journal[speciesId]||{speciesId,name:enemy.name,encounters:0,defeats:0,patrolDefeats:0,lastLevel:enemy.level};
  entry.registered=true;entry.encounters++;entry.lastLevel=enemy.level;player.journal[speciesId]=entry;return entry;
 }
-export function playerStats(player,{equipment=true}={}){const aura=player.auras?.[player.equippedAura],base=applyAuraStats(creatureStats('okoteiyu',player.level||1),player.equippedAura??null,aura?.level||1);if(!equipment)return base;const factors=equipmentMultipliers(player.equipment);return Object.fromEntries(STAT_KEYS.map(key=>[key,normalizeStat(key,base[key]*factors[key])]));}
+function playerStatValues(player,{equipment=true}={}){
+ const aura=player.auras?.[player.equippedAura],base=auraStatValues(creatureStats('okoteiyu',player.level||1),player.equippedAura??null,aura?.level||1);
+ if(!equipment)return base;
+ const factors=equipmentMultipliers(player.equipment);return Object.fromEntries(STAT_KEYS.map(key=>[key,base[key]*factors[key]]));
+}
+/** Round only after aura, held equipment and any active super multiplier. */
+export function playerStats(player,{equipment=true,superMultiplier=1}={}){return applySuperStats(playerStatValues(player,{equipment}),superMultiplier);}
 
 /** Existing PatrolState uses bounded color probabilities; preserve the raw formula separately. */
 export function createPatrolEnemies({map,player,rng=Math.random,patrolId=1,timeOfDay=currentTimeOfDay()}={}){
@@ -248,7 +255,8 @@ export class GameSession{
   const members=Array.isArray(encounter)?encounter:encounter?.members||[encounter];integer(members.length,'opponent count',1,3);
   const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0});
   const enemies=members.map((enemy,index)=>{const speciesId=enemy?.speciesId||enemy?.creatureId;if(!Object.hasOwn(CREATURES,speciesId)||!Object.hasOwn(CREATURE_CATEGORIES,CREATURES[speciesId].category))throw new RangeError('Unsupported prototype opponent.');const level=integer(enemy.level,'opponent level',1,106);return {...actor(index?'enemy-'+(index+1):'enemy',speciesId,level,creatureStats(speciesId,level)),techniqueLevels:Object.fromEntries(CREATURES[speciesId].techniques.map(id=>[id,clampTechniqueLevel(id,level)])),sourceId:enemy.id||null};});
-  const battle={kind,phase:'active',status:'active',time:0,player:actor('player','okoteiyu',this.player.level,playerStats(this.player)),enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
+  const playerStatBase=playerStatValues(this.player);
+  const battle={kind,phase:'active',status:'active',time:0,player:actor('player','okoteiyu',this.player.level,applySuperStats(playerStatBase)),playerStatBase,enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
   this.state.battle=battle;this.state.location='battle';
   for(const id of this.actorIds())this.combatant(id).nextActionAt=this.nextInterval(id);
   if(kind==='patrol')for(const enemy of enemies)recordJournalEncounter(this.player,enemy);
@@ -299,7 +307,7 @@ export class GameSession{
   actor.action=null;this.emit('action-complete',{actor:actorId,technique:action.technique,duration:action.duration,time:b.time});
   if(action.technique!=='super_awaken'){
    const target=actorId==='player'?(this.combatant(action.targetId)?.hp>0?this.combatant(action.targetId):this.selectTarget()):b.player;if(!target)return;
-   const stats=actorId==='player'?applySuperStats(actor.stats,b.super.active?b.super.multiplier:1):actor.stats;
+   const stats=actorId==='player'?applySuperStats(b.playerStatBase,b.super.active?b.super.multiplier:1):actor.stats;
    const power=techniquePower(action.technique,stats,actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique));
    const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt:factors.damageReceived);
    const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;
@@ -357,9 +365,10 @@ export class GameSession{
  }
  snapshotBattle(){
   const b=this.state.battle;if(!b)return null;
-  const snapshotActor=a=>({...a,stats:a.id==='player'&&b.super.active?applySuperStats(a.stats,b.super.multiplier):{...a.stats},action:a.action?{...a.action,elapsed:Math.max(0,Math.min(a.action.duration,b.time-a.action.startedAt))}:null,superActive:a.id==='player'&&b.super.active,superUsed:a.id==='player'&&b.super.used});
+  const snapshotActor=a=>({...a,stats:a.id==='player'&&b.super.active?applySuperStats(b.playerStatBase,b.super.multiplier):{...a.stats},action:a.action?{...a.action,elapsed:Math.max(0,Math.min(a.action.duration,b.time-a.action.startedAt))}:null,superActive:a.id==='player'&&b.super.active,superUsed:a.id==='player'&&b.super.used});
   const enemies=b.enemies.map(snapshotActor);
-  return clone({...b,player:{...snapshotActor(b.player),auraId:this.player.equippedAura,equipment:{...this.player.equipment}},enemies,enemy:enemies.find(enemy=>enemy.id===b.targetId)||enemies[0],enemyCount:enemies.length,techniques:{slots:[...this.player.techniqueSlots],superConfiguration:this.player.superConfiguration,superDetails:superStateDetails(this.player),energyRayUnlocked:this.player.energyRayUnlocked,punchLevel:this.player.punchLevel,energyRayLevel:this.player.energyRayLevel}});
+  const {playerStatBase,...visibleBattle}=b;
+  return clone({...visibleBattle,player:{...snapshotActor(b.player),auraId:this.player.equippedAura,equipment:{...this.player.equipment}},enemies,enemy:enemies.find(enemy=>enemy.id===b.targetId)||enemies[0],enemyCount:enemies.length,techniques:{slots:[...this.player.techniqueSlots],superConfiguration:this.player.superConfiguration,superDetails:superStateDetails(this.player),energyRayUnlocked:this.player.energyRayUnlocked,punchLevel:this.player.punchLevel,energyRayLevel:this.player.energyRayLevel}});
  }
  exportState({allowPending=false,allowDepartureCheckpoint=false}={}){
   // The accepted departure still has a brief home phase: checkpoint its cost
