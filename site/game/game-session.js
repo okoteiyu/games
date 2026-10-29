@@ -1,6 +1,6 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
 import {NO_ADDITIONAL_EFFECTS} from './additional-effects.js';
-import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS} from './initial-state.js';
+import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {currentTimeOfDay} from './world-time.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers} from './equipment-rules.js';
@@ -88,10 +88,12 @@ export function auraDropPercent(level){integer(level,'opponent level',1,106);ret
 
 function randomValue(rng){const value=Number(rng());if(!Number.isFinite(value))throw new TypeError('The random source must return a finite number.');return Math.min(1-Number.EPSILON,Math.max(0,value));}
 function shuffle(items,rng){const result=[...items];for(let index=result.length-1;index>0;index--){const at=Math.floor(randomValue(rng)*(index+1));[result[index],result[at]]=[result[at],result[index]];}return result;}
-function prototypePlayer(){return {speciesId:'okoteiyu',name:'おこていゆ',level:INITIAL_PLAYER_LEVEL,xp:0,superLevel:1,punchLevel:1,energyRayLevel:1,energyRayUnlocked:false,unlockedTechniques:[],techniqueLevels:Object.fromEntries(ADDED_TECHNIQUE_IDS.map(id=>[id,1])),techniqueSlots:['punch',null,null],superConfiguration:'none',equipmentRulesVersion:1,ownedItems:{support:['moai_kun','hard_glove','stored_ki'],defense:['acrylic_shield','iron_shield','aura_shield']},equipment:{support:'moai_kun',defense:'acrylic_shield'},equippedAura:'okoteiyu',auras:{okoteiyu:{speciesId:'okoteiyu',name:'おこていゆのオーラ',level:1,copies:1,progress:0}},journal:{},battlesWon:0,battlesLost:0};}
+function initialJournal(){return Object.fromEntries(INITIAL_JOURNAL_SPECIES.map(id=>[id,{speciesId:id,name:CREATURES[id].name,registered:true,encounters:0,defeats:0,patrolDefeats:0,lastLevel:null}]));}
+export function hasJournalRecord(entry){return Boolean(entry&&(entry.registered===true||entry.encounters>0));}
+function prototypePlayer(){return {speciesId:'okoteiyu',name:'おこていゆ',level:INITIAL_PLAYER_LEVEL,xp:0,superLevel:1,punchLevel:1,energyRayLevel:1,energyRayUnlocked:false,unlockedTechniques:[],techniqueLevels:Object.fromEntries(ADDED_TECHNIQUE_IDS.map(id=>[id,1])),techniqueSlots:['punch',null,null],superConfiguration:'none',equipmentRulesVersion:1,ownedItems:{support:['moai_kun','hard_glove','stored_ki'],defense:['acrylic_shield','iron_shield','aura_shield']},equipment:{support:'moai_kun',defense:'acrylic_shield'},equippedAura:'okoteiyu',auras:{okoteiyu:{speciesId:'okoteiyu',name:'おこていゆのオーラ',level:1,copies:1,progress:0}},journal:initialJournal(),battlesWon:0,battlesLost:0};}
 function recordJournalEncounter(player,enemy){
  const speciesId=enemy.speciesId,entry=player.journal[speciesId]||{speciesId,name:enemy.name,encounters:0,defeats:0,patrolDefeats:0,lastLevel:enemy.level};
- entry.encounters++;entry.lastLevel=enemy.level;player.journal[speciesId]=entry;return entry;
+ entry.registered=true;entry.encounters++;entry.lastLevel=enemy.level;player.journal[speciesId]=entry;return entry;
 }
 export function playerStats(player,{equipment=true}={}){const aura=player.auras?.[player.equippedAura],base=applyAuraStats(creatureStats('okoteiyu',player.level||1),player.equippedAura??null,aura?.level||1);if(!equipment)return base;const factors=equipmentMultipliers(player.equipment);return Object.fromEntries(STAT_KEYS.map(key=>[key,normalizeStat(key,base[key]*factors[key])]));}
 
@@ -155,10 +157,13 @@ function restorePlayer(saved){
  for(const id of ['hard_glove','stored_ki'])if(!player.ownedItems.support.includes(id))player.ownedItems.support.push(id);
  for(const id of ['iron_shield','aura_shield'])if(!player.ownedItems.defense.includes(id))player.ownedItems.defense.push(id);
  if(!saved.journal||typeof saved.journal!=='object'||Array.isArray(saved.journal))throw new TypeError('Journal must be a record.');
- player.journal={};for(const [id,entry]of Object.entries(saved.journal)){
+ player.journal=initialJournal();for(const [id,entry]of Object.entries(saved.journal)){
   checkedCreature(id);if(!entry||typeof entry!=='object')throw new TypeError('Invalid journal entry.');
   const defeats=integer(entry.defeats,'defeats',0),patrolDefeats=entry.patrolDefeats===undefined?defeats:integer(entry.patrolDefeats,'patrol defeats',0,defeats);
-  player.journal[id]={speciesId:id,name:CREATURES[id].name,encounters:integer(entry.encounters,'encounters',0),defeats,patrolDefeats,lastLevel:integer(entry.lastLevel,'journal level',1,106)};
+  if(entry.registered!==undefined&&typeof entry.registered!=='boolean')throw new TypeError('Invalid journal registration.');
+  const encounters=integer(entry.encounters,'encounters',0),registered=entry.registered===true||encounters>0||INITIAL_JOURNAL_SPECIES.includes(id);
+  const lastLevel=entry.lastLevel===null&&registered&&encounters===0?null:integer(entry.lastLevel,'journal level',1,106);
+  player.journal[id]={speciesId:id,name:CREATURES[id].name,registered,encounters,defeats,patrolDefeats,lastLevel};
  }
  return player;
 }

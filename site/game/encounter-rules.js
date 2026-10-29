@@ -1,6 +1,7 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
 /** Species habitat and level bands, and the shared training eligibility rules. */
 export const PATROL_CATEGORIES=Object.freeze(['normal','threat']);
+export const TRAINING_HISTORY_EXEMPT_SPECIES=Object.freeze(['punim']);
 export const ENCOUNTER_PROFILES=Object.freeze({
  ...Object.fromEntries(Object.entries(ADDED_CREATURES).map(([id,{levelBand,spawnRegions,spawnTimes}])=>[id,Object.freeze({levelBand,spawnRegions,spawnTimes})])),
  horarara_horaran:Object.freeze({levelBand:Object.freeze({min:1,max:100}),spawnRegions:Object.freeze(['forest','residential']),spawnTimes:Object.freeze(['day','night'])}),
@@ -23,7 +24,7 @@ export function trainingLevelRange(player,creature,tier='easy'){
  const course=TRAINING_COURSES[tier];if(!course||!course.categories.includes(creature?.category)||creature.category==='unique')return null;
  const wonOnPatrol=player?.journal?.[creature.id]?.patrolDefeats>0;
  const belowPatrolWindow=creature.levelBand?.max<player?.level-5;
- if(!wonOnPatrol&&!belowPatrolWindow)return null;
+ if(!TRAINING_HISTORY_EXEMPT_SPECIES.includes(creature.id)&&!wonOnPatrol&&!belowPatrolWindow)return null;
  // A missed species must not be locked out again by the player's -10 window.
  // It and sufficiently low courses use the full course/native intersection.
  const lower=belowPatrolWindow||course.max<=player.level-10?course.min:Math.max(course.min,player.level-10);

@@ -11,9 +11,9 @@ export function growthGuideMarkup(){
   flow:`<header class="growth-guide__intro"><span class="growth-guide__eyebrow">まずは、この順番で</span><h3>育成に関する超効率フロー</h3><p>少しコツをつかむと、成長がぐっと楽になります。おこていゆと、ひとつずつ試してみましょう。</p></header>
    <ol class="growth-flow">
     <li><span class="growth-flow__number" aria-hidden="true">1</span><div><h4>穏やか Pt を貯める</h4><p>戦闘に出かけるには、穏やか Pt が必要です。まずは、ゆっくり休んでもらって貯めておきましょう。</p>${jump('calm','穏やか Pt 効率化を読む')}</div></li>
-    <li><span class="growth-flow__number" aria-hidden="true">2</span><div><h4>周回対象の厳選</h4><p>「パトロール」で勝利すると、その珍生物を訓練の相手として登録できます。最序盤のパトロールは、なかなか手ごわいです。勝てる相手に出会えるまで、何度か挑戦してみてください。</p>${jump('strategy','戦闘力強化と戦略を読む')}</div></li>
+    <li><span class="growth-flow__number" aria-hidden="true">2</span><div><h4>訓練周回</h4><p>まずは、最初から相手をしてくれるプニムとの訓練から。勝利を狙いやすい相手と繰り返し戦って、経験値集めとオーラ強化を進めましょう。序盤は、特にオーラのレベル上げがよく効きます。</p>${jump('strategy','戦闘力強化と戦略を読む')}</div></li>
     <li><span class="growth-flow__number" aria-hidden="true">3</span><div><h4>怒り Pt 収集の同時並行</h4><p>パトロールや訓練の戦闘を終えて帰ると、勝ち負けにかかわらず、穏やか Pt の消費 0 で「ちょっかいをかける」ボーナスが使えます。帰ってきたら、忘れずに。</p><p>怒り Pt が 3 貯まるたびに「おこていゆイベント」が起こり、技などの取得が抽選されます。戦闘の合間に、こちらも進めましょう。</p></div></li>
-    <li><span class="growth-flow__number" aria-hidden="true">4</span><div><h4>訓練周回</h4><p>パトロールで勝てたら、訓練を使ってみましょう。基本的には勝利を狙いやすい相手と戦えるので、経験値集めとオーラ強化を進めるのにぴったりです。序盤は、特にオーラのレベル上げがよく効きます。</p>${jump('strategy','戦闘力強化と戦略を読む')}</div></li>
+    <li><span class="growth-flow__number" aria-hidden="true">4</span><div><h4>周回対象の厳選</h4><p>パトロールに出かけて、新たな珍生物に出会いましょう。戦闘に勝利すると、その珍生物とは訓練でも戦えるようになります。</p><p>パトロールには強敵もたくさん登場します。もちもの・オーラ・技を見直して、準備を万全にしてから出発しましょう。</p>${jump('strategy','戦闘力強化と戦略を読む')}</div></li>
    </ol><p class="growth-guide__loop"><span>訓練</span><b aria-hidden="true">→</b><span>ボーナスでちょっかい</span><b aria-hidden="true">→</b><span>また訓練へ</span></p><p class="growth-guide__aside">穏やか Pt が足りなくなったら、最初の手順に戻って、ひと休みです。</p>`,
   calm:`<header class="growth-guide__intro"><span class="growth-guide__eyebrow">出発の準備</span><h3>穏やか Pt 効率化</h3><p>のんびり待つのも、少し手伝うのも。遊び方に合わせて貯めてみましょう。</p></header>
    <section class="growth-guide__chapter"><h4>ホーム画面で放置</h4><p>ホーム画面の「おこていゆハウス」では、おこていゆが自分で行動しています。ときどき食べたり、寝転がったり、座ったりして、休み終わるたびに穏やか Pt が貯まります。</p><p>画面を開いたまま、のんびり見守るだけでも大丈夫です。この手引きを読んでいる間も、おこていゆは過ごしています。</p></section>
