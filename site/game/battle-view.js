@@ -2,6 +2,7 @@ import {AURA_STYLES as auraStyles} from './aura-styles.js';
 import {TECHNIQUES} from './technique-rules.js';
 import {AttackEffects} from './attack-effects.js';
 import {SuperAwakeningStage} from './super-awakening-stage.js';
+import {SuperRisingAura} from './super-rising-aura.js';
 import { getBattleRegionAt } from './patrol-map.js';
 import * as THREE from './vendor/three/three.module.js';
 import { GLTFLoader } from './vendor/three/addons/loaders/GLTFLoader.js';
@@ -260,7 +261,10 @@ export class BattleView{
    for(const node of appearance.whiteAuraNodes||[])node.visible=auraActive;
    for(const node of appearance.superNodes||[])node.visible=superActive;
    for(const node of appearance.rayNodes||[])node.visible=motion==='energy_ray';
-   if(record.glow){const style=auraStyles[record.auraId]||auraStyles.okoteiyu;record.glow.visible=auraActive||superActive;record.glow.material.color.set(style.palette?0xffffff:superActive&&(!auraActive||record.auraId==='okoteiyu')?0xd5ef59:record.auraColor);record.glow.material.opacity=superActive?.8:style.emphasis?.95:style.palette?.72:.52;record.glow.scale.set(record.height*(superActive||style.emphasis?1.85:1.48),record.height*(superActive||style.emphasis?1.95:1.55),1);}
+   if(superActive&&!record.risingAura){record.risingAura=new SuperRisingAura(record.height);record.anchor.add(record.risingAura.root);}
+   const superElapsed=current?.technique==='super_awaken'?attackElapsed:Math.max(0,this.time-(Number.isFinite(record.superAt)?record.superAt:0));
+   record.risingAura?.sample(superElapsed,superActive);
+   if(record.glow){const style=auraStyles[record.auraId]||auraStyles.okoteiyu;record.glow.visible=auraActive||superActive;record.glow.material.color.set(style.palette?0xffffff:superActive&&(!auraActive||record.auraId==='okoteiyu')?0xd5ef59:record.auraColor);record.glow.material.opacity=superActive?.95:style.emphasis?.95:style.palette?.72:.52;record.glow.scale.set(record.height*(superActive?2.05:style.emphasis?1.85:1.48),record.height*(superActive?2.12:style.emphasis?1.95:1.55),1);}
   }
  }
  updatePose(){
