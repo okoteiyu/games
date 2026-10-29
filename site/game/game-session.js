@@ -9,7 +9,7 @@ import {getRegionAt} from './patrol-map.js';
 import {ENCOUNTER_PROFILES,TRAINING_COURSES,overlapLevelBand,patrolSpeciesEligible,trainingLevelRange} from './encounter-rules.js';
 export {TRAINING_COURSES} from './encounter-rules.js';
 import {selectOkoteiyuReward,eligibleOkoteiyuRewards} from './okoteiyu-events.js';
-import {TECHNIQUES,ADDED_TECHNIQUE_IDS,PLAYER_TECHNIQUE_IDS,playerTechniqueLevel,availableTechniqueIds,defaultTechniqueSlots,validateTechniqueSlots,SUPER_CONFIGURATIONS,superStateDetails,SUPER_MAX_LEVEL,clampTechniqueLevel,techniquePower} from './technique-rules.js';
+import {techniqueDuration,ADDED_TECHNIQUE_IDS,PLAYER_TECHNIQUE_IDS,playerTechniqueLevel,availableTechniqueIds,defaultTechniqueSlots,validateTechniqueSlots,SUPER_CONFIGURATIONS,superStateDetails,SUPER_MAX_LEVEL,clampTechniqueLevel,techniquePower} from './technique-rules.js';
 /** Pure game rules shared by the browser and native WebView. */
 const clone=value=>JSON.parse(JSON.stringify(value));
 const EPSILON=1e-10;
@@ -285,7 +285,7 @@ export class GameSession{
   const battle=this.state.battle,actor=this.combatant(actorId);if(!actor||battle.phase!=='active'||actor.hp<=0||actor.action)return false;
   if(!technique){if(actorId!=='player'){const pool=CREATURES[actor.speciesId].techniques;technique=pool[actor.attackIndex++%pool.length];}else{const pool=this.player.techniqueSlots.filter(Boolean);technique=actor.requestedTechnique||pool[actor.attackIndex%pool.length];actor.requestedTechnique=null;actor.attackIndex++;}}
   const target=actorId==='player'?this.selectTarget():battle.player;if(!target)return false;
-  const duration=technique==='super_awaken'?1.5:TECHNIQUES[technique]?.duration??.5;
+  const duration=technique==='super_awaken'?1.5:techniqueDuration(technique);
   actor.action={id:technique,technique,targetId:target.id,startedAt:battle.time,endsAt:battle.time+duration,duration};actor.nextActionAt=Infinity;
   this.emit('action-start',{actor:actorId,actorName:actor.name,target:target.id,technique,duration,time:battle.time});return true;
  }
