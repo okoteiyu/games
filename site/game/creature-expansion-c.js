@@ -203,7 +203,7 @@ export const NEW_CREATURE_DEFINITIONS=[
  },
  {
   "id": "void_space",
-  "name": "ヴォイドスペース",
+  "name": "ヴォイド",
   "category": "threat",
   "height": 0.8,
   "levelBand": {
@@ -236,7 +236,7 @@ export const NEW_CREATURE_DEFINITIONS=[
  },
  {
   "id": "perfect_cosmos",
-  "name": "Perfect Cosmos",
+  "name": "コスモス",
   "category": "threat",
   "height": 1.5,
   "levelBand": {

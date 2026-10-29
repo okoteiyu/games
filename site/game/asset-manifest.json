@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
   "fileCount": 124,
-  "totalBytes": 95212068,
+  "totalBytes": 95212054,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 22961,
+      "bytes": 22947,
       "priority": 2,
-      "sha256": "97b7c53ea60ce48ee6904789f886bd639870af8561591b5cd7a6ff1f9e88c43b"
+      "sha256": "c27afcb7ada1de7c983a58cb564c7213b2383c1b7614635bff5f5d1bc2f78343"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -798,7 +798,7 @@
     },
     {
       "url": "assets/battle3d/void_space.glb?v=6b8ab37ddf3ce5fe5ec01e97229eac7ce64002bb89ed063aeea76ee49a8a4583",
-      "label": "ヴォイドスペース",
+      "label": "ヴォイド",
       "type": "binary",
       "priority": 3,
       "sha256": "6b8ab37ddf3ce5fe5ec01e97229eac7ce64002bb89ed063aeea76ee49a8a4583",
@@ -806,7 +806,7 @@
     },
     {
       "url": "assets/battle3d/perfect_cosmos.glb?v=6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
-      "label": "Perfect Cosmos",
+      "label": "コスモス",
       "type": "binary",
       "priority": 3,
       "sha256": "6ee4e48794547026580f50927678ec6d7623cb53e46c6712ba25866889fe3242",
@@ -830,7 +830,7 @@
     },
     {
       "url": "assets/collection/aura-void_space.webp",
-      "label": "ヴォイドスペースのオーラ",
+      "label": "ヴォイドのオーラ",
       "type": "image",
       "priority": 3,
       "sha256": "f6e965e5de1a2a2d747ab1537262ce6632946862e4e005f759046d46a542d919",
@@ -870,7 +870,7 @@
     },
     {
       "url": "assets/collection/void_space.webp",
-      "label": "ヴォイドスペース",
+      "label": "ヴォイド",
       "type": "image",
       "priority": 3,
       "sha256": "5b116133a252afab96d764d059f34e0463e1f4cdfac3ffca85232166013ebc02",
@@ -894,7 +894,7 @@
     },
     {
       "url": "assets/collection/aura-perfect_cosmos.webp",
-      "label": "Perfect Cosmosのオーラ",
+      "label": "コスモスのオーラ",
       "type": "image",
       "priority": 3,
       "sha256": "e802b0856558edd580593ddbb5b5b498b79d18cc1c4f318f83b514071631fd53",
@@ -918,7 +918,7 @@
     },
     {
       "url": "assets/collection/perfect_cosmos.webp",
-      "label": "Perfect Cosmos",
+      "label": "コスモス",
       "type": "image",
       "priority": 3,
       "sha256": "4df470e6090f86f4218594fc1cbf1ac204345b521bd3403970aba51640b88130",
