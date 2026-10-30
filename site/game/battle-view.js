@@ -217,7 +217,7 @@ export class BattleView{
   return {group,meshes};
  }
  sampleEnemyEffects(record,current){
-  const active=(TECHNIQUES[current?.technique]?.motion||current?.technique)==='energy_ray';if(!active){if(record.enemyRay)record.enemyRay.group.visible=false;return;}
+  const active=(TECHNIQUES[current?.technique]?.motion||current?.technique)==='energy_ray'&&TECHNIQUES[current?.technique]?.effect!=='okoteiyu_beam';if(!active){if(record.enemyRay)record.enemyRay.group.visible=false;return;}
   const effect=record.enemyRay??=this.makeEnemyRay(record),elapsed=number(current.elapsed,this.time-number(current.startedAt,this.time)),duration=current.duration||.8;
   effect.group.visible=elapsed>=.1&&elapsed<duration;if(!effect.group.visible)return;
   record.anchor.updateWorldMatrix(true,true);const origin=record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*.78,0));
@@ -251,7 +251,7 @@ export class BattleView{
   if(effectKind||record.attackEffects){
    record.attackEffects??=new AttackEffects(record);record.anchor.updateWorldMatrix(true,true);
    const target=role==='player'?this.actors[this.snapshot?.targetId]||this.actors.enemy:this.actors.player;
-   const muzzle=effectKind==='shell'?findNode(record.model,'Vehicle.Muzzle'):null,origin=muzzle?muzzle.getWorldPosition(new THREE.Vector3()):record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*.60,0));
+   const muzzle=effectKind==='shell'?findNode(record.model,'Vehicle.Muzzle'):effectKind==='okoteiyu_beam'?findNode(record.model,'Ray.Charge'):null,origin=muzzle?muzzle.getWorldPosition(new THREE.Vector3()):record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*(effectKind==='okoteiyu_beam'?.78:.60),0));
    const point=target?.anchor.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,target.height*.58,0));
    record.attackEffects.sample(effectKind,current?{...current,elapsed:attackElapsed}:null,origin,point);
   }
@@ -260,7 +260,7 @@ export class BattleView{
    this.applyAuraColor(record,state.auraId);
    for(const node of appearance.whiteAuraNodes||[])node.visible=auraActive;
    for(const node of appearance.superNodes||[])node.visible=superActive;
-   for(const node of appearance.rayNodes||[])node.visible=motion==='energy_ray';
+   for(const node of appearance.rayNodes||[])node.visible=motion==='energy_ray'&&effectKind!=='okoteiyu_beam';
    if(superActive&&!record.risingAura){record.risingAura=new SuperRisingAura(record.height);record.anchor.add(record.risingAura.root);}
    const superElapsed=current?.technique==='super_awaken'?attackElapsed:Math.max(0,this.time-(Number.isFinite(record.superAt)?record.superAt:0));
    record.risingAura?.sample(superElapsed,superActive);

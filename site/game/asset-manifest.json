@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
-  "fileCount": 127,
-  "totalBytes": 95625829,
+  "fileCount": 128,
+  "totalBytes": 95627624,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -1019,6 +1019,14 @@
       "bytes": 4556,
       "priority": 3,
       "sha256": "f1caa4d5568b0c5c33b2c7b1f476eec9047a39cc7c9add55336533da29d2c50d"
+    },
+    {
+      "url": "assets/collection/technique-okoteiyu_beam.svg",
+      "label": "技のアイコン",
+      "type": "image",
+      "bytes": 1795,
+      "priority": 3,
+      "sha256": "34a29d7c134ae7e111c69786d5e7adf2e4ae32475495038a4e30b35ab0bccc72"
     }
   ]
 }

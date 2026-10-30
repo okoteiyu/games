@@ -12,11 +12,30 @@ function softRingTexture(kind='void_wave'){
  ctx.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
 }
 
+function softBeamTexture(){
+ const canvas=document.createElement('canvas');canvas.width=canvas.height=128;const ctx=canvas.getContext('2d');
+ const rainbow=ctx.createLinearGradient(0,0,0,128);
+ for(const [i,color]of ['#ff3869','#ff9c31','#ffe745','#36e98c','#32cfff','#7166ff','#cd50ff'].entries())rainbow.addColorStop(i/6,color);
+ ctx.fillStyle=rainbow;ctx.fillRect(0,0,128,128);ctx.globalCompositeOperation='destination-in';
+ const edges=ctx.createLinearGradient(0,0,128,0);for(const [at,alpha]of [[0,0],[.1,.16],[.25,.72],[.5,1],[.75,.72],[.9,.16],[1,0]])edges.addColorStop(at,'rgba(255,255,255,'+alpha+')');ctx.fillStyle=edges;ctx.fillRect(0,0,128,128);
+ const ends=ctx.createLinearGradient(0,0,0,128);for(const [at,alpha]of [[0,0],[.08,1],[.92,1],[1,0]])ends.addColorStop(at,'rgba(255,255,255,'+alpha+')');ctx.fillStyle=ends;ctx.fillRect(0,0,128,128);
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+}
+
 export class AttackEffects{
  constructor(record){this.record=record;this.effects=new Map();}
  make(kind){
   const group=new THREE.Group();group.name='Battle.AttackEffect.'+kind;group.visible=false;this.record.anchor.add(group);const parts=[];
-  if(kind==='shell'){
+  if(kind==='okoteiyu_beam'){
+   const map=softBeamTexture(),geometry=new THREE.PlaneGeometry(1,1);
+   // Crossed, translucent light ribbons stay soft from every viewing angle.
+   for(let layer=0;layer<2;layer++)for(let i=0;i<3;i++){
+    const part=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({map,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));part.rotation.y=i*Math.PI/3;part.userData.beamWidth=layer?.46:.23;part.userData.beamOpacity=layer?.09:.44;group.add(part);parts.push(part);
+   }
+   const core=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,16,1,true),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));core.userData.beamCore=true;group.add(core);parts.push(core);
+   const haloMap=softRingTexture('cosmos_wave');
+   for(let i=0;i<2;i++){const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:haloMap,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));halo.userData.beamHalo=i?'target':'source';group.add(halo);parts.push(halo);}
+  }else if(kind==='shell'){
    const metal=new THREE.MeshStandardMaterial({color:0xb1a37f,metalness:.92,roughness:.24}),round=new THREE.Mesh(new THREE.CapsuleGeometry(.055,.16,4,12),metal);round.rotation.x=Math.PI/2;group.add(round);parts.push(round);
    const tip=new THREE.Mesh(new THREE.ConeGeometry(.055,.12,16),metal);tip.rotation.x=Math.PI/2;tip.position.z=.18;group.add(tip);
    const trail=new THREE.Mesh(new THREE.ConeGeometry(.06,.48,16,1,true),new THREE.MeshBasicMaterial({color:0xffdf95,transparent:true,opacity:.27,depthWrite:false,blending:THREE.AdditiveBlending}));trail.rotation.x=-Math.PI/2;trail.position.z=-.27;group.add(trail);
@@ -33,7 +52,16 @@ export class AttackEffects{
   if(elapsed<.12||elapsed>=duration)return;
   const effect=this.effects.get(kind)||this.make(kind),distance=origin.distanceTo(target),direction=target.clone().sub(origin).normalize(),height=this.record.height;
   effect.group.visible=true;
-  if(kind==='shell'){
+  if(kind==='okoteiyu_beam'){
+   const from=this.record.anchor.worldToLocal(origin.clone()),to=this.record.anchor.worldToLocal(target.clone()),delta=to.clone().sub(from),fullLength=delta.length();
+   effect.group.position.copy(from);effect.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),fullLength>1e-6?delta.normalize():new THREE.Vector3(0,1,0));
+   const launch=Math.max(0,Math.min(1,(elapsed-.16)/.22)),length=Math.max(.001,fullLength*launch),fadeIn=Math.max(0,Math.min(1,(elapsed-.12)/.18)),fadeOut=Math.max(0,Math.min(1,(duration-elapsed)/.18)),envelope=fadeIn*fadeOut;
+   for(const part of effect.parts){
+    if(part.userData.beamHalo){const impact=part.userData.beamHalo==='target';part.position.set(0,impact?length:0,0);part.scale.setScalar(height*(impact?.40:.34)*(1+.04*Math.sin(elapsed*12)));part.material.opacity=envelope*(impact?launch*.40:.72);}
+    else if(part.userData.beamCore){part.position.set(0,length/2,0);part.scale.set(height*.008,length,height*.008);part.material.opacity=envelope*.46;}
+    else{part.position.set(0,length/2,0);part.scale.set(height*part.userData.beamWidth,length,1);part.material.opacity=part.userData.beamOpacity*envelope;}
+   }
+  }else if(kind==='shell'){
    const p=origin.clone().lerp(target,t);this.record.anchor.worldToLocal(p);effect.group.position.copy(p);const to=this.record.anchor.worldToLocal(origin.clone().add(direction)),from=this.record.anchor.worldToLocal(origin.clone());effect.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),to.sub(from).normalize());
    effect.group.scale.setScalar(Math.max(.45,Math.min(2.5,height*.65)));
   }else{

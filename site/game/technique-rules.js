@@ -4,6 +4,7 @@ export const TECHNIQUES=Object.freeze({
  energy_punch:Object.freeze({id:'energy_punch',maxLevel:30,name:'エネルギーパンチ',duration:1,motion:'punch',description:'全身の力と気を合わせて放つストレート。',power:'（攻撃力 ＋ 気） ＋ 技レベル'}),
  punch:Object.freeze({id:'punch',maxLevel:30,name:'パンチ',duration:.5,description:'全身の力を使って放つストレート。',power:'攻撃力 ＋ この技のレベル'}),
  energy_ray:Object.freeze({id:'energy_ray',maxLevel:30,name:'エネルギーレイ',duration:.8,description:'頭の前から明るい太い光線を放つ、気を使う攻撃。',power:'気 × 1.1 ＋ この技のレベル'}),
+ okoteiyu_beam:Object.freeze({id:'okoteiyu_beam',maxLevel:5,name:'おこていゆビーム',duration:2,motion:'energy_ray',effect:'okoteiyu_beam',description:'おこていゆの専用技。猛烈な修行の末に生み出した！！',acquisitionDescription:'キャラレベル10で習得し、以後10レベルごとに強くなります。技レベルは最大5です。',power:'気 × 1.5 ＋ 技レベル × 100',additionalEffects:Object.freeze([Object.freeze({type:'next_attack_damage_multiplier',multiplier:.5,description:'当てた相手の次の攻撃で与えるダメージを半分にします。重ねがけできます。'})])}),
  normal_attack:Object.freeze({id:'normal_attack',maxLevel:30,name:'通常攻撃',duration:.5,description:'自身の体を使う基本的な攻撃。',power:'攻撃力 ＋ この技のレベル'}),
  cannon_shell:Object.freeze({id:'cannon_shell',maxLevel:50,name:'砲撃',duration:2,motion:'common_attack',effect:'shell',description:'体を動かして、勢いよく砲弾を放つ攻撃。',power:'攻撃力 × 3 ＋ 技レベル × 5'}),
  void_wave:Object.freeze({id:'void_wave',maxLevel:1,name:'ヴォイドウェーブ',duration:4,motion:'common_attack',effect:'void_wave',description:'漆黒の波を放つ、気を使う攻撃。',power:'気 × 4'}),
@@ -17,18 +18,27 @@ export function techniqueDuration(id,definitions=TECHNIQUES){
  if(!Number.isFinite(duration)||duration<TECHNIQUE_MOTION_LIMITS.min||duration>TECHNIQUE_MOTION_LIMITS.max)throw new RangeError('技モーションの時間は0.5〜10秒で設定してください。');
  return duration;
 }
-export const ADDED_TECHNIQUE_IDS=Object.freeze(['charged_punch','charged_energy_ray','energy_punch','void_wave','cosmos_wave','cannon_shell','chaos_wave']);
+export const ADDED_TECHNIQUE_IDS=Object.freeze(['charged_punch','charged_energy_ray','energy_punch','void_wave','cosmos_wave','cannon_shell','chaos_wave','okoteiyu_beam']);
 export const PLAYER_TECHNIQUE_IDS=Object.freeze(['punch','energy_ray',...ADDED_TECHNIQUE_IDS]);
 export const SUPER_MAX_LEVEL=100;
 export function techniqueMaxLevel(id,definitions=TECHNIQUES){const max=definitions[id]?.maxLevel;if(!Number.isSafeInteger(max)||max<1)throw new RangeError('技の最大レベルが設定されていません。');return max;}
 export function clampTechniqueLevel(id,level,definitions=TECHNIQUES){if(!Number.isSafeInteger(level)||level<1)throw new RangeError('技レベルが正しくありません。');return Math.min(level,techniqueMaxLevel(id,definitions));}
 export function playerTechniqueLevel(player,id){return clampTechniqueLevel(id,id==='punch'?(player.punchLevel??1):id==='energy_ray'?(player.energyRayLevel??1):(player.techniqueLevels?.[id]??1));}
+/** Character-level techniques are granted without changing the chosen slots. */
+export function syncLevelTechniques(player){
+ if(player.level>=10){
+  if(!player.unlockedTechniques.includes('okoteiyu_beam'))player.unlockedTechniques.push('okoteiyu_beam');
+  player.techniqueLevels.okoteiyu_beam=Math.min(techniqueMaxLevel('okoteiyu_beam'),Math.floor(player.level/10));
+ }
+ return player;
+}
 export function techniquePower(id,stats,level){
  level=clampTechniqueLevel(id,level);
  if(id==='charged_punch')return stats.attack*2.5+level;
  if(id==='charged_energy_ray')return stats.ki*3+level;
  if(id==='energy_punch')return stats.attack+stats.ki+level;
  if(id==='energy_ray')return stats.ki*1.1+level;
+ if(id==='okoteiyu_beam')return stats.ki*1.5+100*level;
  if(id==='normal_attack'||id==='punch')return stats.attack+level;
  if(id==='cannon_shell')return stats.attack*3+5*level;
  if(id==='void_wave'||id==='cosmos_wave')return stats.ki*4;
@@ -37,7 +47,7 @@ export function techniquePower(id,stats,level){
  throw new RangeError('不明な技です。');
 }
 export const SUPER_CONFIGURATIONS=Object.freeze({none:Object.freeze({id:'none',label:'なし',prefix:'',additionalEffects:Object.freeze([])})});
-export const availableTechniqueIds=player=>['punch',...(player?.energyRayUnlocked?['energy_ray']:[]),...ADDED_TECHNIQUE_IDS.filter(id=>player?.unlockedTechniques?.includes(id))];
+export const availableTechniqueIds=player=>['punch',...(player?.energyRayUnlocked?['energy_ray']:[]),...ADDED_TECHNIQUE_IDS.filter(id=>player?.unlockedTechniques?.includes(id)&&(id!=='okoteiyu_beam'||player.level>=10))];
 export function defaultTechniqueSlots(player){return ['punch',player?.energyRayUnlocked?'energy_ray':null,null];}
 export function validateTechniqueSlots(slots,player){
  if(!Array.isArray(slots)||slots.length!==3||!slots.some(Boolean)||slots.some(id=>id!==null&&!availableTechniqueIds(player).includes(id))||new Set(slots.filter(Boolean)).size!==slots.filter(Boolean).length)throw new TypeError('技スロットが正しくありません。');

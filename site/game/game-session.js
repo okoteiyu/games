@@ -9,7 +9,7 @@ import {getRegionAt} from './patrol-map.js';
 import {ENCOUNTER_PROFILES,TRAINING_COURSES,overlapLevelBand,patrolSpeciesEligible,trainingLevelRange} from './encounter-rules.js';
 export {TRAINING_COURSES} from './encounter-rules.js';
 import {selectOkoteiyuReward,eligibleOkoteiyuRewards} from './okoteiyu-events.js';
-import {techniqueDuration,ADDED_TECHNIQUE_IDS,PLAYER_TECHNIQUE_IDS,playerTechniqueLevel,availableTechniqueIds,defaultTechniqueSlots,validateTechniqueSlots,SUPER_CONFIGURATIONS,superStateDetails,SUPER_MAX_LEVEL,clampTechniqueLevel,techniquePower} from './technique-rules.js';
+import {TECHNIQUES,techniqueDuration,ADDED_TECHNIQUE_IDS,PLAYER_TECHNIQUE_IDS,playerTechniqueLevel,availableTechniqueIds,defaultTechniqueSlots,validateTechniqueSlots,SUPER_CONFIGURATIONS,superStateDetails,SUPER_MAX_LEVEL,clampTechniqueLevel,techniquePower,syncLevelTechniques} from './technique-rules.js';
 /** Pure game rules shared by the browser and native WebView. */
 const clone=value=>JSON.parse(JSON.stringify(value));
 const EPSILON=1e-10;
@@ -142,6 +142,7 @@ function restorePlayer(saved){
  player.xp=finite(saved.xp,'experience');if(player.xp<0)throw new RangeError('Experience cannot be negative.');
  if(saved.unlockedTechniques!==undefined){if(!Array.isArray(saved.unlockedTechniques)||new Set(saved.unlockedTechniques).size!==saved.unlockedTechniques.length||saved.unlockedTechniques.some(id=>!ADDED_TECHNIQUE_IDS.includes(id)))throw new TypeError('Invalid unlocked techniques.');player.unlockedTechniques=[...saved.unlockedTechniques];}
  if(saved.techniqueLevels!==undefined){if(!saved.techniqueLevels||typeof saved.techniqueLevels!=='object'||Array.isArray(saved.techniqueLevels)||Object.keys(saved.techniqueLevels).some(id=>!ADDED_TECHNIQUE_IDS.includes(id)))throw new TypeError('Invalid technique levels.');for(const [id,level]of Object.entries(saved.techniqueLevels))player.techniqueLevels[id]=clampTechniqueLevel(id,integer(level,'technique level',1));}
+ syncLevelTechniques(player);
  if(typeof saved.energyRayUnlocked!=='boolean')throw new TypeError('Energy Ray unlock must be boolean.');player.energyRayUnlocked=saved.energyRayUnlocked;player.techniqueSlots=validateTechniqueSlots(saved.techniqueSlots===undefined?defaultTechniqueSlots(player):saved.techniqueSlots,player);player.superConfiguration=saved.superConfiguration??'none';if(!Object.hasOwn(SUPER_CONFIGURATIONS,player.superConfiguration))throw new TypeError('Unknown super configuration.');
  if(!saved.auras||typeof saved.auras!=='object'||Array.isArray(saved.auras))throw new TypeError('Aura collection is required.');
  player.auras={};for(const [id,aura]of Object.entries(saved.auras)){
@@ -253,7 +254,7 @@ export class GameSession{
   if(!['patrol','training'].includes(kind))throw new RangeError('Unsupported battle kind.');
   if(this.state.location==='battle')throw new Error('A battle is already open.');if(this.state.pendingAngerEvent)throw new Error('Finish the anger event first.');
   const members=Array.isArray(encounter)?encounter:encounter?.members||[encounter];integer(members.length,'opponent count',1,3);
-  const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0});
+  const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0,nextAttackDamageMultiplier:1});
   const enemies=members.map((enemy,index)=>{const speciesId=enemy?.speciesId||enemy?.creatureId;if(!Object.hasOwn(CREATURES,speciesId)||!Object.hasOwn(CREATURE_CATEGORIES,CREATURES[speciesId].category))throw new RangeError('Unsupported prototype opponent.');const level=integer(enemy.level,'opponent level',1,106);return {...actor(index?'enemy-'+(index+1):'enemy',speciesId,level,creatureStats(speciesId,level)),techniqueLevels:Object.fromEntries(CREATURES[speciesId].techniques.map(id=>[id,clampTechniqueLevel(id,level)])),sourceId:enemy.id||null};});
   const playerStatBase=playerStatValues(this.player);
   const completedAttacks=Object.fromEntries(['player',...enemies.map(enemy=>enemy.id)].map(id=>[id,0]));
@@ -315,8 +316,11 @@ export class GameSession{
    const power=techniquePower(action.technique,stats,actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique));
    const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
    const damageMultiplier=additionalDamageMultiplier(bodyEffects)*additionalDamageMultiplier(auraEffects);
-   const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt:factors.damageReceived)*damageMultiplier;
+   const nextAttackDamageMultiplier=actor.nextAttackDamageMultiplier;
+   const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt:factors.damageReceived)*damageMultiplier*nextAttackDamageMultiplier;
+   actor.nextAttackDamageMultiplier=1;
    const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;
+   if(target.hp>0)for(const effect of TECHNIQUES[action.technique].additionalEffects||[])if(effect.type==='next_attack_damage_multiplier')target.nextAttackDamageMultiplier*=effect.multiplier;
    b.completedAttacks[actorId]++;
    this.emit('damage',{actor:actorId,actorName:actor.name,target:target.id,targetName:target.name,technique:action.technique,amount,hp:target.hp,maxHp:target.maxHp,time:b.time});
    if(target.hp<=0){target.action=null;target.nextActionAt=Infinity;this.emit('fatigue',{actor:target.id,name:target.name,time:b.time});if(target.id==='player'){this.endBattle('loss');return;}if(!this.selectTarget()){this.endBattle('win');return;}}
@@ -344,7 +348,7 @@ export class GameSession{
   if(b.phase==='active')b.time=targetTime;return this.snapshotBattle();
  }
  endBattle(result){
-  const b=this.state.battle;if(!b||b.phase!=='active')return false;b.phase=b.status='ended';b.result=result;for(const id of this.actorIds()){const a=this.combatant(id);a.action=null;a.nextActionAt=Infinity;}b.super.pending=false;
+  const b=this.state.battle;if(!b||b.phase!=='active')return false;b.phase=b.status='ended';b.result=result;for(const id of this.actorIds()){const a=this.combatant(id);a.action=null;a.nextActionAt=Infinity;a.nextAttackDamageMultiplier=1;}b.super.pending=false;
   // Aura draws occur only on a full win, once for every opponent.
   if(result==='win'){
    this.player.battlesWon++;let experience=0;const drops=[],opponents=[];
@@ -353,7 +357,7 @@ export class GameSession{
   }else{this.player.battlesLost++;const opponents=b.enemies.filter(enemy=>enemy.hp<=0).map(enemy=>({speciesId:enemy.speciesId,level:enemy.level,experience:defeatedEnemyExperience(enemy.speciesId,enemy.level)})),experience=opponents.reduce((sum,enemy)=>sum+enemy.experience,0),levels=experience>0?this.addExperience(experience):0;b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:null,auras:[],opponents};}
   this.emit('battle-end',{result,time:b.time,battle:this.snapshotBattle(),rewards:clone(b.rewards)});if(result==='win'||b.rewards.experience>0)this.emit('rewards',clone(b.rewards));return true;
  }
- addExperience(amount){finite(amount,'experience reward');if(amount<0)throw new RangeError('Experience reward cannot be negative.');this.player.xp+=amount;let gained=0;while(this.player.level<100){const required=requiredLevelExperience(this.player.level);if(this.player.xp+EPSILON<required)break;this.player.xp=Math.max(0,this.player.xp-required);this.player.level++;gained++;}return gained;}
+ addExperience(amount){finite(amount,'experience reward');if(amount<0)throw new RangeError('Experience reward cannot be negative.');this.player.xp+=amount;let gained=0;while(this.player.level<100){const required=requiredLevelExperience(this.player.level);if(this.player.xp+EPSILON<required)break;this.player.xp=Math.max(0,this.player.xp-required);this.player.level++;gained++;}syncLevelTechniques(this.player);return gained;}
  acquireAura(speciesId){
   const creature=checkedCreature(speciesId),old=this.player.auras[speciesId];if(speciesId==='okoteiyu')return {speciesId,name:'おこていゆのオーラ',first:false,level:1,copies:1,progress:0,levelsGained:0};
   const copies=(old?.copies||0)+1,level=Math.min(30,1+Math.floor((copies-1)/3)),progress=level===30?0:(copies-1)%3;
