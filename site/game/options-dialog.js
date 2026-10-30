@@ -9,6 +9,7 @@ import {CREATURES,CREATURE_CATEGORIES,SUPPORT_ITEMS,DEFENSE_ITEMS,hasJournalReco
 import { encodeSave, decodeSave, validatePreviewState } from './save-data.js';
 import {describeSaveProgress} from './save-preview.js';
 import {additionalEffectsText} from './additional-effects.js';
+import {equipmentPreviewMarkup} from './equipment-preview-ui.js';
 import {GROWTH_GUIDE_TABS,growthGuideMarkup,selectGrowthGuideTab} from './growth-guide.js';
 import { isModalBlocked, tryOpenModal, releaseModal } from './modal-layer.js';
 
@@ -180,7 +181,7 @@ export class OptionsDialog {
   let detail='<div class="collection-detail collection-detail--empty"><p>まだ'+COLLECTION_KINDS[kind]+'を持っていません。</p></div>';
   if(item){
    const auraDetail=kind==='aura'?(item.id==='okoteiyu'?'全パラメータが1.2倍になります。レベル1で固定です。':'元の珍生物のパラメータランクとオーラレベルに応じて、能力値が加算されます。'):'',progress=kind==='aura'?'<p class="collection-detail__meta">Lv.'+count(item.level)+' · '+(item.id==='okoteiyu'?'固定':item.level>=30?'最大レベル':'次のレベルまで '+count(item.progress)+'/3')+'</p>':'';
-   detail='<section class="collection-detail" aria-label="選択した持ち物の詳細">'+this.thumbnail(kind,item.id,item.name,'collection-detail__photo')+'<div class="collection-detail__copy"><h3>'+escapeHtml(item.name)+'</h3>'+progress+(kind==='aura'?'<p class="collection-detail__quantity">累計入手：'+count(item.copies)+'個</p>':'')+'<p>'+escapeHtml(kind==='aura'?auraDetail:item.description)+'</p>'+(kind==='aura'?'<p class="option-note">'+escapeHtml(additionalEffectsText(CREATURES[item.id]?.auraAdditionalEffects))+'</p>':'')+'<button class="option-action collection-equip" type="button" data-collection-equip="'+(isEquipped?'':escapeHtml(item.id))+'" data-kind="'+kind+'"'+(canEquip?'':' disabled')+'>'+(isEquipped?'外す':'装備する')+'</button></div></section>';
+   detail='<section class="collection-detail" aria-label="選択した持ち物の詳細">'+this.thumbnail(kind,item.id,item.name,'collection-detail__photo')+'<div class="collection-detail__copy"><h3>'+escapeHtml(item.name)+'</h3>'+progress+(kind==='aura'?'<p class="collection-detail__quantity">累計入手：'+count(item.copies)+'個</p>':'')+'<p>'+escapeHtml(kind==='aura'?auraDetail:item.description)+'</p>'+(kind==='aura'?'<p class="option-note">'+escapeHtml(additionalEffectsText(CREATURES[item.id]?.auraAdditionalEffects))+'</p>':'')+'</div>'+equipmentPreviewMarkup(player,kind,item.id)+'<button class="option-action collection-equip" type="button" data-collection-equip="'+(isEquipped?'':escapeHtml(item.id))+'" data-kind="'+kind+'"'+(canEquip?'':' disabled')+'>'+(isEquipped?'外す':'装備する')+'</button></section>';
   }
   this.body.innerHTML='<div class="collection-browser"><div class="collection-tiles" aria-label="'+COLLECTION_KINDS[kind]+'の一覧">'+grid+'</div>'+detail+'</div>'+(!canEquip&&snapshot?'<p class="option-note">装備はホーム画面にいる時に変更できます。</p>':'')+'<p class="save-status" role="status" aria-live="polite" data-collection-status></p>';
  }
