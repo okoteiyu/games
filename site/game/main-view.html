@@ -74,11 +74,11 @@
  <input type="file" id="mediaFile" accept="image/*,video/*" hidden aria-label="端末内の画像または動画を表示する。ファイルは送信されません。">
  <div class="game-toast" id="toast" role="status"></div>
  <dialog class="asset-loading" id="assetLoadingDialog" open aria-labelledby="assetLoadingTitle" aria-describedby="assetLoadingDescription" aria-modal="true" data-state="fetching">
-  <header class="asset-loading__top"><span class="asset-loading__emblem" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M21 12c-2-6-12-6-14 1-3 9 9 15 15 8 4-5-2-11-7-8-4 2-1 7 2 5"/><path d="m23 4 1 3 3 1m-20 17-2 2"/></svg></span><div><span class="asset-loading__eyebrow">OKOTEIYU / LOADING</span><h2 id="assetLoadingTitle">アセットを読み込んでいます</h2></div></header>
+  <header class="asset-loading__top"><span class="asset-loading__emblem" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M21 12c-2-6-12-6-14 1-3 9 9 15 15 8 4-5-2-11-7-8-4 2-1 7 2 5"/><path d="m23 4 1 3 3 1m-20 17-2 2"/></svg></span><div><span class="asset-loading__eyebrow">OKOTEIYU / LOADING</span><h2 id="assetLoadingTitle">読み込んでいます</h2></div></header>
   <p class="asset-loading__description" id="assetLoadingDescription">おこていゆの世界を準備しています。少しお待ちください。</p>
   <div class="asset-loading__meter"><progress id="assetLoadingProgress" max="100" value="0" aria-label="ゲームの読み込み進捗" aria-valuetext="0%・読み込みを開始しています"></progress><output class="asset-loading__percent" id="assetLoadingPercent">0%</output></div>
   <p class="asset-loading__details" id="assetLoadingDetails">通信を開始しています…</p>
-  <p class="asset-loading__label" id="assetLoadingLabel" role="status" aria-live="polite">アセットの一覧を確認しています…</p>
+  <p class="asset-loading__label" id="assetLoadingLabel" role="status" aria-live="polite">もう少しお待ちください…</p>
   <p class="asset-loading__error" id="assetLoadingError" role="alert" hidden></p>
   <button id="assetLoadingRetry" type="button" hidden>再試行</button>
   <div class="asset-loading__fallback" id="assetLoadingFallback">この表示が続く場合は、通信環境を確認して開き直してください。<button type="button" onclick="location.reload()">ページを再読み込み</button></div>

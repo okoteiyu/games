@@ -16,18 +16,19 @@ export class AssetLoadingPopup {
   this.fallback.hidden=true;this.retryButton.hidden=true;this.errorText.hidden=true;
  }
  fetching(detail={}){
-  this.dialog.dataset.state='fetching';this.title.textContent='アセットを読み込んでいます';this.description.textContent='おこていゆの世界を準備しています。少しお待ちください。';
+  this.dialog.dataset.state='fetching';this.title.textContent='読み込んでいます';this.description.textContent='おこていゆの世界を準備しています。少しお待ちください。';
   this.errorText.hidden=true;this.retryButton.hidden=true;this.progress.removeAttribute('aria-invalid');
   const ratio=Math.max(0,Math.min(1,Number(detail.ratio)||0)),value=Math.min(99,Math.floor(ratio*99));
-  this.progress.value=value;this.progress.setAttribute('aria-valuetext',value+'%・アセット取得中');this.percent.textContent=value+'%';
-  const label=detail.label||'アセットの一覧を確認しています…';if(this.label.textContent!==label)this.label.textContent=label;
+  this.progress.value=value;this.progress.setAttribute('aria-valuetext',value+'%・読み込み中');this.percent.textContent=value+'%';
+  // Asset names are diagnostics, not player-facing loading text.
+  const label='もう少しお待ちください…';if(this.label.textContent!==label)this.label.textContent=label;
   this.details.textContent=detail.totalBytes?formatBytes(detail.loadedBytes)+' / '+formatBytes(detail.totalBytes)+(detail.totalFiles?'　'+(detail.completed||0)+' / '+detail.totalFiles+'件':''):'通信を開始しています…';
  }
  preparing(){
-  this.dialog.dataset.state='preparing';this.title.textContent='3D画面を準備しています';this.description.textContent='アセットの取得が完了しました。もう少しで準備が整います。';this.progress.value=99;this.progress.setAttribute('aria-valuetext','99%・3D画面を準備中');this.percent.textContent='99%';this.label.textContent='3Dモデルを開いて、最初の画面を準備しています…';this.retryButton.hidden=true;this.errorText.hidden=true;
+  this.dialog.dataset.state='preparing';this.title.textContent='まもなく準備が整います';this.description.textContent='もう少しでゲームを始められます。そのままお待ちください。';this.progress.value=99;this.progress.setAttribute('aria-valuetext','99%・準備中');this.percent.textContent='99%';this.label.textContent='もう少しお待ちください…';this.retryButton.hidden=true;this.errorText.hidden=true;
  }
  fail(error,{reload=false}={}){
-  this.dialog.dataset.state='error';this.title.textContent='読み込みを完了できませんでした';this.description.textContent='通信環境やブラウザの状態をご確認ください。';this.errorText.hidden=false;this.errorText.textContent=error instanceof Error?error.message:'アセットの取得に失敗しました。';this.retryButton.textContent=reload?'ページを再読み込み':'再試行';this.retryButton.hidden=false;this.progress.setAttribute('aria-invalid','true');this.label.textContent=reload?'ページを開き直して、もう一度お試しください。':'取得済みのアセットを保ったまま、もう一度読み込みます。';this.retryButton.focus({preventScroll:true});
+  this.dialog.dataset.state='error';this.title.textContent='読み込みを完了できませんでした';this.description.textContent='通信環境やブラウザの状態をご確認ください。';this.errorText.hidden=false;this.errorText.textContent='読み込みに失敗しました。時間をおいて、もう一度お試しください。';this.retryButton.textContent=reload?'ページを再読み込み':'再試行';this.retryButton.hidden=false;this.progress.setAttribute('aria-invalid','true');this.progress.setAttribute('aria-valuetext',this.progress.value+'%・読み込みに失敗しました');this.label.textContent=reload?'ページを開き直して、もう一度お試しください。':'準備できた分はそのままに、もう一度読み込みます。';this.retryButton.focus({preventScroll:true});
  }
  async finish(){
   this.dialog.dataset.state='complete';this.title.textContent='準備が整いました';this.description.textContent='おこていゆハウスへ、ようこそ。';this.progress.value=100;this.progress.setAttribute('aria-valuetext','100%・準備完了');this.percent.textContent='100%';this.label.textContent='準備完了';
