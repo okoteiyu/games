@@ -1,5 +1,5 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
-import {NO_ADDITIONAL_EFFECTS} from './additional-effects.js';
+import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {currentTimeOfDay} from './world-time.js';
@@ -256,7 +256,8 @@ export class GameSession{
   const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0});
   const enemies=members.map((enemy,index)=>{const speciesId=enemy?.speciesId||enemy?.creatureId;if(!Object.hasOwn(CREATURES,speciesId)||!Object.hasOwn(CREATURE_CATEGORIES,CREATURES[speciesId].category))throw new RangeError('Unsupported prototype opponent.');const level=integer(enemy.level,'opponent level',1,106);return {...actor(index?'enemy-'+(index+1):'enemy',speciesId,level,creatureStats(speciesId,level)),techniqueLevels:Object.fromEntries(CREATURES[speciesId].techniques.map(id=>[id,clampTechniqueLevel(id,level)])),sourceId:enemy.id||null};});
   const playerStatBase=playerStatValues(this.player);
-  const battle={kind,phase:'active',status:'active',time:0,player:actor('player','okoteiyu',this.player.level,applySuperStats(playerStatBase)),playerStatBase,enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
+  const completedAttacks=Object.fromEntries(['player',...enemies.map(enemy=>enemy.id)].map(id=>[id,0]));
+  const battle={kind,phase:'active',status:'active',time:0,player:actor('player','okoteiyu',this.player.level,applySuperStats(playerStatBase)),playerStatBase,completedAttacks,enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
   this.state.battle=battle;this.state.location='battle';
   for(const id of this.actorIds())this.combatant(id).nextActionAt=this.nextInterval(id);
   if(kind==='patrol')for(const enemy of enemies)recordJournalEncounter(this.player,enemy);
@@ -307,10 +308,16 @@ export class GameSession{
   actor.action=null;this.emit('action-complete',{actor:actorId,technique:action.technique,duration:action.duration,time:b.time});
   if(action.technique!=='super_awaken'){
    const target=actorId==='player'?(this.combatant(action.targetId)?.hp>0?this.combatant(action.targetId):this.selectTarget()):b.player;if(!target)return;
-   const stats=actorId==='player'?applySuperStats(b.playerStatBase,b.super.active?b.super.multiplier:1):actor.stats;
+   const bodyEffects=CREATURES[actor.speciesId].additionalEffects;
+   const first=firstAttackParameterMultipliers(bodyEffects,b.completedAttacks[actorId]);
+   const base=actorId==='player'?b.playerStatBase:actor.stats;
+   const stats=applySuperStats({...base,attack:base.attack*first.attack,ki:base.ki*first.ki},actorId==='player'&&b.super.active?b.super.multiplier:1);
    const power=techniquePower(action.technique,stats,actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique));
-   const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt:factors.damageReceived);
+   const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
+   const damageMultiplier=additionalDamageMultiplier(bodyEffects)*additionalDamageMultiplier(auraEffects);
+   const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt:factors.damageReceived)*damageMultiplier;
    const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;
+   b.completedAttacks[actorId]++;
    this.emit('damage',{actor:actorId,actorName:actor.name,target:target.id,targetName:target.name,technique:action.technique,amount,hp:target.hp,maxHp:target.maxHp,time:b.time});
    if(target.hp<=0){target.action=null;target.nextActionAt=Infinity;this.emit('fatigue',{actor:target.id,name:target.name,time:b.time});if(target.id==='player'){this.endBattle('loss');return;}if(!this.selectTarget()){this.endBattle('win');return;}}
    this.autoSuper();
@@ -367,7 +374,7 @@ export class GameSession{
   const b=this.state.battle;if(!b)return null;
   const snapshotActor=a=>({...a,stats:a.id==='player'&&b.super.active?applySuperStats(b.playerStatBase,b.super.multiplier):{...a.stats},action:a.action?{...a.action,elapsed:Math.max(0,Math.min(a.action.duration,b.time-a.action.startedAt))}:null,superActive:a.id==='player'&&b.super.active,superUsed:a.id==='player'&&b.super.used});
   const enemies=b.enemies.map(snapshotActor);
-  const {playerStatBase,...visibleBattle}=b;
+  const {playerStatBase,completedAttacks,...visibleBattle}=b;
   return clone({...visibleBattle,player:{...snapshotActor(b.player),auraId:this.player.equippedAura,equipment:{...this.player.equipment}},enemies,enemy:enemies.find(enemy=>enemy.id===b.targetId)||enemies[0],enemyCount:enemies.length,techniques:{slots:[...this.player.techniqueSlots],superConfiguration:this.player.superConfiguration,superDetails:superStateDetails(this.player),energyRayUnlocked:this.player.energyRayUnlocked,punchLevel:this.player.punchLevel,energyRayLevel:this.player.energyRayLevel}});
  }
  exportState({allowPending=false,allowDepartureCheckpoint=false}={}){

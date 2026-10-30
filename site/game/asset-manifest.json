@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
-  "fileCount": 124,
-  "totalBytes": 95212054,
+  "fileCount": 127,
+  "totalBytes": 95625829,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 22947,
+      "bytes": 23924,
       "priority": 2,
-      "sha256": "8af91e53b26885ea2ec28caa2239f6eea06e37bdbe61b8239434aff8a1c7cada"
+      "sha256": "bc8176ceb34572515dd180ac34e0d51cf52d372cfa9776333c42e292723396e0"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -995,6 +995,30 @@
       "priority": 3,
       "sha256": "01538c782e7373bd564df3332533fd388b4f27358686235208c690df00c32f8e",
       "bytes": 943
+    },
+    {
+      "url": "assets/battle3d/rookie_kun.glb?v=f2a917db25b3ae4f51bb2119c4a439a1db6617123ab6cf9f546adef0a7de8dab",
+      "label": "新人くんの3Dモデル",
+      "type": "binary",
+      "bytes": 399744,
+      "priority": 2,
+      "sha256": "f2a917db25b3ae4f51bb2119c4a439a1db6617123ab6cf9f546adef0a7de8dab"
+    },
+    {
+      "url": "assets/collection/rookie_kun.webp",
+      "label": "新人くんの写真",
+      "type": "image",
+      "bytes": 8498,
+      "priority": 3,
+      "sha256": "77896eeee16f987645754fdc0d71d707555116fabf0a67d2b74280a6eb57c0cd"
+    },
+    {
+      "url": "assets/collection/aura-rookie_kun.webp",
+      "label": "新人くんの白いオーラを纏うおこていゆ",
+      "type": "image",
+      "bytes": 4556,
+      "priority": 3,
+      "sha256": "f1caa4d5568b0c5c33b2c7b1f476eec9047a39cc7c9add55336533da29d2c50d"
     }
   ]
 }

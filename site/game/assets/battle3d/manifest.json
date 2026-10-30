@@ -786,6 +786,41 @@
       "bytes": 635760,
       "sha256": "d4661de42c338ac18511d4d81126a1207a8352ac633d47f95b16e702fbb4e856",
       "appearanceRevision": "R091"
+    },
+    "rookie_kun": {
+      "id": "rookie_kun",
+      "name": "新人くん",
+      "url": "rookie_kun.glb",
+      "height": 1.5,
+      "height_m": 1.5,
+      "canonical_height_m": 1.5,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R102",
+      "softAlpha": false,
+      "bytes": 399744,
+      "sha256": "f2a917db25b3ae4f51bb2119c4a439a1db6617123ab6cf9f546adef0a7de8dab",
+      "native_bounds": {
+        "min": [
+          -0.273999959230423,
+          -0.15058815479278564,
+          0.0
+        ],
+        "max": [
+          0.27399998903274536,
+          0.12199993431568146,
+          1.5
+        ]
+      },
+      "editable_source": "rare_creatures/rookie_kun/models/rookie_kun.blend",
+      "idle_description": "Two short grounded steps forward and back in a 1.5 second loop."
     }
   },
   "commonMotion": {
@@ -812,5 +847,5 @@
   },
   "existingApprovedSourcesUnchanged": true,
   "prototypeDerivatives": true,
-  "creatureExpansionRevision": "R091"
+  "creatureExpansionRevision": "R102"
 }

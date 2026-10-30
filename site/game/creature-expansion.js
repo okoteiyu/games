@@ -2,6 +2,14 @@ import {NEW_CREATURE_DEFINITIONS} from './creature-expansion-c.js';
 /** Confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
 const definitions=[...NEW_CREATURE_DEFINITIONS,
  {
+  id:'rookie_kun',name:'新人くん',category:'normal',height:1.5,
+  levelBand:{min:1,max:30},spawnRegions:['city','residential','forest'],spawnTimes:['day','night'],
+  ranks:{hp:6,attack:3,ki:3,speed:3},techniques:['punch','energy_ray'],auraColor:'#ffffff',
+  description:'新人ヒーローのようだが、ここはおこていゆの担当エリアです。あと、おこていゆは撃退対象じゃないから😭',
+  additionalEffects:[{id:'first_attack_boost',type:'first_attack_parameters',attack:2,ki:2,description:'最初の攻撃だけ、攻撃力と気を2倍にして威力を計算します。'}],
+  auraAdditionalEffects:[{id:'rookie_damage_bonus',type:'damage_dealt_multiplier',multiplier:1.1,description:'相手に与えるダメージが1.1倍になります。'}]
+ },
+ {
   "id": "fae_dragon",
   "name": "妖龍",
   "category": "threat",
