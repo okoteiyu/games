@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three/three.module.js';
 import {INITIAL_CALM_POINTS} from './initial-state.js';
+import {createFridgeFootwork,applyFridgeFootwork} from './fridge-footwork.js';
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const smooth=value=>{const t=clamp(value,0,1);return t*t*(3-2*t);};
@@ -155,6 +156,7 @@ export class HouseLifeDirector {
   }
   this.definition=nextDefinition;this.metadata.life=nextDefinition;this.graph=graph;this.landmarks=Object.fromEntries(graph.nodes);
   const target=graph.nodes.get(anchor);if(this.step?.type!=='travel'&&oldAnchor&&target)this.actor.position.add(position(target).sub(position(oldAnchor)));
+  if(this.step?.door)delete this.step.fridgeFootwork;
   if(this.step?.type==='travel'){const step={...this.step};delete step.route;delete step.segment;this.startStep(step);}
   this.baconPlateFits=new WeakMap();this.updateProps();
  }
@@ -556,18 +558,27 @@ export class HouseLifeDirector {
   for(const name of authored?.hideRootNodes||[]){const node=this.findNode(name);if(node)node.visible=false;}
   for(const {node,position,quaternion,scale} of held.meshes){node.position.copy(position);node.quaternion.copy(quaternion);node.scale.copy(scale);}
  }
+ fridgePositionAt(step,root,time){
+  step.passageInterpolant??=this.currentAction.getClip().tracks.find(track=>track.name===root.name+'.position')?.createInterpolant();
+  const sample=at=>{const point=step.passageInterpolant?new THREE.Vector3().fromArray(step.passageInterpolant.evaluate(at)):root.position.clone();return root.parent?root.parent.localToWorld(point):point;};
+  const duration=step.sourceDuration||this.currentAction.getClip().duration,t=4*time/duration,opening=step.id==='fridge_open',point=sample(time);
+  if(opening?t<2.5:t>.55)return point;
+  const grip=sample((opening?2.5:.55)*duration/4),anchor=sample(duration);
+  const forward=[[grip.x,grip.z],[-1.20,grip.z],[-1.20,anchor.z],[anchor.x,anchor.z]],path=opening?forward:[...forward].reverse();
+  const u=clamp(opening?(t-2.5)/1.5:t/.55,0,1)*3,index=Math.min(2,Math.floor(u)),v=smooth(u-index),a=path[index],b=path[index+1];
+  point.x=THREE.MathUtils.lerp(a[0],b[0],v);point.z=THREE.MathUtils.lerp(a[1],b[1],v);return point;
+ }
  correctFridgePassage(){
   const step=this.step;if(!step?.door)return;
   const root=this.findNode(this.definition.poseRoot||'Life.PoseRoot');if(!root)return;
-  const t=step.sourceTime!==undefined?4*step.sourceTime/step.sourceDuration:(4*clamp(step.elapsed/step.duration,0,1)),opening=step.id==='fridge_open';
-  if(opening?t<2.5:t>.55)return;
   this.model.updateMatrixWorld(true);
-  step.passageInterpolant??=this.currentAction.getClip().tracks.find(track=>track.name===root.name+'.position')?.createInterpolant();
-  const sample=at=>{const point=step.passageInterpolant?new THREE.Vector3().fromArray(step.passageInterpolant.evaluate(at)):root.position.clone();return root.parent?root.parent.localToWorld(point):point;};
-  const grip=sample((opening?2.5:.55)*step.sourceDuration/4),anchor=sample(step.sourceDuration);
-  const forward=[[grip.x,grip.z],[-1.20,grip.z],[-1.20,anchor.z],[anchor.x,anchor.z]],path=opening?forward:[...forward].reverse();
-  const u=clamp(opening?(t-2.5)/1.5:t/.55,0,1)*3,index=Math.min(2,Math.floor(u)),v=smooth(u-index),a=path[index],b=path[index+1];
-  this.model.updateMatrixWorld(true);const point=root.getWorldPosition(new THREE.Vector3());point.x=THREE.MathUtils.lerp(a[0],b[0],v);point.z=THREE.MathUtils.lerp(a[1],b[1],v);if(root.parent)root.parent.worldToLocal(point);root.position.x=point.x;root.position.z=point.z;
+  const duration=step.sourceDuration||this.currentAction.getClip().duration,time=step.sourceTime??duration*clamp(step.elapsed/step.duration,0,1);
+  const point=this.fridgePositionAt(step,root,time);if(root.parent)root.parent.worldToLocal(point);root.position.x=point.x;root.position.z=point.z;
+  if(!step.fridgeFootwork){
+   const stops=step.id==='fridge_open'?[0,.55,.75,2.1,2.5,3,3.5,4]:[0,.55/3,2*.55/3,.55,.75,2.1,2.65,4];
+   step.fridgeFootwork=createFridgeFootwork({root,clip:this.currentAction.getClip(),samplePosition:at=>this.fridgePositionAt(step,root,at),stops:stops.map(value=>value*duration/4),findNode:name=>this.findNode(name)});
+  }
+  this.model.updateMatrixWorld(true);applyFridgeFootwork(step.fridgeFootwork,time);
  }
  updateProps(){
   if(this.door&&this.doorRest&&!this.step?.door){const axis=new THREE.Vector3(0,1,0);this.door.quaternion.copy(this.doorRest).multiply(new THREE.Quaternion().setFromAxisAngle(axis,(this.fridge.openAngleRadians??-1.75)*this.doorOpen));}
@@ -625,8 +636,10 @@ export class HouseLifeDirector {
     if(!this.plan.length){this.completeAction();this.startQueuedAction();if(!this.busy){const pending=this.schedule.take(Boolean(this.queuedAction)||this.researchElapsed+1e-8<HOUSE_MIN_RESEARCH_SECONDS);if(pending)this.begin(pending,'automatic');else this.startAmbient();}}
     this.startStep(this.plan.shift());
    }
-   if(this.advanceStep(delta)){this.step=null;if(!this.plan.length)this.completeAction();}
-   this.correctFridgePassage();this.updateProps();this.updateCompanion(delta);
+   const finished=this.advanceStep(delta);
+   this.correctFridgePassage();
+   if(finished){this.step=null;if(!this.plan.length)this.completeAction();}
+   this.updateProps();this.updateCompanion(delta);
   }
  }
  getDiagnostics(){return {researchElapsed:this.researchElapsed,lastRelaxFinishedAt:this.lastRelaxFinishedAt,activeTime:this.schedule.activeTime,untilNextRelax:Math.max(0,this.schedule.nextAt-this.schedule.activeTime),phase:this.phase,action:this.actionKind,source:this.actionSource,currentClip:this.currentClip,currentClipTime:this.currentAction?.time||0,currentStepTimeScale:this.step?.timeScale||1,currentStepDuration:this.step?.duration??null,busy:this.busy,pendingRelax:this.schedule.pending,queuedAction:this.queuedAction,tableReplenishments:this.tableReplenishments,completedRelaxActions:this.completedRelaxActions,completedRelaxations:this.completedRelaxActions,consecutiveRelaxActions:this.consecutiveRelaxActions,streak:this.consecutiveRelaxActions,relaxType:this.relaxType,actionNonTravelElapsed:this.actionNonTravelElapsed,plannedNonTravelDuration:this.plannedNonTravelDuration,lastCompletedRelaxation:this.lastCompletedRelaxation?{...this.lastCompletedRelaxation}:null,tableItems:this.tableItems.map(({id,kind,amount})=>({id,kind,amount})),tableEmpty:this.tableEmpty,currentFood:this.currentFood,currentFoodAmount:this.remainingFoodAmount??null,remainingFoodAmount:this.remainingFoodAmount??null,mealSource:this.mealSource,heldFood:this.heldFood,fridgeDoorOpen:this.doorOpen,actorAnchor:this.actor.position.toArray(),actorYaw:this.actorYaw,companionAnchor:this.companion?.position.toArray()||null,history:this.history.map(item=>({...item}))};}
