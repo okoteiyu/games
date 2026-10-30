@@ -123,15 +123,28 @@ export class HouseUI {
  }
  showError(error){this.failed=true;this.status.querySelector('span').textContent='3D表示を読み込めませんでした。通信とWebGLの対応状況をご確認ください。';this.status.querySelector('button').hidden=false;this.status.hidden=!this.active;this.updateControls();}
  async prepareForStartup({retry=false}={}){
-  if(retry){this.loadGeneration++;this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;this.failed=false;}
-  return this.ensureLoaded();
+  // The save may already have been restored before a first-frame failure.
+  // Keep its calm balance available while the replacement controller loads,
+  // so background checkpoints cannot persist the new controller's defaults.
+  if(retry){
+   const calm=this.retryCalmPoints??this.controller?.life?.consecutiveRelaxActions;
+   if(Number.isSafeInteger(calm))this.retryCalmPoints=calm;
+   this.loadGeneration++;this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;this.failed=false;
+  }
+  const loading=this.ensureLoaded(),generation=this.loadGeneration;
+  const ready=await loading;
+  if(generation!==this.loadGeneration)return false;
+  if(ready&&Number.isSafeInteger(this.retryCalmPoints)){this.restoreConsecutiveRelaxActions(this.retryCalmPoints);this.retryCalmPoints=null;}
+  return ready;
  }
  async retry(){
   if(this.isPaused()||isModalBlocked())return false;
   const calm=this.retryCalmPoints??this.controller?.life?.consecutiveRelaxActions;
   this.retryCalmPoints=calm;
   this.loadGeneration++;this.controller?.destroy();this.controller=null;this.container.replaceChildren();this.loading=null;
-  const ready=await this.ensureLoaded();
+  const loading=this.ensureLoaded(),generation=this.loadGeneration;
+  const ready=await loading;
+  if(generation!==this.loadGeneration)return false;
   if(ready&&Number.isSafeInteger(calm)){this.restoreConsecutiveRelaxActions(calm);this.retryCalmPoints=null;}
   return ready;
  }
