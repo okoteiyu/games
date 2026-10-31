@@ -26,6 +26,8 @@
 .building-map__description h4{margin:6px 0 10px;font-size:16px;}
 .building-map__description p{margin:0;font-size:13px;line-height:1.85;overflow-wrap:anywhere;}
 .building-map__description p+p{margin-top:10px;color:#94836b;font-size:12px;}
+.building-map__travel{display:block;inline-size:100%;min-block-size:44px;margin-top:14px;padding:10px 12px;border:1px solid #869870;border-radius:10px 4px;background:linear-gradient(130deg,#e8efcf,#c8d8a7);color:#4e6040;font:inherit;font-size:14px;font-weight:600;cursor:pointer;}
+.building-map__travel:disabled{border-color:#d2c8b4;background:#eeeade;color:#948975;cursor:default;}
 .building-map__note{margin:14px 0 0;font-size:12px;line-height:1.7;color:#8d7f66;}
 .area-map__house-trigger{display:block;inline-size:100%;block-size:100%;min-block-size:0;min-inline-size:0;padding:0;border:0;background:none;cursor:pointer;border-radius:6px;touch-action:manipulation;}
 .area-map__house-trigger:focus-visible{outline:2px solid #96754d;outline-offset:-2px;}

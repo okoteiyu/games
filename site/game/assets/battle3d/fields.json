@@ -78,27 +78,103 @@
       "region": "training",
       "timeOfDay": "day",
       "url": "training_day.glb",
-      "bytes": 112356,
-      "sha256": "e4b1e1868540771d037cf88628552f141220be442fae6c7db1e711d7840b06ac",
-      "sky": "#e8ece6",
-      "ambient": 2.1,
-      "sunIntensity": 2.4,
-      "sunColor": "#fff0da"
+      "bytes": 3334036,
+      "sha256": "c0c11338e865d0a7f78b236beb8dbec18fe5bbe50358f391334bb5e6baa6d61e",
+      "sky": "#e1e7df",
+      "ambient": 1.6,
+      "sunIntensity": 0.8,
+      "sunColor": "#fff1dc",
+      "entranceCamera": {
+        "position": [
+          0,
+          1.25,
+          3.1
+        ],
+        "target": [
+          0,
+          0.9,
+          -4.2
+        ],
+        "fov": 64
+      },
+      "entrancePlayer": [
+        0,
+        0,
+        0.9
+      ],
+      "entranceEnemy": [
+        0,
+        0,
+        -3.3
+      ],
+      "interior": true,
+      "interiorBounds": {
+        "min": [
+          -5.12,
+          0,
+          -27.88
+        ],
+        "max": [
+          5.12,
+          6.135,
+          3.22
+        ]
+      },
+      "modelRevision": "R116",
+      "modelScale": 1
     },
     {
       "id": "training_night",
       "region": "training",
       "timeOfDay": "night",
       "url": "training_night.glb",
-      "bytes": 112612,
-      "sha256": "ab598dcaca0d25a602c755a7fbb0663a4faf93ac17c532703e70a67f7f797de9",
-      "sky": "#172439",
-      "ambient": 0.8,
-      "sunIntensity": 0.8,
-      "sunColor": "#c3d4ff"
+      "bytes": 3334268,
+      "sha256": "6764d89c3b6c1788a033bbad3c35975b7450f8d8a8926b7d9005c395df3500b5",
+      "sky": "#c3d0c9",
+      "ambient": 1.35,
+      "sunIntensity": 0.65,
+      "sunColor": "#d9e9e7",
+      "entranceCamera": {
+        "position": [
+          0,
+          1.25,
+          3.1
+        ],
+        "target": [
+          0,
+          0.9,
+          -4.2
+        ],
+        "fov": 64
+      },
+      "entrancePlayer": [
+        0,
+        0,
+        0.9
+      ],
+      "entranceEnemy": [
+        0,
+        0,
+        -3.3
+      ],
+      "interior": true,
+      "interiorBounds": {
+        "min": [
+          -5.12,
+          0,
+          -27.88
+        ],
+        "max": [
+          5.12,
+          6.135,
+          3.22
+        ]
+      },
+      "modelRevision": "R116",
+      "modelScale": 1
     }
   ],
   "modelCount": 8,
   "nativeSource": "source/build_fields.py",
-  "trainingSource": "source/build_training.py"
+  "trainingSource": "environments/training_hall/source/build_hall.py"
 }

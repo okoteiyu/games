@@ -6,7 +6,7 @@ export function roomMapPoint(position,bounds=DEFAULT_BOUNDS){
 }
 export class AreaMap {
  constructor(element,{onOpenHouse=()=>{},onHouseUpdate=()=>{}}={}){
-  this.onHouseUpdate=onHouseUpdate;this.contentClick=event=>{if(this.mode==='house'){const button=event.target.closest('[data-house-map-open]');if(button)onOpenHouse(button);}};element.addEventListener('click',this.contentClick);
+  this.onHouseUpdate=onHouseUpdate;this.contentClick=event=>{if(['house','training'].includes(this.mode)){const button=event.target.closest('[data-house-map-open]');if(button)onOpenHouse(button);}};element.addEventListener('click',this.contentClick);
   this.element=element;this.content=element.querySelector('#areaMapContent');this.title=element.querySelector('#areaMapTitle');this.hint=element.querySelector('#areaMapHint');this.mode=null;this.markerKey=null;
  }
  showHouse(life,metadata){
@@ -24,6 +24,10 @@ export class AreaMap {
  }
  showPatrol(map){
   this.mode='patrol';this.element.dataset.area='patrol';this.title.textContent='道中マップ';this.hint.textContent='タップで拡大';this.content.replaceChildren(map);
+ }
+ showTraining(){
+  this.mode='training';this.element.dataset.area='training';this.title.textContent='訓練所';this.hint.textContent='';
+  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="訓練所の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false"><svg class="room-map" viewBox="0 0 240 250" role="img" aria-label="地下2階の訓練所。おこていゆは下側の入口にいます。"><rect x="15" y="10" width="210" height="228" rx="8" fill="#ece8dd" stroke="#b4a488" stroke-width="3"/><rect x="51" y="60" width="138" height="117" rx="14" fill="#c8d4c2" stroke="#a4b29a" stroke-width="2"/><rect x="62" y="71" width="116" height="95" rx="10" fill="none" stroke="#f5f3df" stroke-width="2"/><circle cx="120" cy="119" r="27" fill="none" stroke="#edf1df" stroke-width="2"/><g fill="#c3b493"><rect x="27" y="30" width="18" height="53" rx="4"/><rect x="195" y="30" width="18" height="53" rx="4"/></g><path d="M104 238h32" stroke="#eee7d8" stroke-width="6"/><path d="M105 236h30" stroke="#9dbfbd" stroke-width="2"/><circle cx="120" cy="216" r="6" fill="#fff7e9" stroke="#bb817a" stroke-width="2"/><path d="m116 204 4-5 4 5" fill="none" stroke="#877a5f" stroke-width="2"/></svg></button>';
  }
  buildHouse(){
   const point=(x,z)=>roomMapPoint([x,0,z],this.bounds);
@@ -53,5 +57,6 @@ export class AreaMap {
    <g id="roomMapMoai"><path d="M0-5 4-2 3 5H-3L-4-2Z" fill="#8e9687" stroke="#fffef7" stroke-width="1.3"/></g>
    <g id="roomMapOkoteiyu"><circle r="6" fill="#fff7e9" stroke="#bb817a" stroke-width="1.8"/><circle cx="-2.5" cy="1" r="1.1" fill="#d8a1a0"/><circle cx="2.5" cy="1" r="1.1" fill="#d8a1a0"/></g>
   </svg></button>`;
+  this.houseSvg=this.content.querySelector('.room-map');
  }
 }

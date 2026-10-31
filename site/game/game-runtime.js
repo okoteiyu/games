@@ -11,8 +11,8 @@ import { loadAssetBuffer } from './asset-store.js';
 
 /** Connect the existing scenes to one persistent, renderer-independent session. */
 export class GameRuntime {
- constructor({view,house,patrol,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage}){
-  Object.assign(this,{view,house,patrol,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage});
+ constructor({view,house,patrol,trainingHall,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage}){
+  Object.assign(this,{view,house,patrol,trainingHall,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage});
   this.scene='house';this.messageLocked=false;this.manualClock=false;this.pendingEncounter=null;this.pendingCutin=false;this.resultDelay=null;this.messages=[];this.lastAngerResult=null;
   this.session=new GameSession({onEvent:event=>this.onSessionEvent(event)});
   this.battleUI=new BattleUI({view,homeElement,isPaused:()=>this.isPaused()||document.hidden,onCall:id=>this.requestBattleAction(id),onReturn:()=>this.returnHomeAfterBattle(),onError:()=>this.toast('3Dの読み込みを再試行してください。戦闘の時計は停止しています。')});
@@ -36,13 +36,15 @@ export class GameRuntime {
  }
  homeCommands(){
   const commands=this.session.commandAvailability(this.house.getConsecutiveRelaxActions(),{isRelaxing:this.isRelaxing()});
+  if(this.scene==='training-hall')for(const key of ['patrol','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
   if(!this.isHouseReady()||!this.session.state.visitorName){
    for(const key of ['patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
    commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));
   }
+  if(this.scene==='training-hall'&&!this.trainingHall?.ready){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   return commands;
  }
- snapshot(){return {...this.session.snapshot(),scene:this.scene,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
+ snapshot(){return {...this.session.snapshot(),...(this.scene==='training-hall'?{location:'training-hall'}:{}),scene:this.scene,canVisitTrainingHall:this.scene==='house'&&this.isHouseReady()&&Boolean(this.session.state.visitorName)&&!this.session.state.pendingAngerEvent&&!this.pendingCutin,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
  canExecuteHouseAction(kind){const key={meal:'meal',fridge_meal:'food',computer:'research',bed:'bed',chair:'chair'}[kind];return this.scene==='house'&&Boolean(this.homeCommands()[key]);}
  onHouseEvent(){this.sync();}
  sync(){
@@ -75,11 +77,27 @@ export class GameRuntime {
   this.sync();return result;
  }
  requestTraining(tier='easy'){
-  if(this.isPaused()||document.hidden||this.scene!=='house')return {ok:false,reason:'paused'};
+  if(this.isPaused()||document.hidden||!['house','training-hall'].includes(this.scene))return {ok:false,reason:'paused'};
   if(!this.isHouseReady())return {ok:false,reason:'house-not-ready'};
+  const fromHall=this.scene==='training-hall';if(fromHall&&!this.trainingHall?.ready)return {ok:false,reason:'training-hall-not-ready'};
   const result=this.session.requestTraining({relaxStreak:this.house.getConsecutiveRelaxActions(),tier,spendCalmPoints:count=>this.house.spendCalmPoints(count)});
-  if(result.ok){this.sync();this.pendingEncounter=null;this.departureDestination={kind:'training',tier,enemy:result.enemy};this.startSceneCutin('departure');}
+  if(result.ok){
+   // Persist the paid home checkpoint before the first battle frame, including
+   // when the player is visiting B2 rather than departing from the house.
+   this.sync();this.pendingEncounter=null;
+   if(fromHall){this.trainingHall.deactivate();this.startBattle(result.enemy,{region:'training',timeOfDay:currentTimeOfDay(),encounterType:'training',trainingTier:tier});}
+   else{this.departureDestination={kind:'training',tier,enemy:result.enemy};this.startSceneCutin('departure');}
+  }
   this.sync();return result;
+ }
+ async visitTrainingHall(){
+  if(this.isPaused()||document.hidden||this.scene!=='house'||!this.isHouseReady()||!this.session.state.visitorName||this.session.state.pendingAngerEvent||this.pendingCutin)return false;
+  this.onProgressChange?.();this.hideMessage();this.scene='training-hall';this.setLocation('訓練所');this.homeElement.hidden=true;this.house.leaveHouse();this.onTrainingHallEntered?.();this.sync();
+  const ready=await this.trainingHall.show();if(this.scene==='training-hall')this.sync();return ready;
+ }
+ returnFromTrainingHall(){
+  if(this.scene!=='training-hall'||this.isPaused()||document.hidden)return false;
+  this.trainingHall.deactivate();this.scene='house';this.setLocation('おこていゆハウス');this.house.arriveFromOutside({afterBattle:false});this.view.setHouse();this.messages=[];this.hideMessage();this.sync();return true;
  }
  onSessionEvent(event){
   if(event.type==='anger-point'){
@@ -100,6 +118,7 @@ export class GameRuntime {
  tick(dt){
   if(this.scene==='scene-cutin'){if(!this.isModalPaused()&&!document.hidden){this.advanceResultMessage(dt);this.sceneCutin.advance(dt);}return true;}
   this.sync();if(this.scene==='battle')this.battleUI.updateControls();if(this.scene==='battle')this.battleUI.controller?.setTimeOfDay(currentTimeOfDay());if(this.isPaused()||document.hidden)return false;
+  if(this.scene==='training-hall'){this.trainingHall.advance(dt);return true;}
   if(this.pendingCutin&&this.scene==='house'){this.startCutin();return true;}
   if(this.pendingEncounter&&this.scene==='patrol'){const {enemy,stage}=this.pendingEncounter;this.pendingEncounter=null;this.startBattle(enemy,stage);return true;}
   if(this.messages.length){this.say(this.messages.shift());return true;}
@@ -153,7 +172,7 @@ export class GameRuntime {
   this.battleUI.deactivate();this.setLocation('おこていゆハウス');this.scene='house';this.house.arriveFromOutside({afterBattle:true});this.view.setHouse();this.sync();
   this.messages=[];this.hideMessage();return true;
  }
- cancelPatrol(){if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol();this.patrol.returnHome();this.scene='house';}this.sync();return true;}
+ cancelPatrol(){if(this.scene==='training-hall')return this.returnFromTrainingHall();if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol();this.patrol.returnHome();this.scene='house';}this.sync();return true;}
  startCutin(){
   this.pendingCutin=false;this.scene='cutin';this.messageLocked=true;this.hideMessage();this.homeElement.hidden=true;this.house.leaveHouse();this.angerPlayer.play();this.sync();
  }
@@ -168,7 +187,7 @@ export class GameRuntime {
   if(outcome?.techniqueId&&!['punch','energy_ray'].includes(outcome.techniqueId))text=outcome.newlyLearned?outcome.techniqueName+'を取得した！ コレクションの「技」から設定できる。':outcome.techniqueName+'が少し上達した！';
   this.messages.push({type:outcome?.changed?'growth':'anger',text:'おこていゆイベントが起きた。 '+text});this.sync();
  }
- exportProgress({browser=false}={}){if(this.scene!=='house')throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
+ exportProgress({browser=false}={}){if(this.scene!=='house'&&!(browser&&this.scene==='training-hall'))throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
  importProgress(progress){if(this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');validateVisitorProgress(progress?.session,progress?.relaxStreak);this.session.importState(progress.session);this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);this.session.state.interferenceUsedSinceBattle=false;this.sync();}
  assignTechnique(slot,id){if(this.scene!=='house')return false;const accepted=this.session.assignTechnique(slot,id);this.sync();return accepted;}
  setSuperConfiguration(id){if(this.scene!=='house')return false;const accepted=this.session.setSuperConfiguration(id);this.sync();return accepted;}
@@ -178,5 +197,5 @@ export class GameRuntime {
   if(!Number.isFinite(seconds)||seconds<0||seconds>300||this.isPaused()||document.hidden)return false;
   for(let remaining=seconds;remaining>1e-8;remaining-=.1){const dt=Math.min(.1,remaining);if(this.isPaused()||document.hidden)break;if(this.scene==='house')this.house.controller?.advanceForPreview(dt);else if(this.scene==='patrol'&&this.patrol.active)this.patrol.tick(dt);this.tick(dt);}return this.snapshot();
  }
- destroy(){cancelAnimationFrame(this.raf);this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
+ destroy(){cancelAnimationFrame(this.raf);this.trainingHall?.destroy();this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
 }
