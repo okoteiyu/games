@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three/three.module.js';
 
 // Presentation values only; these never consume the game's random stream.
-export const HIT_PARTICLE_COUNT=12;
-export const HIT_PARTICLE_CAPACITY=48;
-export const HIT_PARTICLE_LIFETIME=.56;
+export const HIT_PARTICLE_COUNT=24;
+export const HIT_PARTICLE_CAPACITY=96;
+export const HIT_PARTICLE_LIFETIME=.68;
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const transientName=/(^|[._ ])(?:[a-z0-9-]*Aura|Ray|Effect|Particle|Exhaust|[a-z0-9-]*Shadow)/i;
 const beamName=/(^|[._ ])(?:Ray|AttackEffect)/i;
@@ -43,18 +43,18 @@ export class HitParticles{
   const geometry=this.geometry=new THREE.BufferGeometry();this.attributes={};
   for(const [name,size]of[['position',3],['aColor',3],['aAlpha',1],['aSize',1],['aStar',1]]){const attribute=new THREE.BufferAttribute(new Float32Array(HIT_PARTICLE_CAPACITY*size),size);attribute.setUsage(THREE.DynamicDrawUsage);geometry.setAttribute(name,attribute);this.attributes[name]=attribute;}
   this.material=new THREE.ShaderMaterial({uniforms:{viewportHeight:{value:390},pixelRatio:{value:1}},transparent:true,depthWrite:false,depthTest:false,toneMapped:false,
-   vertexShader:'uniform float viewportHeight;uniform float pixelRatio;attribute vec3 aColor;attribute float aAlpha;attribute float aSize;attribute float aStar;varying vec3 vColor;varying float vAlpha;varying float vStar;void main(){vec4 p=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*p;gl_PointSize=clamp(aSize*viewportHeight*pixelRatio*projectionMatrix[1][1]/(2.*max(.01,-p.z)),3.5*pixelRatio,11.*pixelRatio);vColor=aColor;vAlpha=aAlpha;vStar=aStar;}',
-   fragmentShader:'varying vec3 vColor;varying float vAlpha;varying float vStar;void main(){vec2 p=gl_PointCoord*2.-1.;float r=length(p);float soft=max(pow(max(0.,1.-r),1.35),(1.-smoothstep(.55,1.,r))*.48);float star=max(max(0.,1.-abs(p.x)*4.)*max(0.,1.-abs(p.y)),max(0.,1.-abs(p.y)*4.)*max(0.,1.-abs(p.x)));float alpha=mix(soft,max(soft*.55,star),vStar)*vAlpha;if(alpha<.015)discard;gl_FragColor=vec4(mix(vec3(.70,.43,.16),vColor,1.-smoothstep(.15,.8,r)),alpha);\n#include <colorspace_fragment>\n}'});
+   vertexShader:'uniform float viewportHeight;uniform float pixelRatio;attribute vec3 aColor;attribute float aAlpha;attribute float aSize;attribute float aStar;varying vec3 vColor;varying float vAlpha;varying float vStar;void main(){vec4 p=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*p;gl_PointSize=clamp(aSize*viewportHeight*pixelRatio*projectionMatrix[1][1]/(2.*max(.01,-p.z)),4.5*pixelRatio,15.*pixelRatio);vColor=aColor;vAlpha=aAlpha;vStar=aStar;}',
+   fragmentShader:'varying vec3 vColor;varying float vAlpha;varying float vStar;void main(){vec2 p=gl_PointCoord*2.-1.;float r=length(p);float soft=max(pow(max(0.,1.-r),1.2),(1.-smoothstep(.45,1.,r))*.62);float star=max(max(0.,1.-abs(p.x)*3.2)*max(0.,1.-abs(p.y)),max(0.,1.-abs(p.y)*3.2)*max(0.,1.-abs(p.x)));float alpha=mix(soft,max(soft*.6,star),vStar)*vAlpha;if(alpha<.015)discard;gl_FragColor=vec4(mix(vec3(.83,.57,.20),vColor,1.-smoothstep(.15,.8,r)),alpha);\n#include <colorspace_fragment>\n}'});
   this.root=new THREE.Points(geometry,this.material);this.root.name='Battle.HitParticles.'+record.instanceId;this.root.frustumCulled=false;this.root.renderOrder=6;this.root.visible=false;
   this.particles=Array.from({length:HIT_PARTICLE_CAPACITY},()=>({age:Infinity,origin:new THREE.Vector3(),velocity:new THREE.Vector3(),size:0,gravity:0,floor:0,ceiling:0}));
  }
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  burst(camera){
   if(this.disposed)return false;const body=emittersFor(this.record,this.meshes);if(!body.emitters.length)return false;
-  const size=body.bounds.getSize(new THREE.Vector3()),center=body.bounds.getCenter(new THREE.Vector3()),height=Math.max(.01,size.y),travel=new THREE.Vector3(clamp(size.x*.16,.025,.35),clamp(height*.18,.025,.32),clamp(size.z*.12,.025,.35)).multiplyScalar(1.3),palette=[0xfffbef,0xeeb85d,0xffdc91].map(color=>new THREE.Color(color));this.lastBounds={min:body.bounds.min.toArray(),max:body.bounds.max.toArray()};
+  const size=body.bounds.getSize(new THREE.Vector3()),center=body.bounds.getCenter(new THREE.Vector3()),height=Math.max(.01,size.y),travel=new THREE.Vector3(clamp(size.x*.16,.025,.35),clamp(height*.18,.025,.32),clamp(size.z*.12,.025,.35)).multiplyScalar(1.8),palette=[0xfffcf0,0xffd26d,0xffe9ad].map(color=>new THREE.Color(color));this.lastBounds={min:body.bounds.min.toArray(),max:body.bounds.max.toArray()};
   for(let i=0;i<HIT_PARTICLE_COUNT;i++){
    const slot=this.cursor++%HIT_PARTICLE_CAPACITY,particle=this.particles[slot],point=surfacePoint(body,camera,()=>this.random()),radial=point.clone().sub(center);
-   particle.age=0;particle.origin.copy(point);particle.velocity.set((radial.x/Math.max(.01,size.x)+(this.random()-.5)*.8)*travel.x/HIT_PARTICLE_LIFETIME,(.45+this.random()*.55)*travel.y/HIT_PARTICLE_LIFETIME,(radial.z/Math.max(.01,size.z)+(this.random()-.5)*.8)*travel.z/HIT_PARTICLE_LIFETIME);particle.size=clamp(height*(.06+this.random()*.035),.012,.24);particle.gravity=Math.min(2.8,height*1.2);particle.floor=Math.max(.012,Math.min(point.y,body.bounds.min.y));particle.ceiling=body.bounds.max.y+Math.min(.15,height*.15);const color=palette[i%palette.length];this.attributes.aColor.setXYZ(slot,color.r,color.g,color.b);this.attributes.aStar.setX(slot,i%3===0?1:0);
+   particle.age=0;particle.origin.copy(point);particle.velocity.set((radial.x/Math.max(.01,size.x)+(this.random()-.5)*.8)*travel.x/HIT_PARTICLE_LIFETIME,(.45+this.random()*.55)*travel.y/HIT_PARTICLE_LIFETIME,(radial.z/Math.max(.01,size.z)+(this.random()-.5)*.8)*travel.z/HIT_PARTICLE_LIFETIME);particle.size=clamp(height*(.075+this.random()*.045),.016,.30);particle.gravity=Math.min(2.8,height*1.2);particle.floor=Math.max(.012,Math.min(point.y,body.bounds.min.y));particle.ceiling=body.bounds.max.y+Math.min(.15,height*.15);const color=palette[i%palette.length];this.attributes.aColor.setXYZ(slot,color.r,color.g,color.b);this.attributes.aStar.setX(slot,i%2===0?1:0);
   }
   this.bursts++;this.attributes.aColor.needsUpdate=true;this.attributes.aStar.needsUpdate=true;this.sample();return true;
  }
@@ -62,7 +62,7 @@ export class HitParticles{
  advance(dt){if(this.disposed)return;const step=Math.min(.1,Math.max(0,Number(dt)||0));for(const particle of this.particles)if(particle.age<HIT_PARTICLE_LIFETIME)particle.age+=step;this.sample();}
  sample(){
   this.activeCount=0;
-  for(const [index,particle]of this.particles.entries()){if(particle.age>=HIT_PARTICLE_LIFETIME){this.attributes.aAlpha.setX(index,0);continue;}this.activeCount++;const t=particle.age/HIT_PARTICLE_LIFETIME,x=particle.origin.x+particle.velocity.x*particle.age,y=clamp(particle.origin.y+particle.velocity.y*particle.age-.5*particle.gravity*particle.age**2,particle.floor,particle.ceiling),z=particle.origin.z+particle.velocity.z*particle.age;this.attributes.position.setXYZ(index,x,y,z);this.attributes.aAlpha.setX(index,(1-t)**1.5);this.attributes.aSize.setX(index,particle.size*(1-.5*t));}
+  for(const [index,particle]of this.particles.entries()){if(particle.age>=HIT_PARTICLE_LIFETIME){this.attributes.aAlpha.setX(index,0);continue;}this.activeCount++;const t=particle.age/HIT_PARTICLE_LIFETIME,x=particle.origin.x+particle.velocity.x*particle.age,y=clamp(particle.origin.y+particle.velocity.y*particle.age-.5*particle.gravity*particle.age**2,particle.floor,particle.ceiling),z=particle.origin.z+particle.velocity.z*particle.age;this.attributes.position.setXYZ(index,x,y,z);this.attributes.aAlpha.setX(index,(1-t)**1.3);this.attributes.aSize.setX(index,particle.size*(1-.5*t));}
   this.attributes.position.needsUpdate=true;this.attributes.aAlpha.needsUpdate=true;this.attributes.aSize.needsUpdate=true;this.root.visible=this.activeCount>0;
  }
  clear(reset=false){for(const particle of this.particles)particle.age=Infinity;this.activeCount=0;this.attributes.aAlpha.array.fill(0);this.attributes.aAlpha.needsUpdate=true;this.root.visible=false;if(reset){this.cursor=0;this.seed=1381636;this.bursts=0;this.lastBounds=null;}}
