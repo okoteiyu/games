@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
   "fileCount": 138,
-  "totalBytes": 104537639,
+  "totalBytes": 104538645,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -592,9 +592,9 @@
       "url": "assets/battle3d/fields.json",
       "label": "戦闘フィールドの設定",
       "type": "json",
-      "bytes": 11093,
+      "bytes": 12099,
       "priority": 2,
-      "sha256": "83a7c60a9415187dba750a9aa9bc191d5e3dc93bfdbf0470431e7b3c52b63ad7"
+      "sha256": "52a1299e6cd0b0f6522fd451eacbad76619196be238da6bc6520386b81cce438"
     },
     {
       "url": "assets/battle3d/city_day.glb?v=c355a3ee37b86a1a80441e46ce9a77283ca04947b19bc9ff4e4c56567af17167",

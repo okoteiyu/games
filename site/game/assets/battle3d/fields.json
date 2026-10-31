@@ -263,25 +263,53 @@
       "trainingBattlePlayer": [
         -0.45,
         0,
-        -1.4
+        -8
       ],
       "trainingBattleEnemy": [
         0,
         0,
-        -3.3
+        -11
       ],
       "trainingBattleCamera": {
         "position": [
           0,
           1.25,
-          3.1
+          -4.5
         ],
         "target": [
           0,
-          0.9,
-          -4.2
+          0.8,
+          -10.5
         ],
-        "fov": 50
+        "fov": 45,
+        "near": 0.01
+      },
+      "trainingBattleLayoutRevision": "R123",
+      "trainingBattleLargeLayout": {
+        "player": [
+          -0.45,
+          0,
+          -5.5
+        ],
+        "enemy": [
+          0,
+          0,
+          -10
+        ],
+        "camera": {
+          "position": [
+            0,
+            1.25,
+            -0.4
+          ],
+          "target": [
+            0,
+            2.9,
+            -12
+          ],
+          "fov": 64,
+          "near": 0.01
+        }
       }
     },
     {
@@ -474,25 +502,53 @@
       "trainingBattlePlayer": [
         -0.45,
         0,
-        -1.4
+        -8
       ],
       "trainingBattleEnemy": [
         0,
         0,
-        -3.3
+        -11
       ],
       "trainingBattleCamera": {
         "position": [
           0,
           1.25,
-          3.1
+          -4.5
         ],
         "target": [
           0,
-          0.9,
-          -4.2
+          0.8,
+          -10.5
         ],
-        "fov": 50
+        "fov": 45,
+        "near": 0.01
+      },
+      "trainingBattleLayoutRevision": "R123",
+      "trainingBattleLargeLayout": {
+        "player": [
+          -0.45,
+          0,
+          -5.5
+        ],
+        "enemy": [
+          0,
+          0,
+          -10
+        ],
+        "camera": {
+          "position": [
+            0,
+            1.25,
+            -0.4
+          ],
+          "target": [
+            0,
+            2.9,
+            -12
+          ],
+          "fov": 64,
+          "near": 0.01
+        }
       }
     }
   ],
