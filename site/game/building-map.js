@@ -18,7 +18,7 @@ export const BUILDING_FLOORS=Object.freeze([
  {id:'b2',label:'B2',name:'地下の訓練場',areas:[
   {id:'training',name:'訓練所',text:'入口から見守る、地下の訓練所。'},
   {id:'guest-lounge',name:'珍生物待機エリア',text:'招待した珍生物が自由にくつろぐ、上質なラウンジ。3Dエリアは準備中。'},
-  {id:'control',name:'訓練管理室',mapOnly:true,text:'観測ガラス越しに訓練所を見渡す管理室。地図のみの表示です。'},
+  {id:'control',name:'訓練管理室',mapOnly:true,text:'訓練所に隣接する管理室。地図のみの表示です。'},
   {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]}
 ]);
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" ${extra}/>`;

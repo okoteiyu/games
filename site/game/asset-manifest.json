@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
   "fileCount": 138,
-  "totalBytes": 104539029,
+  "totalBytes": 104339161,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -594,7 +594,7 @@
       "type": "json",
       "bytes": 12099,
       "priority": 2,
-      "sha256": "52a1299e6cd0b0f6522fd451eacbad76619196be238da6bc6520386b81cce438"
+      "sha256": "52d9c32a6faf99f569513e05e6ae26e125df9614f265c4c414ea19d0b03e825c"
     },
     {
       "url": "assets/battle3d/city_day.glb?v=c355a3ee37b86a1a80441e46ce9a77283ca04947b19bc9ff4e4c56567af17167",
@@ -645,20 +645,20 @@
       "sha256": "30d3ba3f52a942b491301f1a21d57c98f703e619fa4afe7cf822c2247b5e3b87"
     },
     {
-      "url": "assets/battle3d/training_day.glb?v=7cbdcdcf4cdbb6dbe1a1b22d0fb64fa245b73f52c73d45d530cf3562d504b080",
+      "url": "assets/battle3d/training_day.glb?v=b19567d36ecefc164bf78cfc4a4407370dc89ed8a59d5127b9e5c2d37a92fd71",
       "label": "訓練広場・昼の戦闘フィールド",
       "type": "binary",
-      "bytes": 4052804,
+      "bytes": 3952884,
       "priority": 3,
-      "sha256": "7cbdcdcf4cdbb6dbe1a1b22d0fb64fa245b73f52c73d45d530cf3562d504b080"
+      "sha256": "b19567d36ecefc164bf78cfc4a4407370dc89ed8a59d5127b9e5c2d37a92fd71"
     },
     {
-      "url": "assets/battle3d/training_night.glb?v=b2bf237ed36f34181b79c24d442a943af7335d1a84360419d021d998a70d1166",
+      "url": "assets/battle3d/training_night.glb?v=e616b4cdc00d5be56e27ebcf430d9251c2aa51dede7880c147b85e5ea124c09f",
       "label": "訓練広場・夜の戦闘フィールド",
       "type": "binary",
-      "bytes": 4053140,
+      "bytes": 3953192,
       "priority": 3,
-      "sha256": "b2bf237ed36f34181b79c24d442a943af7335d1a84360419d021d998a70d1166"
+      "sha256": "e616b4cdc00d5be56e27ebcf430d9251c2aa51dede7880c147b85e5ea124c09f"
     },
     {
       "url": "assets/equipment3d/metadata.json",

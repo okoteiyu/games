@@ -42,11 +42,9 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
   worldRect(4.23,-1.05,.69,2.8,'#d7bf98','data-training-feature="bench" stroke="#ad946d" stroke-width="2"');
  for(const [index,[x,z]]of[[-4.25,-4],[4.3,-8.55]].entries())drawing+=feature('pad-'+index,[x,0,z],'<circle r="12" fill="#80978a" stroke="#596e64" stroke-width="2"/><circle r="5" fill="none" stroke="#eef0db" stroke-width="2"/>');
  drawing+=feature('selector',[-1.15,0,.3],rect(-10,-15,20,30,'#536d65','stroke="#b5a07c" stroke-width="2"')+'<path d="M-6-9H6M-6-4H6M-6 1H6M-6 6H6M-6 11H6" stroke="#e9e9cb" stroke-width="2"/>');
- const door=trainingMapPoint([0,0,3.22]),glassStart=trainingMapPoint([5.11,0,-6.95]),glassEnd=trainingMapPoint([5.11,0,-1.05]);
+ const door=trainingMapPoint([0,0,3.22]);
  drawing+=`<path d="M${near.x} ${door.y-44}V${far.y}H${far.x}V${near.y}H${near.x}V${door.y+44}" fill="none" stroke="${selected==='training'?'#936843':'#a89c80'}" stroke-width="4" stroke-linejoin="round"/>`+
-  feature('entrance',[0,0,3.22],'<path d="M3-44V44M-2-42V-4M-2 4V42" stroke="#9abeb6" stroke-width="4" fill="none"/>')+
-  `<path data-training-feature="observation-glass" d="M${glassStart.x} ${glassStart.y}H${glassEnd.x}" fill="none" stroke="#96c5c2" stroke-width="8"/>`+
-  rect(glassStart.x,glassStart.y+6,glassEnd.x-glassStart.x,15,'#d5e6df');
+  feature('entrance',[0,0,3.22],'<path d="M3-44V44M-2-42V-4M-2 4V42" stroke="#9abeb6" stroke-width="4" fill="none"/>');
  // An invited guest's lounge: soft seating, gold trim, refreshments and an open entry.
  drawing+=zone('guest-lounge',70,550,535,145,'#f8f0de',`stroke="${selected==='guest-lounge'?'#936843':'#b89b62'}" stroke-width="${selected==='guest-lounge'?5:2}"`)+
   '<g data-guest-feature="gold-trim" fill="none" stroke="#d1b87a" stroke-width="2"><path d="M86 588V565H589V588M86 674V683H589V674"/><path d="m96 571 6-5 6 5-6 5Zm471 0 6-5 6 5-6 5Z"/></g>'+
@@ -59,11 +57,10 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
   '<g data-guest-feature="refreshments">'+rect(550,650,32,25,'#d1b57f','stroke="#ad9059" stroke-width="2"')+'<circle cx="559" cy="658" r="4" fill="#fffbeb"/><circle cx="572" cy="658" r="4" fill="#fffbeb"/><path d="M555 671h23" stroke="#fff8e5" stroke-width="2"/></g>'+
   '<g data-guest-feature="plants">'+[[568,608],[91,662]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="12" fill="#b6cdb1"/><path d="M${x} ${y+8}v-15m0 12-7-7m7 3 7-7" stroke="#7e9e7c" stroke-width="2" fill="none"/>`).join('')+'</g>'+
   '<path data-training-access="guest-open-entry" d="M605 600v56" fill="none" stroke="#e2d9c4" stroke-width="8"/><path d="M598 595h10m-10 66h10" stroke="#b59a64" stroke-width="3"/>';
- // The management room stays map-only, aligned with the observation glass.
+ // The management room stays map-only, beside the lower wall of the hall.
  drawing+=zone('control',650,550,250,145,'#e4ece5',`stroke="${selected==='control'?'#936843':'#a2b7a7'}" stroke-width="${selected==='control'?5:2}"`)+
   '<path data-training-access="control-door" d="M900 618v32" stroke="#e2d9c4" stroke-width="8"/><path d="M900 618h-30M900 648a30 30 0 0 1-30-30" fill="none" stroke="#9ba995" stroke-width="2"/>'+
   text(775,635,compact?'管理室':'訓練管理室',compact?48:36)+
-  (compact?'':text(775,543,'観測ガラス',27))+
   basementCoreDrawing({selected,compact});
  if(!compact){
   drawing+=text(200,198,'訓練所',42)+text(1021,285,'入口',34)+
@@ -76,5 +73,5 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
  return `<g data-training-plan="right-entrance" font-family="system-ui, sans-serif">${drawing}</g>`;
 }
 export function trainingMapSvg({compact=true,current=true}={}){
- return `<svg class="room-map" viewBox="${compact?'30 160 1140 580':TRAINING_MAP_VIEWBOX}" role="img" aria-label="右側が入口の訓練所。訓練マット、操作端末、送風機、照明、収納、ベンチ、観測ガラスと管理室。招待した珍生物がくつろぐ待機エリア。${current?'おこていゆは入口付近で待機しています。':''}">${trainingMapDrawing({compact,current})}</svg>`;
+ return `<svg class="room-map" viewBox="${compact?'30 160 1140 580':TRAINING_MAP_VIEWBOX}" role="img" aria-label="右側が入口の訓練所。訓練マット、操作端末、送風機、照明、収納、ベンチと管理室。招待した珍生物がくつろぐ待機エリア。${current?'おこていゆは入口付近で待機しています。':''}">${trainingMapDrawing({compact,current})}</svg>`;
 }
