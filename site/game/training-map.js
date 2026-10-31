@@ -1,13 +1,14 @@
-// Plan coordinates follow the current training GLB: +Z is right, +X is down.
+// +Z points toward the right-hand entrance; +X is up on the floor plan.
+// Looking into the hall from that entrance, camera-left (-X) is map-down.
 // Rooms outside the existing hall are schematic; the guest lounge awaits 3D art.
 const SCALE=28.8,ORIGIN={x:70,y:220},WORLD={minX:-5.36,minZ:-28.12,maxX:5.36,maxZ:3.46};
 export const BASEMENT_MAP_VIEWBOX='0 55 1200 685';
 export const TRAINING_MAP_VIEWBOX=BASEMENT_MAP_VIEWBOX;
-export function trainingMapPoint(position){return {x:ORIGIN.x+(position[2]-WORLD.minZ)*SCALE,y:ORIGIN.y+(position[0]-WORLD.minX)*SCALE};}
+export function trainingMapPoint(position){return {x:ORIGIN.x+(position[2]-WORLD.minZ)*SCALE,y:ORIGIN.y+(WORLD.maxX-position[0])*SCALE};}
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
 const text=(x,y,value,size=34,extra='')=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" fill="#645b49" ${extra}>${value}</text>`;
 function worldRect(x,z,width,depth,fill,extra=''){
- const p=trainingMapPoint([x-width/2,0,z-depth/2]);return rect(p.x,p.y,depth*SCALE,width*SCALE,fill,extra);
+ const p=trainingMapPoint([x+width/2,0,z-depth/2]);return rect(p.x,p.y,depth*SCALE,width*SCALE,fill,extra);
 }
 function feature(id,position,body){const p=trainingMapPoint(position);return `<g data-training-feature="${id}" data-world-x="${position[0]}" data-world-z="${position[2]}" transform="translate(${p.x} ${p.y})">${body}</g>`;}
 function equipmentLabel(compact,x,y,label){return compact?'':text(x,y,label,32);}
@@ -20,7 +21,7 @@ export function basementCoreDrawing({selected=null,compact=false}={}){
 
 /** One floor drawing shared by the building dialog and the compact area map. */
 export function trainingMapDrawing({selected=null,compact=false,current=false}={}){
- const far=trainingMapPoint([WORLD.minX,0,WORLD.minZ]),near=trainingMapPoint([WORLD.maxX,0,WORLD.maxZ]),width=near.x-far.x,height=near.y-far.y;
+ const far=trainingMapPoint([WORLD.maxX,0,WORLD.minZ]),near=trainingMapPoint([WORLD.minX,0,WORLD.maxZ]),width=near.x-far.x,height=near.y-far.y;
  const zone=(id,x,y,w,h,fill,extra='')=>rect(x,y,w,h,fill,`data-building-zone="${id}" ${extra}`);
  let drawing=rect(30,160,1140,570,'#edf0e0','stroke="#b2bc9e" stroke-width="4"')+
   '<path data-training-access="core" d="M975 374H1102M1006 374V639H900" fill="none" stroke="#e2d9c4" stroke-width="44" stroke-linejoin="round"/>'+
@@ -28,7 +29,7 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
   zone('training',far.x,far.y,width,height,'#ece8dd','data-map-marker-x="500" data-map-marker-y="95" data-map-marker-unit="1.6"')+
   worldRect(0,-12.1,6.92,24.5,'#bacbbb','data-training-feature="mat" stroke="#879d8c" stroke-width="3"')+
   worldRect(0,-12.1,6.69,24.1,'none','stroke="#f5f3df" stroke-width="3"')+
-  '<g stroke="#d1ddca" stroke-width="1.4" opacity=".65">'+Array.from({length:15},(_,i)=>{const p=trainingMapPoint([-3.35,0,-1.52-i*1.51]);return `<path d="M${p.x} ${p.y}v${6.7*SCALE}"/>`;}).join('')+'</g>'+
+  '<g stroke="#d1ddca" stroke-width="1.4" opacity=".65">'+Array.from({length:15},(_,i)=>{const p=trainingMapPoint([3.35,0,-1.52-i*1.51]);return `<path d="M${p.x} ${p.y}v${6.7*SCALE}"/>`;}).join('')+'</g>'+
   feature('arena-centre',[0,0,-12.1],'<circle r="28" fill="none" stroke="#f7f7e8" stroke-width="3"/><circle r="4" fill="#b5a27d"/>');
  // Dashed overhead fixtures remain distinct from devices standing on the floor.
  for(const [index,x]of[-3.85,3.85].entries()){
@@ -64,9 +65,9 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
   basementCoreDrawing({selected,compact});
  if(!compact){
   drawing+=text(200,198,'訓練所',42)+text(1021,285,'入口',34)+
-   equipmentLabel(false,822,286,'送風機')+equipmentLabel(false,561,286,'照明')+
-   equipmentLabel(false,656,286,'収納')+equipmentLabel(false,901,319,'端末')+
-   equipmentLabel(false,914,478,'ベンチ')+equipmentLabel(false,617,478,'パッド')+
+   equipmentLabel(false,804,286,'送風機')+equipmentLabel(false,561,286,'照明')+
+   equipmentLabel(false,656,286,'パッド')+equipmentLabel(false,901,464,'端末')+
+   equipmentLabel(false,906,286,'ベンチ')+equipmentLabel(false,656,478,'収納')+
    text(345,393,'訓練マット',36);
  }
  if(current)drawing+=feature('current-position',[0,0,.9],'<path d="m-20 0 10-8v16Z" fill="#8d7c5b"/><circle r="12" fill="#fff7e9" stroke="#bb817a" stroke-width="3"/><circle cx="-5" cy="2" r="2" fill="#d8a1a0"/><circle cx="5" cy="2" r="2" fill="#d8a1a0"/>');

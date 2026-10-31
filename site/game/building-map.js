@@ -2,23 +2,23 @@ import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
 import {trainingMapDrawing,BASEMENT_MAP_VIEWBOX,basementCoreDrawing} from './training-map.js';
 
 export const BUILDING_FLOORS=Object.freeze([
- {id:'1f',label:'1F',name:'おこていゆの暮らし',areas:[
-  {id:'home',name:'おこていゆの部屋',text:'ホーム画面。おこていゆが暮らす部屋。'},
-  {id:'hall',name:'共用廊下',text:'部屋と入口、階段をつなぐ共用廊下。'},
-  {id:'entrance',name:'建物の入り口',text:'セキュリティロックのある建物の入口。'},
-  {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
- {id:'2f',label:'2F',name:'あなたの暮らし',areas:[
-  {id:'player',name:'あなたの部屋',text:'あなたが暮らす、おこていゆと同じ間取りの1K。'},
+ {id:'b2',label:'B2',name:'地下の訓練場',areas:[
+  {id:'training',name:'訓練所',text:'入口から見守る、地下の訓練所。'},
+  {id:'guest-lounge',name:'珍生物待機エリア',text:'招待した珍生物が自由にくつろぐ、上質なラウンジ。3Dエリアは準備中。'},
+  {id:'control',name:'訓練管理室',mapOnly:true,text:'訓練所に隣接する管理室。地図のみの表示です。'},
   {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
  {id:'b1',label:'B1',name:'研究と支援',areas:[
   {id:'research',name:'研究所',text:'おこていゆの研究を支える施設。'},
   {id:'analysis',name:'珍生物分析室',text:'珍生物について調べる施設。'},
   {id:'production',name:'生産施設',text:'研究と支援のための生産エリア。'},
   {id:'maintenance',name:'整備施設',text:'研究と支援を支える整備エリア。'}]},
- {id:'b2',label:'B2',name:'地下の訓練場',areas:[
-  {id:'training',name:'訓練所',text:'入口から見守る、地下の訓練所。'},
-  {id:'guest-lounge',name:'珍生物待機エリア',text:'招待した珍生物が自由にくつろぐ、上質なラウンジ。3Dエリアは準備中。'},
-  {id:'control',name:'訓練管理室',mapOnly:true,text:'訓練所に隣接する管理室。地図のみの表示です。'},
+ {id:'1f',label:'F1',name:'おこていゆの暮らし',areas:[
+  {id:'home',name:'おこていゆの部屋',text:'ホーム画面。おこていゆが暮らす部屋。'},
+  {id:'hall',name:'共用廊下',text:'部屋と入口、階段をつなぐ共用廊下。'},
+  {id:'entrance',name:'建物の入り口',text:'セキュリティロックのある建物の入口。'},
+  {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
+ {id:'2f',label:'F2',name:'あなたの暮らし',areas:[
+  {id:'player',name:'あなたの部屋',text:'あなたが暮らす、おこていゆと同じ間取りの1K。'},
   {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]}
 ]);
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" ${extra}/>`;
@@ -52,7 +52,7 @@ function washBathRoom(){
 
 /** A schematic, not a finalized architectural plan or a game destination picker. */
 export function buildingFloorSvg(floorId,selected){
- const floor=BUILDING_FLOORS.find(f=>f.id===floorId)||BUILDING_FLOORS[0];
+ const floor=BUILDING_FLOORS.find(f=>f.id===floorId)||BUILDING_FLOORS.find(f=>f.id==='1f');
  let drawing,viewBox;
  if(floor.id==='1f'||floor.id==='2f'){
   const home=floor.id==='1f';viewBox='60 10 580 530';

@@ -1,4 +1,4 @@
-.building-map-dialog{box-sizing:border-box;inline-size:min(600px,calc(100vw - 20px));max-inline-size:none;max-block-size:calc(100dvh - 24px);margin:auto;padding:0;border:1px solid #b69a70;border-radius:18px 6px;color:#635641;background:#f6f4e8;box-shadow:0 20px 70px #2f332c55;font-family:inherit;overflow:hidden;}
+.building-map-dialog{box-sizing:border-box;inline-size:min(600px,calc(100vw - 20px));max-inline-size:none;block-size:min(720px,calc(100dvh - 24px));max-block-size:calc(100dvh - 24px);margin:auto;padding:0;border:1px solid #b69a70;border-radius:18px 6px;color:#635641;background:#f6f4e8;box-shadow:0 20px 70px #2f332c55;font-family:inherit;overflow:hidden;}
 .building-map-dialog::backdrop{background:#353d3677;backdrop-filter:blur(3px);}
 .building-map-dialog[open]{display:flex;flex-direction:column;}
 .building-map__header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:8px 14px;background:linear-gradient(120deg,#e7dcc5,#eee9d7);border-bottom:1px solid #b8a48266;}
@@ -8,7 +8,7 @@
 .building-map__floors button{min-block-size:40px;border:1px solid #c6baa0;border-radius:9px 3px;background:#fffdf5;color:#87775e;font:inherit;font-size:15px;font-weight:650;line-height:1.2;cursor:pointer;}
 .building-map__floors button[aria-selected=true]{background:#69785c;color:#fffdf3;border-color:#69785c;box-shadow:inset 0 0 0 2px #e0e5ca55;}
 .building-map-dialog button:focus-visible{outline:3px solid #ab8150;outline-offset:2px;}
-.building-map__body{display:grid;gap:10px;overflow:auto;overscroll-behavior:contain;padding:12px;min-block-size:0;}
+.building-map__body{display:grid;flex:1;align-content:start;gap:10px;overflow:auto;overscroll-behavior:contain;padding:12px;min-block-size:0;}
 .building-map__figure{min-inline-size:0;margin:0;padding:6px;border:1px solid #c8cbb2;border-radius:12px;background:radial-gradient(ellipse at top,#fffdf6,#e8edda);}
 .building-map__drawing{inline-size:100%;aspect-ratio:var(--building-map-aspect,1);max-block-size:min(54dvh,450px);display:grid;place-items:center;}
 .building-plan{display:block;inline-size:100%;block-size:100%;min-block-size:0;}
