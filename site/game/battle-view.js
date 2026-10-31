@@ -96,30 +96,38 @@ export class BattleView{
    this.ready=true;this.loading=false;this.resize();this.updatePose();this.render();this.onStatus('');return true;
   }catch(error){if(this.destroyed||generation!==this.fieldGeneration)return false;this.ready=false;this.loading=false;this.lastError=error instanceof Error?error.message:String(error);this.onStatus('');this.onError(error);return false;}
  }
+ trainingLayout(field=this.field){
+  const entrance=field?.entranceCamera||{position:[0,1.25,3.1],target:[0,.9,-4.2],fov:64};
+  if(this.stageOptions?.presentation==='training-hall')return {camera:entrance,player:field?.entrancePlayer||[0,0,.9],enemy:field?.entranceEnemy||[0,0,-3.3]};
+  return {camera:field?.trainingBattleCamera||{...entrance,fov:50},player:field?.trainingBattlePlayer||[-.45,0,-1.4],enemy:field?.trainingBattleEnemy||[0,0,-3.3]};
+ }
  placeTrainingActors(field){
-  const position=field.entrancePlayer||[0,0,.9],enemyPosition=field.entranceEnemy||[0,0,-3.3],player=this.actors.player;
+  const layout=this.trainingLayout(field),position=layout.player,enemyPosition=layout.enemy,player=this.actors.player;
   player.anchor.position.fromArray(position);player.facing.rotation.y=Math.PI;
-  const entrance=field.entranceCamera||{position:[0,1.25,3.1],target:[0,.9,-4.2],fov:64},camera=new THREE.PerspectiveCamera(number(entrance.fov,64),this.camera.aspect||1,.01,100);
+  const entrance=layout.camera,camera=new THREE.PerspectiveCamera(number(entrance.fov,64),this.camera.aspect||1,.01,100);
   camera.position.fromArray(entrance.position);camera.lookAt(new THREE.Vector3().fromArray(entrance.target));camera.updateMatrixWorld(true);
   this.trainingPlacements={};
   const enemies=Object.values(this.actors).filter(record=>record!==player),widths=enemies.map(record=>Math.max(.45,(record.halfWidth||record.height*.45)*2)),total=widths.reduce((a,b)=>a+b,0)+Math.max(0,enemies.length-1)*.18;let cursor=-total/2;
+  const playerFront=enemies.length?player.anchor.position.z-Math.max(0,this.trainingActorBounds(player).max.z):player.anchor.position.z,rearLimit=(field.interiorBounds?.min?.[2]??-27.88)+.25;
   for(const [index,enemy]of enemies.entries()){
    const bounds=this.trainingActorBounds(enemy),x=enemyPosition[0]+cursor+widths[index]/2;cursor+=widths[index]+.18;
+   // Reserve the largest existing whole-body lunge as well as each real body.
+   const separation=.25+(player.height+enemy.height)*.28,frontLimit=playerFront-separation;
    let depth=Math.max(-enemyPosition[2],enemy.height*1.05,bounds.max.z+1.1),placement;
    const sample=value=>{
     const origin=new THREE.Vector3(x,enemyPosition[1],-value),yaw=Math.atan2(player.anchor.position.x-x,player.anchor.position.z+value),rotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),yaw),world=new THREE.Box3(),ndc=new THREE.Box2();
     for(const bx of [bounds.min.x,bounds.max.x])for(const by of [bounds.min.y,bounds.max.y])for(const bz of [bounds.min.z,bounds.max.z]){const point=new THREE.Vector3(bx,by,bz).applyQuaternion(rotation).add(origin);world.expandByPoint(point);point.project(camera);ndc.expandByPoint(new THREE.Vector2(point.x,point.y));}
-    return {depth:value,yaw,world,ndc,fits:ndc.min.x>=-.86&&ndc.max.x<=.86&&ndc.min.y>=-.86&&ndc.max.y<=.86};
+    return {depth:value,yaw,world,ndc,fits:ndc.min.x>=-.86&&ndc.max.x<=.86&&ndc.min.y>=-.86&&ndc.max.y<=.86&&world.max.z<=frontLimit&&world.min.z>=rearLimit};
    };
    placement=sample(depth);
    // Fit real model bounds from the fixed doorway. Long, high muzzles need more
    // depth than a height-only estimate; leave room for the brief attack recoil.
    for(let step=0;!placement.fits&&step<400;step++){
-    const next=sample(depth+.1);if(next.world.min.z<(field.interiorBounds?.min?.[2]??-27.88)+.25)break;
+    const next=sample(depth+.1);if(next.world.min.z<rearLimit)break;
     depth+=.1;placement=next;
    }
    enemy.anchor.position.set(x,enemyPosition[1],-depth);enemy.facing.rotation.y=placement.yaw;
-   this.trainingPlacements[enemy.instanceId]={depth,fits:placement.fits,worldMin:placement.world.min.toArray(),worldMax:placement.world.max.toArray(),ndcMin:placement.ndc.min.toArray(),ndcMax:placement.ndc.max.toArray()};
+   this.trainingPlacements[enemy.instanceId]={depth,fits:placement.fits,worldMin:placement.world.min.toArray(),worldMax:placement.world.max.toArray(),ndcMin:placement.ndc.min.toArray(),ndcMax:placement.ndc.max.toArray(),playerFront,frontLimit};
   }
  }
  trainingActorBounds(record){
@@ -342,7 +350,7 @@ export class BattleView{
  advance(dt){if(this.destroyed||!this.active||!this.ready||this.contextLost)return;this.updateAtmosphere(dt);if(this.endVisualTime!==null)this.time+=Math.max(0,number(dt));if(this.cutin){this.cutin.elapsed+=Math.max(0,number(dt));if(this.cutin.elapsed>=this.cutin.duration)this.cutin=null;}this.updatePose();this.fitCamera();this.render();}
  fitCamera(){
   if(this.field?.region==='training'){
-   const entrance=this.field.entranceCamera||{position:[0,1.25,3.1],target:[0,.9,-4.2],fov:64};
+   const entrance=this.trainingLayout().camera;
    this.camera.clearViewOffset();this.camera.fov=number(entrance.fov,64);this.camera.position.fromArray(entrance.position);this.cameraAim=new THREE.Vector3().fromArray(entrance.target);this.camera.lookAt(this.cameraAim);this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld(true);
    if(this.scene.fog){this.scene.fog.near=40;this.scene.fog.far=70;}return;
   }

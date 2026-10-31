@@ -78,8 +78,8 @@
       "region": "training",
       "timeOfDay": "day",
       "url": "training_day.glb",
-      "bytes": 3397976,
-      "sha256": "33b5a01a0487d996c2ebf851c206478ed8e3cbb50d524456f014673775b60b64",
+      "bytes": 4052804,
+      "sha256": "7cbdcdcf4cdbb6dbe1a1b22d0fb64fa245b73f52c73d45d530cf3562d504b080",
       "sky": "#e1e7df",
       "ambient": 1.6,
       "sunIntensity": 0.8,
@@ -120,7 +120,7 @@
           3.22
         ]
       },
-      "modelRevision": "R120",
+      "modelRevision": "R122",
       "modelScale": 1,
       "trainingTerminals": [
         {
@@ -206,6 +206,82 @@
         },
         "label_source": "runtime",
         "production_dimensions_only": true
+      },
+      "trainingEnvironmentEquipment": [
+        {
+          "id": "wind-left",
+          "type": "wind_generator",
+          "node": "Training.Environment.Wind.Left",
+          "anchor": [
+            -4.2,
+            1.65,
+            -5.35
+          ]
+        },
+        {
+          "id": "wind-right",
+          "type": "wind_generator",
+          "node": "Training.Environment.Wind.Right",
+          "anchor": [
+            4.2,
+            1.65,
+            -5.35
+          ]
+        },
+        {
+          "id": "light-left",
+          "type": "directional_light_rig",
+          "node": "Training.Environment.Light.Left",
+          "anchor": [
+            -4.15,
+            3.6,
+            -10.5
+          ]
+        },
+        {
+          "id": "light-right",
+          "type": "directional_light_rig",
+          "node": "Training.Environment.Light.Right",
+          "anchor": [
+            4.15,
+            3.6,
+            -10.5
+          ]
+        },
+        {
+          "id": "light-overhead",
+          "type": "overhead_light_rig",
+          "node": "Training.Environment.Light.Overhead",
+          "anchor": [
+            0,
+            5.65,
+            -9.5
+          ]
+        }
+      ],
+      "trainingEnvironmentVisualOnly": true,
+      "trainingBattlePlayer": [
+        -0.45,
+        0,
+        -1.4
+      ],
+      "trainingBattleEnemy": [
+        0,
+        0,
+        -3.3
+      ],
+      "trainingBattleCamera": {
+        "position": [
+          0,
+          1.25,
+          3.1
+        ],
+        "target": [
+          0,
+          0.9,
+          -4.2
+        ],
+        "fov": 50
       }
     },
     {
@@ -213,8 +289,8 @@
       "region": "training",
       "timeOfDay": "night",
       "url": "training_night.glb",
-      "bytes": 3398204,
-      "sha256": "69dceb353c90304ab42921e517e7bddf082934168330e595777c1a1c63d06a0b",
+      "bytes": 4053140,
+      "sha256": "b2bf237ed36f34181b79c24d442a943af7335d1a84360419d021d998a70d1166",
       "sky": "#c3d0c9",
       "ambient": 1.35,
       "sunIntensity": 0.65,
@@ -255,7 +331,7 @@
           3.22
         ]
       },
-      "modelRevision": "R120",
+      "modelRevision": "R122",
       "modelScale": 1,
       "trainingTerminals": [
         {
@@ -341,6 +417,82 @@
         },
         "label_source": "runtime",
         "production_dimensions_only": true
+      },
+      "trainingEnvironmentEquipment": [
+        {
+          "id": "wind-left",
+          "type": "wind_generator",
+          "node": "Training.Environment.Wind.Left",
+          "anchor": [
+            -4.2,
+            1.65,
+            -5.35
+          ]
+        },
+        {
+          "id": "wind-right",
+          "type": "wind_generator",
+          "node": "Training.Environment.Wind.Right",
+          "anchor": [
+            4.2,
+            1.65,
+            -5.35
+          ]
+        },
+        {
+          "id": "light-left",
+          "type": "directional_light_rig",
+          "node": "Training.Environment.Light.Left",
+          "anchor": [
+            -4.15,
+            3.6,
+            -10.5
+          ]
+        },
+        {
+          "id": "light-right",
+          "type": "directional_light_rig",
+          "node": "Training.Environment.Light.Right",
+          "anchor": [
+            4.15,
+            3.6,
+            -10.5
+          ]
+        },
+        {
+          "id": "light-overhead",
+          "type": "overhead_light_rig",
+          "node": "Training.Environment.Light.Overhead",
+          "anchor": [
+            0,
+            5.65,
+            -9.5
+          ]
+        }
+      ],
+      "trainingEnvironmentVisualOnly": true,
+      "trainingBattlePlayer": [
+        -0.45,
+        0,
+        -1.4
+      ],
+      "trainingBattleEnemy": [
+        0,
+        0,
+        -3.3
+      ],
+      "trainingBattleCamera": {
+        "position": [
+          0,
+          1.25,
+          3.1
+        ],
+        "target": [
+          0,
+          0.9,
+          -4.2
+        ],
+        "fov": 50
       }
     }
   ],
