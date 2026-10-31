@@ -1,22 +1,22 @@
 import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
 
 export const BUILDING_FLOORS=Object.freeze([
- {id:'1f',label:'1F',name:'おこていゆの暮らし',summary:'おこていゆの1Kと、建物の共用スペース。',areas:[
-  {id:'home',name:'おこていゆの部屋',tag:'HOME · 1K',text:'ホーム画面のリビングは、この1Kの一室です。窓は右側の外壁に面しています。玄関脇には広めの台所があり、左側の通路からトイレと洗面・浴室へつながります。洗面台と浴室は一つの部屋で、中に仕切りがあります。',note:'台所と水回りは間取りの表示のみです。個別の移動先にはなりません。'},
-  {id:'hall',name:'共用廊下',tag:'PASSAGE',text:'部屋の外にある短い廊下。片方は建物の入り口、もう片方は階段とエレベーターにつながっています。'},
-  {id:'entrance',name:'建物の入り口',tag:'SECURITY',text:'建物の外と共用廊下をつなぐ入り口。セキュリティのロックがかかっています。',note:'解錠方法などの詳細は、これから決まります。'},
-  {id:'core',name:'階段・エレベーター',tag:'FLOOR ACCESS',text:'地上の住居と地下の研究・支援エリアをつなぐ、上下移動のためのスペースです。'}]},
- {id:'2f',label:'2F',name:'あなたの暮らし',summary:'人間である「あなた」の居住スペース。',areas:[
-  {id:'player',name:'あなたの部屋',tag:'YOUR ROOM · 1K',text:'人間である「あなた」が暮らす部屋。おこていゆの部屋と同じ間取りですが、リビングのアイテムの配置が違います。',note:'家具の種類や詳しい配置は未定です。図の家具はイメージです。'},
-  {id:'core',name:'階段・エレベーター',tag:'FLOOR ACCESS',text:'1Fや地下エリアとつながるスペースです。'}]},
- {id:'b1',label:'B1',name:'研究と支援',summary:'ヒーロー会でのおこていゆの後援者が管理。広さは、おこていゆの部屋の約6室分です。',areas:[
-  {id:'research',name:'研究所',tag:'RESEARCH',text:'おこていゆの研究を支える研究所。地下1階には、研究と支援のための施設が集まっています。'},
-  {id:'analysis',name:'珍生物分析室',tag:'ANALYSIS',text:'珍生物の分析を行うためのエリア。詳しい設備や使い方は、これから決まります。'},
-  {id:'production',name:'生産施設',tag:'PRODUCTION',text:'生産のための施設があるエリア。何をどのように生産するかは未定です。'},
-  {id:'maintenance',name:'整備施設',tag:'MAINTENANCE',text:'整備を行うためのエリア。設備や対応する機能の詳細は、これから決まります。'}]},
- {id:'b2',label:'B2',name:'地下の訓練場',summary:'地上より広く、天井も高い地下2階。',areas:[
-  {id:'training',name:'訓練所',tag:'TRAINING',text:'地下2階にある、天井の高い訓練所。入口から広い室内を見渡しながら、訓練の難易度を選べます。おこていゆは入口を入ってすぐの場所で待っています。',note:'訓練所への移動ではポイントを使いません。訓練を始めると、穏やかポイントを1使います。'},
-  {id:'core',name:'階段・エレベーター',tag:'FLOOR ACCESS',text:'研究・支援エリアや地上の住居につながるスペースです。'}]}
+ {id:'1f',label:'1F',name:'おこていゆの暮らし',areas:[
+  {id:'home',name:'おこていゆの部屋',text:'ホーム画面。おこていゆが暮らす部屋。'},
+  {id:'hall',name:'共用廊下',text:'部屋と入口、階段をつなぐ共用廊下。'},
+  {id:'entrance',name:'建物の入り口',text:'セキュリティロックのある建物の入口。'},
+  {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
+ {id:'2f',label:'2F',name:'あなたの暮らし',areas:[
+  {id:'player',name:'あなたの部屋',text:'あなたが暮らす、おこていゆと同じ間取りの1K。'},
+  {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
+ {id:'b1',label:'B1',name:'研究と支援',areas:[
+  {id:'research',name:'研究所',text:'おこていゆの研究を支える施設。'},
+  {id:'analysis',name:'珍生物分析室',text:'珍生物について調べる施設。'},
+  {id:'production',name:'生産施設',text:'研究と支援のための生産エリア。'},
+  {id:'maintenance',name:'整備施設',text:'研究と支援を支える整備エリア。'}]},
+ {id:'b2',label:'B2',name:'地下の訓練場',areas:[
+  {id:'training',name:'訓練所',text:'入口から見守る、地下の訓練所。'},
+  {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]}
 ]);
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" ${extra}/>`;
 const text=(x,y,value,size=24,extra='')=>`<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" ${extra}>${value}</text>`;
@@ -52,7 +52,7 @@ export function buildingFloorSvg(floorId,selected){
  const floor=BUILDING_FLOORS.find(f=>f.id===floorId)||BUILDING_FLOORS[0];
  let drawing,viewBox;
  if(floor.id==='1f'||floor.id==='2f'){
-  const home=floor.id==='1f';viewBox='60 10 580 550';
+  const home=floor.id==='1f';viewBox='60 10 580 530';
   drawing=rect(100,25,520,500,'#e9eddc','stroke="#b6bc9e" stroke-width="2"')+
    zone(home?'home':'player',selected,154,42,420,370,'#faf2e1')+
    rect(287,56,272,278,'#f1ead6','data-living-room="true" stroke="#c4b493" stroke-width="2"')+
@@ -73,24 +73,21 @@ export function buildingFloorSvg(floorId,selected){
    (home?zone('entrance',selected,119,430,126,75,'#e8dbc2')+text(182,461,'入口',24)+text(182,486,'ロック',19)+`<rect x="157" y="436" width="12" height="10" rx="2" fill="#a38051"/><path d="M159 437v-5a4 4 0 0 1 8 0v5" stroke="#a38051" fill="none" stroke-width="2"/>`:'')+
    text(362,475,home?'共用廊下':'共用通路',23)+zone('core',selected,481,430,124,75,'#d4dfd0')+stairs(492,443)+rect(549,442,44,49,'#f5f7ed','stroke="#a7b59c" stroke-width="2"')+text(571,474,'EV',18)+
    rect(440,409,40,26,'#faf2e1','data-apartment-entry="true"')+
-   `<path data-door="apartment" d="M442 412v-36M478 412A36 36 0 0 0 442 376" fill="none" stroke="#b09774" stroke-width="2"/>`+
-   text(363,548,home?'おこていゆの部屋 · 1K':'あなたの部屋 · 同じ1Kの間取り',24);
+   `<path data-door="apartment" d="M442 412v-36M478 412A36 36 0 0 0 442 376" fill="none" stroke="#b09774" stroke-width="2"/>`;
  }else{
-  viewBox='0 0 1200 920';
-  drawing=rect(30,30,1140,810,'#edf0e0','stroke="#b2bc9e" stroke-width="4"')+
-   text(600,885,'破線：地上の建物の範囲（概略）',36);
+  viewBox='0 0 1200 860';
+  drawing=rect(30,30,1140,810,'#edf0e0','stroke="#b2bc9e" stroke-width="4"');
   if(floor.id==='b1'){
    drawing+=zone('research',selected,65,70,480,280,'#e1ead7')+zone('analysis',selected,655,70,480,280,'#dfecea')+
     zone('production',selected,65,475,480,280,'#eee1c6')+zone('maintenance',selected,655,475,480,280,'#e8dfd5')+
     text(305,205,'研究所',46)+text(895,205,'珍生物分析室',46)+text(305,615,'生産施設',46)+text(895,615,'整備施設',46)+
-    text(600,401,'研究・支援エリア',35)+text(600,445,'おこていゆの部屋 約6室分',29)+
+    text(600,421,'研究・支援エリア',35)+
     rect(530,760,140,60,'#d4dfd0')+text(600,800,'階段・EV',24);
   }else{
    drawing+=zone('training',selected,85,95,1030,560,'#e3e9d0')+rect(275,208,650,320,'#edf0df','stroke="#b6c19f" stroke-width="3" stroke-dasharray="13 10"')+
-    text(600,350,'訓練所',64)+text(600,415,'天井の高い、大きな地下空間',40)+
+    text(600,375,'訓練所',64)+
     zone('core',selected,440,715,320,90,'#d4dfd0')+text(600,770,'階段・エレベーター',27);
   }
-  drawing+=rect(340,180,520,500,'none','stroke="#9aa788" stroke-width="3" stroke-dasharray="12 9" opacity=".85"');
  }
  return `<svg class="building-plan" viewBox="${viewBox}" role="img" aria-label="${floor.label} ${floor.name}の概略マップ。${floor.areas.find(a=>a.id===selected)?.name||''}を選択中"><g fill="#645b49" font-family="system-ui, sans-serif">${drawing}</g></svg>`;
 }
@@ -99,12 +96,11 @@ export class BuildingMapDialog{
  constructor({canOpen=()=>true,getRoomSvg=()=>null,getCurrentArea=()=>({floorId:'1f',areaId:'home'}),canTravel=()=>false,onTravel=()=>false}={}){
   Object.assign(this,{canOpen,getRoomSvg,getCurrentArea,canTravel,onTravel});this.floorId='1f';this.areaId='home';this.opener=null;
   const dialog=this.dialog=document.createElement('dialog');dialog.id='buildingMapDialog';dialog.className='building-map-dialog';dialog.setAttribute('aria-labelledby','buildingMapTitle');dialog.setAttribute('aria-modal','true');
-  dialog.innerHTML=`<header class="building-map__header"><div><span class="building-map__eyebrow">OKOTEIYU HOUSE</span><h2 id="buildingMapTitle">建物マップ</h2></div><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><div class="building-map__intro"><h3></h3><p></p></div><div class="building-map__layout"><figure class="building-map__figure"><div class="building-map__drawing"></div><figcaption>各階を見やすい大きさで表示しています。<br>区画・家具の配置は概略です。</figcaption></figure><div class="building-map__information"><div class="building-map__areas" role="group" aria-label="表示するエリア"></div><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div></div><p class="building-map__note">この画面では建物の案内を見られます。<br>ホーム画面は1F・おこていゆの部屋です。</p></div>`;
+  dialog.innerHTML=`<header class="building-map__header"><h2 id="buildingMapTitle">建物マップ</h2><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><figure class="building-map__figure"><div class="building-map__drawing"></div></figure><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div>`;
   document.body.append(dialog);
-  dialog.querySelector('.building-map__note').textContent='「タップで移動」の目印がある場所は、地図から直接選べます。移動前に確認します。';
   this.confirmation=null;
   this.confirmOverlay=document.createElement('div');this.confirmOverlay.className='building-map-confirm';this.confirmOverlay.hidden=true;
-  this.confirmOverlay.innerHTML='<section class="building-map-confirm__card"><span class="building-map-confirm__eyebrow">MOVE / 移動の確認</span><h3 id="buildingTravelTitle">ここへ移動しますか？</h3><p class="building-map-confirm__destination"></p><p id="buildingTravelBody">地図を閉じて、選んだ場所へ移動します。</p><div class="building-map-confirm__actions"><button type="button" data-building-confirm="cancel">地図に戻る</button><button type="button" data-building-confirm="move">移動する<span aria-hidden="true"> ↗</span></button></div></section>';dialog.append(this.confirmOverlay);
+  this.confirmOverlay.innerHTML='<section class="building-map-confirm__card"><h3 id="buildingTravelTitle">ここへ移動しますか？</h3><p class="building-map-confirm__destination" id="buildingTravelBody"></p><div class="building-map-confirm__actions"><button type="button" data-building-confirm="cancel">地図に戻る</button><button type="button" data-building-confirm="move">移動する<span aria-hidden="true"> ↗</span></button></div></section>';dialog.append(this.confirmOverlay);
   this.mapParts=[dialog.querySelector('.building-map__header'),dialog.querySelector('.building-map__floors'),dialog.querySelector('.building-map__body')];
   dialog.querySelector('.building-map__close').addEventListener('click',()=>this.close());
   dialog.addEventListener('cancel',event=>{if(this.confirmation){event.preventDefault();this.cancelTravel();}});
@@ -112,11 +108,8 @@ export class BuildingMapDialog{
   dialog.addEventListener('click',event=>{
    if(this.confirmation){const action=event.target.closest('[data-building-confirm]')?.dataset.buildingConfirm;if(action==='cancel')this.cancelTravel();else if(action==='move')this.confirmTravel();return;}
    const region=event.target.closest('[data-building-map-area]');if(region){this.activateMapArea(region.dataset.buildingMapArea);return;}
-   const travel=event.target.closest('[data-building-travel]');
-   if(travel){if(!travel.disabled)this.requestTravel('button');return;}
-   const floor=event.target.closest('[data-building-floor]'),area=event.target.closest('[data-building-area]');
+   const floor=event.target.closest('[data-building-floor]');
    if(floor)this.selectFloor(floor.dataset.buildingFloor);
-   else if(area)this.selectArea(area.dataset.buildingArea);
    else if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)this.close();}
   });
   dialog.addEventListener('keydown',event=>{
@@ -141,14 +134,14 @@ export class BuildingMapDialog{
   if(!this.selectArea(id))return false;
   this.dialog.querySelector('.building-map__body').scrollTop=scroll;
   const target=this.dialog.querySelector('[data-building-map-area="'+id+'"]');target?.focus({preventScroll:true});
-  return this.requestTravel('map');
+  return this.requestTravel();
  }
- requestTravel(source='button'){
+ requestTravel(){
   if(!this.dialog.open||this.confirmation||!this.canOpen())return false;
   const destination={floorId:this.floorId,areaId:this.areaId},current=this.getCurrentArea();
   if(!this.canTravel(destination)||(current.floorId===destination.floorId&&current.areaId===destination.areaId))return false;
   const floor=BUILDING_FLOORS.find(f=>f.id===destination.floorId),area=floor?.areas.find(a=>a.id===destination.areaId);if(!area)return false;
-  this.confirmation={...destination,source,scroll:this.dialog.querySelector('.building-map__body').scrollTop,submitted:false};
+  this.confirmation={...destination,scroll:this.dialog.querySelector('.building-map__body').scrollTop,submitted:false};
   this.confirmOverlay.querySelector('.building-map-confirm__destination').textContent=floor.label+' · '+area.name;
   for(const part of this.mapParts){part.inert=true;part.setAttribute('aria-hidden','true');}
   this.dialog.setAttribute('aria-labelledby','buildingTravelTitle');this.dialog.setAttribute('aria-describedby','buildingTravelBody');this.confirmOverlay.hidden=false;
@@ -159,7 +152,7 @@ export class BuildingMapDialog{
   const pending=this.confirmation;this.confirmation=null;this.confirmOverlay.hidden=true;
   for(const part of this.mapParts){part.inert=false;part.removeAttribute('aria-hidden');}
   this.dialog.setAttribute('aria-labelledby','buildingMapTitle');this.dialog.removeAttribute('aria-describedby');
-  if(pending&&restoreFocus&&this.dialog.open){this.dialog.querySelector('.building-map__body').scrollTop=pending.scroll;this.dialog.querySelector(pending.source==='map'?'[data-building-map-area="'+pending.areaId+'"]':'[data-building-travel]')?.focus({preventScroll:true});}
+  if(pending&&restoreFocus&&this.dialog.open){this.dialog.querySelector('.building-map__body').scrollTop=pending.scroll;this.dialog.querySelector('[data-building-map-area="'+pending.areaId+'"]')?.focus({preventScroll:true});}
   return pending;
  }
  cancelTravel(){if(!this.confirmation)return false;this.hideConfirmation();return true;}
@@ -168,7 +161,7 @@ export class BuildingMapDialog{
   const destination={floorId:pending.floorId,areaId:pending.areaId},current=this.getCurrentArea();
   if(!this.canOpen()||!this.canTravel(destination)||this.floorId!==pending.floorId||this.areaId!==pending.areaId||(current.floorId===pending.floorId&&current.areaId===pending.areaId)){
    this.hideConfirmation(false);this.selectArea(this.areaId);const status=document.createElement('p');status.setAttribute('role','status');status.tabIndex=-1;status.textContent='いまは移動できません。もう一度、地図をご確認ください。';this.dialog.querySelector('.building-map__description').append(status);
-   const trigger=this.dialog.querySelector(pending.source==='map'?'[data-building-map-area="'+pending.areaId+'"]':'[data-building-travel]');(trigger&&!trigger.disabled?trigger:status).focus({preventScroll:true});this.dialog.querySelector('.building-map__body').scrollTop=pending.scroll;return false;
+   const trigger=this.dialog.querySelector('[data-building-map-area="'+pending.areaId+'"]');(trigger&&!trigger.disabled?trigger:status).focus({preventScroll:true});this.dialog.querySelector('.building-map__body').scrollTop=pending.scroll;return false;
   }
   pending.submitted=true;for(const button of this.confirmOverlay.querySelectorAll('button'))button.disabled=true;
   this.hideConfirmation(false);this.dialog.addEventListener('close',()=>{const now=this.getCurrentArea();if(this.canOpen()&&this.canTravel(destination)&&(now.floorId!==destination.floorId||now.areaId!==destination.areaId))this.onTravel(destination);},{once:true});this.close();return true;
@@ -179,25 +172,19 @@ export class BuildingMapDialog{
   this.floorId=id;this.areaId=floor.areas[0].id;
   for(const button of this.dialog.querySelectorAll('[data-building-floor]')){const active=button.dataset.buildingFloor===id;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;}
   this.dialog.querySelector('[role=tabpanel]').setAttribute('aria-labelledby','buildingFloor-'+id);
-  this.dialog.querySelector('.building-map__intro h3').textContent=floor.label+' · '+floor.name;
-  this.dialog.querySelector('.building-map__intro p').textContent=floor.summary;
-  this.dialog.querySelector('figcaption').textContent='色付きの枠と「タップで移動」の目印がある場所を選べます。区画・家具の配置は概略です。';
-  this.dialog.querySelector('.building-map__areas').innerHTML=floor.areas.map(area=>`<button type="button" data-building-area="${area.id}" aria-pressed="false">${area.name}</button>`).join('');
   this.dialog.querySelector('.building-map__body').scrollTop=0;this.selectArea(this.areaId);return true;
  }
  selectArea(id){
   if(this.confirmation)return false;
   const floor=BUILDING_FLOORS.find(f=>f.id===this.floorId),area=floor.areas.find(a=>a.id===id);if(!area)return false;
-  this.areaId=id;for(const b of this.dialog.querySelectorAll('[data-building-area]'))b.setAttribute('aria-pressed',String(b.dataset.buildingArea===id));
-  this.dialog.querySelector('.building-map__drawing').innerHTML=buildingFloorSvg(this.floorId,id);
-  const description=this.dialog.querySelector('.building-map__description');description.replaceChildren();
-  for(const [tag,content]of [['span',area.tag],['h4',area.name],['p',area.text],...(area.note?[['p',area.note]]:[])]){const node=document.createElement(tag);node.textContent=content;description.append(node);}
-  const current=this.getCurrentArea(),here=current.floorId===this.floorId&&current.areaId===id,destination={floorId:this.floorId,areaId:id},available=this.canTravel(destination);
-  const travel=document.createElement('button');travel.type='button';travel.className='building-map__travel';travel.dataset.buildingTravel='';travel.disabled=here||!available;travel.textContent=here?'現在地':available?'ここへ移動する':'3Dエリアは準備中';description.append(travel);
+  this.areaId=id;this.dialog.querySelector('.building-map__drawing').innerHTML=buildingFloorSvg(this.floorId,id);
+  const description=this.dialog.querySelector('.building-map__description'),current=this.getCurrentArea(),here=current.floorId===this.floorId&&current.areaId===id,available=this.canTravel({floorId:this.floorId,areaId:id});description.replaceChildren();
+  const heading=document.createElement('h3'),name=document.createElement('span'),status=document.createElement('small'),copy=document.createElement('p');name.textContent=area.name;status.textContent=here?'現在地':available?'移動できます':'準備中';status.dataset.state=here?'current':available?'available':'unavailable';copy.textContent=area.text;heading.append(name,status);description.append(heading,copy);
   this.mountRoomMap();this.decorateMap();return true;
  }
  decorateMap(){
   const svg=this.dialog.querySelector('.building-plan'),floor=BUILDING_FLOORS.find(f=>f.id===this.floorId),current=this.getCurrentArea(),unit=this.floorId.startsWith('b')?2:1;
+  this.dialog.querySelector('.building-map__drawing').style.setProperty('--building-map-aspect',svg.viewBox.baseVal.width+'/'+svg.viewBox.baseVal.height);
   svg.setAttribute('role','group');svg.firstElementChild.setAttribute('aria-hidden','true');
   const overlay=svgNode('g',{'class':'building-map-targets'});svg.append(overlay);
   for(const area of floor.areas){
