@@ -1,3 +1,5 @@
+import {trainingMapSvg} from './training-map.js';
+
 const DEFAULT_BOUNDS={min:[-2.72,-.1,-5.72],max:[2.72,2.8,.15]};
 /** Project the actual Y-up room coordinates: rear at the top, entrance below. */
 export function roomMapPoint(position,bounds=DEFAULT_BOUNDS){
@@ -27,7 +29,7 @@ export class AreaMap {
  }
  showTraining(){
   this.mode='training';this.element.dataset.area='training';this.title.textContent='訓練所';this.hint.textContent='';
-  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="訓練所の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false"><svg class="room-map" viewBox="0 0 240 250" role="img" aria-label="地下2階の訓練所。おこていゆは下側の入口にいます。"><rect x="15" y="10" width="210" height="228" rx="8" fill="#ece8dd" stroke="#b4a488" stroke-width="3"/><rect x="51" y="60" width="138" height="117" rx="14" fill="#c8d4c2" stroke="#a4b29a" stroke-width="2"/><rect x="62" y="71" width="116" height="95" rx="10" fill="none" stroke="#f5f3df" stroke-width="2"/><circle cx="120" cy="119" r="27" fill="none" stroke="#edf1df" stroke-width="2"/><g fill="#c3b493"><rect x="27" y="30" width="18" height="53" rx="4"/><rect x="195" y="30" width="18" height="53" rx="4"/></g><path d="M104 238h32" stroke="#eee7d8" stroke-width="6"/><path d="M105 236h30" stroke="#9dbfbd" stroke-width="2"/><circle cx="120" cy="216" r="6" fill="#fff7e9" stroke="#bb817a" stroke-width="2"/><path d="m116 204 4-5 4 5" fill="none" stroke="#877a5f" stroke-width="2"/></svg></button>';
+  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="訓練所の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+trainingMapSvg()+'</button>';
  }
  buildHouse(){
   const point=(x,z)=>roomMapPoint([x,0,z],this.bounds);

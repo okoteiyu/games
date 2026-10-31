@@ -1,4 +1,5 @@
 import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
+import {trainingMapDrawing,TRAINING_MAP_VIEWBOX} from './training-map.js';
 
 export const BUILDING_FLOORS=Object.freeze([
  {id:'1f',label:'1F',name:'おこていゆの暮らし',areas:[
@@ -16,6 +17,7 @@ export const BUILDING_FLOORS=Object.freeze([
   {id:'maintenance',name:'整備施設',text:'研究と支援を支える整備エリア。'}]},
  {id:'b2',label:'B2',name:'地下の訓練場',areas:[
   {id:'training',name:'訓練所',text:'入口から見守る、地下の訓練所。'},
+  {id:'control',name:'訓練管理室',mapOnly:true,text:'観測ガラス越しに訓練所を見渡す管理室。地図のみの表示です。'},
   {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]}
 ]);
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" ${extra}/>`;
@@ -84,9 +86,7 @@ export function buildingFloorSvg(floorId,selected){
     text(600,421,'研究・支援エリア',35)+
     rect(530,760,140,60,'#d4dfd0')+text(600,800,'階段・EV',24);
   }else{
-   drawing+=zone('training',selected,85,95,1030,560,'#e3e9d0')+rect(275,208,650,320,'#edf0df','stroke="#b6c19f" stroke-width="3" stroke-dasharray="13 10"')+
-    text(600,375,'訓練所',64)+
-    zone('core',selected,440,715,320,90,'#d4dfd0')+text(600,770,'階段・エレベーター',27);
+   viewBox=TRAINING_MAP_VIEWBOX;drawing=trainingMapDrawing({selected});
   }
  }
  return `<svg class="building-plan" viewBox="${viewBox}" role="img" aria-label="${floor.label} ${floor.name}の概略マップ。${floor.areas.find(a=>a.id===selected)?.name||''}を選択中"><g fill="#645b49" font-family="system-ui, sans-serif">${drawing}</g></svg>`;
@@ -140,7 +140,7 @@ export class BuildingMapDialog{
   if(!this.dialog.open||this.confirmation||!this.canOpen())return false;
   const destination={floorId:this.floorId,areaId:this.areaId},current=this.getCurrentArea();
   if(!this.canTravel(destination)||(current.floorId===destination.floorId&&current.areaId===destination.areaId))return false;
-  const floor=BUILDING_FLOORS.find(f=>f.id===destination.floorId),area=floor?.areas.find(a=>a.id===destination.areaId);if(!area)return false;
+  const floor=BUILDING_FLOORS.find(f=>f.id===destination.floorId),area=floor?.areas.find(a=>a.id===destination.areaId);if(!area||area.mapOnly)return false;
   this.confirmation={...destination,scroll:this.dialog.querySelector('.building-map__body').scrollTop,submitted:false};
   this.confirmOverlay.querySelector('.building-map-confirm__destination').textContent=floor.label+' · '+area.name;
   for(const part of this.mapParts){part.inert=true;part.setAttribute('aria-hidden','true');}
@@ -178,8 +178,8 @@ export class BuildingMapDialog{
   if(this.confirmation)return false;
   const floor=BUILDING_FLOORS.find(f=>f.id===this.floorId),area=floor.areas.find(a=>a.id===id);if(!area)return false;
   this.areaId=id;this.dialog.querySelector('.building-map__drawing').innerHTML=buildingFloorSvg(this.floorId,id);
-  const description=this.dialog.querySelector('.building-map__description'),current=this.getCurrentArea(),here=current.floorId===this.floorId&&current.areaId===id,available=this.canTravel({floorId:this.floorId,areaId:id});description.replaceChildren();
-  const heading=document.createElement('h3'),name=document.createElement('span'),status=document.createElement('small'),copy=document.createElement('p');name.textContent=area.name;status.textContent=here?'現在地':available?'移動できます':'準備中';status.dataset.state=here?'current':available?'available':'unavailable';copy.textContent=area.text;heading.append(name,status);description.append(heading,copy);
+  const description=this.dialog.querySelector('.building-map__description'),current=this.getCurrentArea(),here=current.floorId===this.floorId&&current.areaId===id,available=!area.mapOnly&&this.canTravel({floorId:this.floorId,areaId:id});description.replaceChildren();
+  const heading=document.createElement('h3'),name=document.createElement('span'),status=document.createElement('small'),copy=document.createElement('p');name.textContent=area.name;status.textContent=here?'現在地':area.mapOnly?'マップのみ':available?'移動できます':'準備中';status.dataset.state=here?'current':available?'available':'unavailable';copy.textContent=area.text;heading.append(name,status);description.append(heading,copy);
   this.mountRoomMap();this.decorateMap();return true;
  }
  decorateMap(){
@@ -189,11 +189,11 @@ export class BuildingMapDialog{
   const overlay=svgNode('g',{'class':'building-map-targets'});svg.append(overlay);
   for(const area of floor.areas){
    const rect=svg.querySelector('[data-building-zone="'+area.id+'"]');if(!rect)continue;
-   const [x,y,w,h]=['x','y','width','height'].map(k=>Number(rect.getAttribute(k))),here=current.floorId===this.floorId&&current.areaId===area.id,available=!here&&this.canTravel({floorId:this.floorId,areaId:area.id});
-   const target=svgNode('g',{'class':'building-map-region '+(available?'is-travelable':here?'is-current':'is-unavailable'),'data-building-map-area':area.id,'data-travel-available':String(available),role:'button',tabindex:0,'aria-label':area.name+'。'+(available?'タップして移動を確認':here?'現在地。説明を見る':'3Dエリアは準備中。説明を見る')});
+   const [x,y,w,h]=['x','y','width','height'].map(k=>Number(rect.getAttribute(k))),here=current.floorId===this.floorId&&current.areaId===area.id,available=!area.mapOnly&&!here&&this.canTravel({floorId:this.floorId,areaId:area.id});
+   const target=svgNode('g',{'class':'building-map-region '+(available?'is-travelable':here?'is-current':'is-unavailable'),'data-building-map-area':area.id,'data-travel-available':String(available),role:'button',tabindex:0,'aria-label':area.name+'。'+(available?'タップして移動を確認':here?'現在地。説明を見る':area.mapOnly?'マップにのみ表示。説明を見る':'3Dエリアは準備中。説明を見る')});
    target.append(svgNode('rect',{x,y,width:w,height:h,rx:8,'class':'building-map-region__hit','vector-effect':'non-scaling-stroke'}));
    if(available){
-    const cx=x+w/2,cy=y+24*unit,badge=svgNode('g',{transform:'translate('+cx+' '+cy+') scale('+unit+')','class':'building-map-region__badge','aria-hidden':'true'});
+    const cx=Number(rect.getAttribute('data-map-marker-x')??x+w/2),cy=Number(rect.getAttribute('data-map-marker-y')??y+24*unit),markerUnit=Number(rect.getAttribute('data-map-marker-unit')??unit),badge=svgNode('g',{transform:'translate('+cx+' '+cy+') scale('+markerUnit+')','class':'building-map-region__badge','aria-hidden':'true'});
     badge.append(svgNode('path',{d:'M0-20c-12 0-20 8-20 19 0 14 20 30 20 30S20 13 20-1C20-12 12-20 0-20Z',fill:'#6e8652',stroke:'#fffdf2','stroke-width':2}));
     badge.append(svgNode('path',{d:'M-7 3 7-9M-5-9H7V3',fill:'none',stroke:'#fffdf2','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'}));
     badge.append(svgNode('rect',{x:-92,y:32,width:184,height:40,rx:18,fill:'#fffdf2',stroke:'#99ac78','stroke-width':2}));
