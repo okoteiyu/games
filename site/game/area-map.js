@@ -5,7 +5,8 @@ export function roomMapPoint(position,bounds=DEFAULT_BOUNDS){
  return {x:10+(x-bounds.min[0])/(bounds.max[0]-bounds.min[0])*220,y:10+(z-bounds.min[2])/(bounds.max[2]-bounds.min[2])*240};
 }
 export class AreaMap {
- constructor(element){
+ constructor(element,{onOpenHouse=()=>{},onHouseUpdate=()=>{}}={}){
+  this.onHouseUpdate=onHouseUpdate;this.contentClick=event=>{if(this.mode==='house'){const button=event.target.closest('[data-house-map-open]');if(button)onOpenHouse(button);}};element.addEventListener('click',this.contentClick);
   this.element=element;this.content=element.querySelector('#areaMapContent');this.title=element.querySelector('#areaMapTitle');this.hint=element.querySelector('#areaMapHint');this.mode=null;this.markerKey=null;
  }
  showHouse(life,metadata){
@@ -19,6 +20,7 @@ export class AreaMap {
   for(const [id,position]of [['roomMapOkoteiyu',actor],['roomMapMoai',companion]]){
    const p=roomMapPoint(position,this.bounds);this.content.querySelector('#'+id).setAttribute('transform',`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})`);
   }
+  this.onHouseUpdate(this.content.querySelector('svg'));
  }
  showPatrol(map){
   this.mode='patrol';this.element.dataset.area='patrol';this.title.textContent='道中マップ';this.hint.textContent='タップで拡大';this.content.replaceChildren(map);
@@ -27,7 +29,7 @@ export class AreaMap {
   const point=(x,z)=>roomMapPoint([x,0,z],this.bounds);
   const rect=(x1,z1,x2,z2,fill,stroke='#baac94',radius=3)=>{const a=point(x1,z1),b=point(x2,z2);return `<rect x="${a.x}" y="${a.y}" width="${b.x-a.x}" height="${b.y-a.y}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="1.1"/>`;};
   const bed=point(-.72,-5.12),chair=point(1.98,-4.8);
-  this.content.innerHTML=`<svg class="room-map" viewBox="7 7 226 248" role="img" aria-label="入口が下側、奥がロフトのお部屋の地図。おこていゆとモアイくんの現在位置">
+  this.content.innerHTML=`<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="おこていゆハウスの建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false"><svg class="room-map" viewBox="7 7 226 248" role="img" aria-label="入口が下側、奥がロフトのお部屋の地図。おこていゆとモアイくんの現在位置">
    <defs><pattern id="roomMapFloor" width="18" height="24" patternUnits="userSpaceOnUse"><rect width="18" height="24" fill="#f6efdf"/><path d="M0 0H18M0 12H9M9 12V24M0 0V12" fill="none" stroke="#d7c6a7" stroke-width=".5"/></pattern></defs>
    <rect x="10" y="10" width="220" height="240" rx="6" fill="url(#roomMapFloor)"/>
    ${rect(-2.55,-5.5,2.55,-3.78,'#e6e8d9')}
@@ -50,6 +52,6 @@ export class AreaMap {
    <path d="M100 250H140M101 247H120V253H101M121 247H139" stroke="#bfa67f" fill="none" stroke-width="1.2"/>
    <g id="roomMapMoai"><path d="M0-5 4-2 3 5H-3L-4-2Z" fill="#8e9687" stroke="#fffef7" stroke-width="1.3"/></g>
    <g id="roomMapOkoteiyu"><circle r="6" fill="#fff7e9" stroke="#bb817a" stroke-width="1.8"/><circle cx="-2.5" cy="1" r="1.1" fill="#d8a1a0"/><circle cx="2.5" cy="1" r="1.1" fill="#d8a1a0"/></g>
-  </svg>`;
+  </svg></button>`;
  }
 }

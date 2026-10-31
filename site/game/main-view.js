@@ -13,6 +13,7 @@ import { OptionsDialog } from './options-dialog.js';
 import { RankHint } from './rank-hint.js';
 import { getRankProgress } from './rank-progress.js';
 import { AreaMap } from './area-map.js';
+import { BuildingMapDialog } from './building-map.js';
 import { GameEvents } from './game-events.js';
 export class SquareSceneView {
  constructor(element) {
@@ -35,7 +36,8 @@ installBonusButtonLayout(document.querySelector('[data-home-choice="interfere"]'
 let patrolUI=null,houseUI=null,gameRuntime=null;
 const needsVisitorName=()=>!gameRuntime?.session.state.visitorName;
 const view=new SquareSceneView(document.querySelector('#mainView'));
-const areaMap=new AreaMap(document.querySelector('#areaMap'));areaMap.showHouse();
+const areaMap=new AreaMap(document.querySelector('#areaMap'),{onOpenHouse:button=>buildingMap.open(button),onHouseUpdate:svg=>buildingMap.updateRoomMarkers(svg)});
+const buildingMap=new BuildingMapDialog({canOpen:()=>Boolean(gameRuntime?.scene==='house'&&gameRuntime.isHouseReady()&&!needsVisitorName()&&!eventVisible&&!gameRuntime.session.state.pendingAngerEvent&&!gameRuntime.pendingCutin),getRoomSvg:()=>areaMap.content.querySelector('.room-map')});areaMap.showHouse();
 const events=new GameEvents({onMessage:payload=>presentMessage(payload)});
 const samples=[
  {speaker:'ナレーション',kind:'narration',text:'おこていゆは、焼いたベーコンをじっと見つめている。どうやら、研究の手が止まってしまったようだ。'},
@@ -132,7 +134,7 @@ function setRankLabel(rank){const value=document.querySelector('#rankValue');set
 function setRank(rank){setRankLabel(rank);rankHint.clearPoints();}
 function setRankPoints(points){const progress=getRankProgress(points);setRankLabel(progress.rank);rankHint.setPoints(progress.points);}
 
-window.mainViewPreview={view,message,samples,showEvent,hideEvent,replayMessage,setLocation,setRank,setRankPoints,rankHint,areaMap,events,get eventVisible(){return eventVisible;}};
+window.mainViewPreview={view,message,samples,showEvent,hideEvent,replayMessage,setLocation,setRank,setRankPoints,rankHint,areaMap,buildingMap,events,get eventVisible(){return eventVisible;}};
 
 // Keep the legacy normalized experience value in saves; visible points are whole values.
 function setGauges({experience,anger,calm}={}) {

@@ -1,0 +1,34 @@
+.building-map-dialog{box-sizing:border-box;inline-size:min(780px,calc(100vw - 20px));max-inline-size:none;max-block-size:calc(100dvh - 24px);margin:auto;padding:0;border:1px solid #b69a70;border-radius:18px 6px;color:#635641;background:#f6f4e8;box-shadow:0 20px 70px #2f332c55,inset 0 0 0 4px #fff9e9;font-family:inherit;overflow:hidden;}
+.building-map-dialog::backdrop{background:#353d3677;backdrop-filter:blur(3px);}
+.building-map-dialog[open]{display:flex;flex-direction:column;}
+.building-map__header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;padding:13px 16px;background:linear-gradient(120deg,#e7dcc5,#eee9d7);border-bottom:1px solid #b8a48266;}
+.building-map__header h2{margin:3px 0 0;font-size:19px;font-weight:650;letter-spacing:.08em;}
+.building-map__eyebrow{font-size:10px;letter-spacing:.17em;color:#8b7757;}
+.building-map__close{inline-size:44px;block-size:44px;flex:none;border:1px solid #b8a48280;border-radius:50%;background:#fff9ef;color:#806b50;font:26px/1 sans-serif;cursor:pointer;}
+.building-map__floors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:10px 14px;flex:none;border-bottom:1px solid #bbc3a377;}
+.building-map__floors button{min-block-size:42px;border:1px solid #c6baa0;border-radius:9px 3px;background:#fffdf5;color:#87775e;font:inherit;font-size:15px;font-weight:650;line-height:1.2;cursor:pointer;}
+.building-map__floors button[aria-selected=true]{background:#69785c;color:#fffdf3;border-color:#69785c;box-shadow:inset 0 0 0 2px #e0e5ca55;}
+.building-map-dialog button:focus-visible{outline:3px solid #ab8150;outline-offset:2px;}
+.building-map__body{overflow:auto;overscroll-behavior:contain;padding:14px;min-block-size:0;}
+.building-map__intro h3{margin:0 0 6px;font-size:17px;color:#667353;}
+.building-map__intro p{margin:0;font-size:13px;line-height:1.6;color:#87775e;}
+.building-map__layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:15px;align-items:start;margin-top:12px;}
+.building-map__figure{min-inline-size:0;margin:0;padding:8px;border:1px solid #c8cbb2;border-radius:12px;background:radial-gradient(ellipse at top,#fffdf6,#e8edda);}
+.building-map__drawing{inline-size:100%;aspect-ratio:1/1;display:grid;place-items:center;}
+.building-plan{display:block;inline-size:100%;block-size:100%;max-block-size:360px;}
+.building-map__figure figcaption{margin-top:5px;text-align:center;font-size:11px;line-height:1.6;color:#8c806a;}
+.building-map__information{min-inline-size:0;display:grid;gap:12px;}
+.building-map__areas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+.building-map__areas button{min-block-size:44px;min-inline-size:0;padding:8px 6px;background:#fffaf0;border:1px solid #c8b99d;border-radius:8px 3px;font:inherit;font-size:12.5px;line-height:1.4;color:#76664f;cursor:pointer;overflow-wrap:anywhere;}
+.building-map__areas button[aria-pressed=true]{border-color:#a6804d;background:#eee0c4;color:#654b29;box-shadow:inset 0 0 0 1px #b28e5b;}
+.building-map__description{padding:14px;border:1px solid #d6c6aa;border-radius:10px;background:#fffbf1;}
+.building-map__description span{font-size:10px;letter-spacing:.1em;color:#a3875b;}
+.building-map__description h4{margin:6px 0 10px;font-size:16px;}
+.building-map__description p{margin:0;font-size:13px;line-height:1.85;overflow-wrap:anywhere;}
+.building-map__description p+p{margin-top:10px;color:#94836b;font-size:12px;}
+.building-map__note{margin:14px 0 0;font-size:12px;line-height:1.7;color:#8d7f66;}
+.area-map__house-trigger{display:block;inline-size:100%;block-size:100%;min-block-size:0;min-inline-size:0;padding:0;border:0;background:none;cursor:pointer;border-radius:6px;touch-action:manipulation;}
+.area-map__house-trigger:focus-visible{outline:2px solid #96754d;outline-offset:-2px;}
+.area-map__house-trigger:hover{background:#fff9ea55;}
+@media(max-width:560px){.building-map__layout{grid-template-columns:minmax(0,1fr);gap:12px;}.building-map__drawing{aspect-ratio:1/1;max-block-size:320px;}.building-map__description{padding:12px;}.building-map__header{padding:10px 13px;}.building-map__note br{display:none;}}
+@media(max-height:480px)and(min-width:561px){.building-map__header{padding:6px 14px;}.building-map__floors{padding:6px 14px;}.building-map__floors button{min-block-size:34px;}.building-map__body{padding:10px 14px;}}
