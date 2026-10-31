@@ -2,7 +2,7 @@ import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
 
 export const BUILDING_FLOORS=Object.freeze([
  {id:'1f',label:'1F',name:'おこていゆの暮らし',summary:'おこていゆの1Kと、建物の共用スペース。',areas:[
-  {id:'home',name:'おこていゆの部屋',tag:'HOME · 1K',text:'ホーム画面のリビングは、この1Kの一室です。引き戸の向こうに玄関・台所・トイレ・洗面台・バスルームが続きます。',note:'台所と水回りは間取りの表示のみです。個別の移動先にはなりません。'},
+  {id:'home',name:'おこていゆの部屋',tag:'HOME · 1K',text:'ホーム画面のリビングは、この1Kの一室です。引き戸の向こうに玄関と台所があり、台所脇の通路からトイレ・洗面台・バスルームへつながります。',note:'台所と水回りは間取りの表示のみです。個別の移動先にはなりません。'},
   {id:'hall',name:'共用廊下',tag:'PASSAGE',text:'部屋の外にある短い廊下。片方は建物の入り口、もう片方は階段とエレベーターにつながっています。'},
   {id:'entrance',name:'建物の入り口',tag:'SECURITY',text:'建物の外と共用廊下をつなぐ入り口。セキュリティのロックがかかっています。',note:'解錠方法などの詳細は、これから決まります。'},
   {id:'core',name:'階段・エレベーター',tag:'FLOOR ACCESS',text:'地上の住居と地下の研究・支援エリアをつなぐ、上下移動のためのスペースです。'}]},
@@ -23,6 +23,17 @@ const text=(x,y,value,size=24,extra='')=>`<text x="${x}" y="${y}" font-size="${s
 const stairs=(x,y)=>`<g stroke="#9e8a69" stroke-width="3">${Array.from({length:6},(_,i)=>`<path d="M${x} ${y+i*8}h42"/>`).join('')}</g>`;
 const zone=(id,selected,x,y,w,h,fill)=>rect(x,y,w,h,fill,`stroke="${selected===id?'#936843':'#bcad91'}" stroke-width="${selected===id?5:2}"`);
 
+/** Left-side doorway opens to the shared interior passage, not another wet room. */
+function wetRoom(id,y,height,label,doorTop,fill){
+ const x=493,width=66,gap=32;
+ return `<g data-apartment-room="${id}">`+
+  rect(x,y,width,height,fill,`data-room-floor="${id}"`)+
+  `<path data-room-wall="${id}" d="M${x} ${doorTop}V${y}H${x+width}V${y+height}H${x}V${doorTop+gap}" fill="none" stroke="#b7c7b9" stroke-width="2" stroke-linejoin="round"/>`+
+  (id==='bath'?rect(501,y+8,50,36,'#f8fcfa','stroke="#a8bfbc" stroke-width="2"'):id==='wash'?rect(501,y+7,50,18,'#fbfcf7','stroke="#bdc8b4"'):rect(517,y+8,20,16,'#fbfcf7','stroke="#bdc8b4"'))+
+  `<path data-door="${id}" d="M${x} ${doorTop}h${gap}M${x} ${doorTop+gap}A${gap} ${gap} 0 0 0 ${x+gap} ${doorTop}" fill="none" stroke="#a3af96" stroke-width="1.5"/>`+
+  text(526,y+height-12,label,id==='bath'?22:20)+'</g>';
+}
+
 /** A schematic, not a finalized architectural plan or a game destination picker. */
 export function buildingFloorSvg(floorId,selected){
  const floor=BUILDING_FLOORS.find(f=>f.id===floorId)||BUILDING_FLOORS[0];
@@ -35,13 +46,18 @@ export function buildingFloorSvg(floorId,selected){
    (home?'<svg class="building-live-room" x="171" y="58" width="268" height="274" viewBox="7 7 226 248"></svg>':
     rect(170,57,270,78,'#e6e8d9')+rect(182,137,47,48,'#e4d0ae')+stairs(185,139)+rect(324,73,101,55,'#c9d7cc','stroke="#abbcaf"')+rect(396,77,24,47,'#f8faf5')+rect(184,282,100,34,'#dccbad')+rect(202,208,115,48,'#d5c7b6')+rect(236,185,48,22,'#d5c7b6')+rect(355,232,64,62,'#e8ddc5'))+
    text(305,home?171:164,home?'':'リビング',26)+
-   rect(451,56,108,104,'#e3efed','stroke="#b5ccca"')+rect(465,69,79,76,'#f8fcfa','stroke="#a8bfbc" stroke-width="2"')+text(505,118,'浴室',23)+
-   rect(451,172,108,74,'#edf2e8','stroke="#bdc8b4"')+text(505,215,'洗面台',21)+rect(451,258,108,76,'#edf2e8','stroke="#bdc8b4"')+text(505,303,'トイレ',21)+
-   rect(170,345,230,51,'#e5d6b9')+rect(180,354,75,31,'#faf6ec')+text(318,378,'台所',23)+text(486,378,'玄関',23)+
-   `<path d="M287 334h42m-42 6h20" stroke="#b09774" stroke-width="4"/><path d="M466 412v18" stroke="#ae9775" stroke-width="5"/>`+
+   rect(447,56,40,340,'#fffbf1','data-apartment-passage="wet"')+
+   `<path d="M467 396V88M467 100H493M467 192H493M467 294H493" stroke="#c3cbae" stroke-width="2" stroke-dasharray="5 5" fill="none" aria-hidden="true"/>`+
+   wetRoom('toilet',56,79,'トイレ',84,'#edf2e8')+
+   wetRoom('wash',147,71,'洗面台',176,'#edf2e8')+
+   wetRoom('bath',230,104,'浴室',278,'#e3efed')+
+   rect(170,345,230,51,'#e5d6b9','data-apartment-kitchen="true"')+rect(180,354,75,31,'#faf6ec')+text(318,378,'台所',23)+text(514,378,'玄関',23)+
+   rect(284,331,48,8,'#faf2e1')+`<path data-door="living" d="M287 338h42m-42 4h20" stroke="#b09774" stroke-width="2"/>`+
    zone('hall',selected,119,430,486,75,'#eee6d5')+
    (home?zone('entrance',selected,119,430,126,75,'#e8dbc2')+text(182,461,'入口',24)+text(182,486,'ロック',19)+`<rect x="157" y="436" width="12" height="10" rx="2" fill="#a38051"/><path d="M159 437v-5a4 4 0 0 1 8 0v5" stroke="#a38051" fill="none" stroke-width="2"/>`:'')+
    text(362,475,home?'共用廊下':'共用通路',23)+zone('core',selected,481,430,124,75,'#d4dfd0')+stairs(492,443)+rect(549,442,44,49,'#f5f7ed','stroke="#a7b59c" stroke-width="2"')+text(571,474,'EV',18)+
+   rect(440,409,40,26,'#faf2e1','data-apartment-entry="true"')+
+   `<path data-door="apartment" d="M442 412v-36M478 412A36 36 0 0 0 442 376" fill="none" stroke="#b09774" stroke-width="2"/>`+
    text(363,548,home?'おこていゆの部屋 · 1K':'あなたの部屋 · 同じ1Kの間取り',24);
  }else{
   viewBox='0 0 1200 920';
