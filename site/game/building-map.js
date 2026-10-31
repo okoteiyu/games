@@ -1,5 +1,5 @@
 import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
-import {trainingMapDrawing,TRAINING_MAP_VIEWBOX} from './training-map.js';
+import {trainingMapDrawing,BASEMENT_MAP_VIEWBOX,basementCoreDrawing} from './training-map.js';
 
 export const BUILDING_FLOORS=Object.freeze([
  {id:'1f',label:'1F',name:'おこていゆの暮らし',areas:[
@@ -78,16 +78,17 @@ export function buildingFloorSvg(floorId,selected){
    rect(440,409,40,26,'#faf2e1','data-apartment-entry="true"')+
    `<path data-door="apartment" d="M442 412v-36M478 412A36 36 0 0 0 442 376" fill="none" stroke="#b09774" stroke-width="2"/>`;
  }else{
-  viewBox='0 0 1200 860';
-  drawing=rect(30,30,1140,810,'#edf0e0','stroke="#b2bc9e" stroke-width="4"');
+  viewBox=BASEMENT_MAP_VIEWBOX;
+  drawing=rect(30,160,1140,570,'#edf0e0','stroke="#b2bc9e" stroke-width="4"');
   if(floor.id==='b1'){
-   drawing+=zone('research',selected,65,70,480,280,'#e1ead7')+zone('analysis',selected,655,70,480,280,'#dfecea')+
-    zone('production',selected,65,475,480,280,'#eee1c6')+zone('maintenance',selected,655,475,480,280,'#e8dfd5')+
-    text(305,205,'研究所',46)+text(895,205,'珍生物分析室',46)+text(305,615,'生産施設',46)+text(895,615,'整備施設',46)+
-    text(600,421,'研究・支援エリア',35)+
-    rect(530,760,140,60,'#d4dfd0')+text(600,800,'階段・EV',24);
+   drawing+='<path data-basement-access="core" d="M282 340V410M762 340V410M282 374H1102" fill="none" stroke="#e2d9c4" stroke-width="44" stroke-linejoin="round"/>'+
+    zone('research',selected,65,190,435,150,'#e1ead7')+zone('analysis',selected,545,190,435,150,'#dfecea')+
+    zone('production',selected,65,410,435,285,'#eee1c6')+zone('maintenance',selected,545,410,435,285,'#e8dfd5')+
+    '<path data-basement-access="room-doors" d="M260 340h44M740 340h44M260 410h44M740 410h44" fill="none" stroke="#e2d9c4" stroke-width="8"/>'+
+    text(282,282,'研究所',46)+text(762,282,'珍生物分析室',46)+text(282,562,'生産施設',46)+text(762,562,'整備施設',46)+
+    text(550,125,'研究・支援エリア',35)+basementCoreDrawing({selected});
   }else{
-   viewBox=TRAINING_MAP_VIEWBOX;drawing=trainingMapDrawing({selected});
+   drawing=trainingMapDrawing({selected});
   }
  }
  return `<svg class="building-plan" viewBox="${viewBox}" role="img" aria-label="${floor.label} ${floor.name}の概略マップ。${floor.areas.find(a=>a.id===selected)?.name||''}を選択中"><g fill="#645b49" font-family="system-ui, sans-serif">${drawing}</g></svg>`;

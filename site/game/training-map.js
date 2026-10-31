@@ -1,7 +1,8 @@
 // Plan coordinates follow the current training GLB: +Z is right, +X is down.
 // Rooms outside the existing hall are schematic; the guest lounge awaits 3D art.
 const SCALE=28.8,ORIGIN={x:70,y:220},WORLD={minX:-5.36,minZ:-28.12,maxX:5.36,maxZ:3.46};
-export const TRAINING_MAP_VIEWBOX='0 55 1200 685';
+export const BASEMENT_MAP_VIEWBOX='0 55 1200 685';
+export const TRAINING_MAP_VIEWBOX=BASEMENT_MAP_VIEWBOX;
 export function trainingMapPoint(position){return {x:ORIGIN.x+(position[2]-WORLD.minZ)*SCALE,y:ORIGIN.y+(position[0]-WORLD.minX)*SCALE};}
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
 const text=(x,y,value,size=34,extra='')=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" fill="#645b49" ${extra}>${value}</text>`;
@@ -10,6 +11,12 @@ function worldRect(x,z,width,depth,fill,extra=''){
 }
 function feature(id,position,body){const p=trainingMapPoint(position);return `<g data-training-feature="${id}" data-world-x="${position[0]}" data-world-z="${position[2]}" transform="translate(${p.x} ${p.y})">${body}</g>`;}
 function equipmentLabel(compact,x,y,label){return compact?'':text(x,y,label,32);}
+
+/** Both basement floors share the same stairwell and elevator shaft. */
+export function basementCoreDrawing({selected=null,compact=false}={}){
+ return rect(1034,299,136,151,'#d4dfd0',`data-building-zone="core" stroke="${selected==='core'?'#936843':'#a7b59c'}" stroke-width="${selected==='core'?5:2}"`)+
+  '<g data-training-feature="stairs" stroke="#9e8a69" stroke-width="3">'+Array.from({length:6},(_,i)=>`<path d="M1053 ${320+i*10}h41"/>`).join('')+'</g>'+rect(1110,317,40,58,'#f5f7ed','data-basement-feature="elevator" stroke="#a7b59c" stroke-width="2"')+text(1130,355,'EV',22)+text(1102,compact?421:413,'階段・EV',compact?32:28);
+}
 
 /** One floor drawing shared by the building dialog and the compact area map. */
 export function trainingMapDrawing({selected=null,compact=false,current=false}={}){
@@ -57,8 +64,7 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
   '<path data-training-access="control-door" d="M900 618v32" stroke="#e2d9c4" stroke-width="8"/><path d="M900 618h-30M900 648a30 30 0 0 1-30-30" fill="none" stroke="#9ba995" stroke-width="2"/>'+
   text(775,635,compact?'管理室':'訓練管理室',compact?48:36)+
   (compact?'':text(775,543,'観測ガラス',27))+
-  zone('core',1034,299,136,151,'#d4dfd0',`stroke="${selected==='core'?'#936843':'#a7b59c'}" stroke-width="${selected==='core'?5:2}"`)+
-  '<g data-training-feature="stairs" stroke="#9e8a69" stroke-width="3">'+Array.from({length:6},(_,i)=>`<path d="M1053 ${320+i*10}h41"/>`).join('')+'</g>'+rect(1110,317,40,58,'#f5f7ed','stroke="#a7b59c" stroke-width="2"')+text(1130,355,'EV',22)+text(1102,compact?421:413,compact?'階段・EV':'階段・EV',compact?32:28);
+  basementCoreDrawing({selected,compact});
  if(!compact){
   drawing+=text(200,198,'訓練所',42)+text(1021,285,'入口',34)+
    equipmentLabel(false,822,286,'送風機')+equipmentLabel(false,561,286,'照明')+
