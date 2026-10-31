@@ -1,16 +1,19 @@
 import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
-import {trainingMapDrawing,BASEMENT_MAP_VIEWBOX,basementCoreDrawing} from './training-map.js';
+import {trainingMapDrawing,BASEMENT_MAP_VIEWBOX,basementCoreDrawing,basementFreightDrawing} from './training-map.js';
+import {outdoorMapDrawing,OUTDOOR_MAP_VIEWBOX} from './outdoor-map.js';
 
 export const BUILDING_FLOORS=Object.freeze([
  {id:'b2',label:'B2',name:'地下の訓練場',areas:[
   {id:'training',name:'訓練所',text:'入口から見守る、地下の訓練所。'},
   {id:'guest-lounge',name:'珍生物待機エリア',text:'招待した珍生物が自由にくつろぐ、上質なラウンジ。3Dエリアは準備中。'},
   {id:'control',name:'訓練管理室',mapOnly:true,text:'訓練所に隣接する管理室。地図のみの表示です。'},
+  {id:'freight',name:'屋外につながる大型EV',mapOnly:true,text:'大きな珍生物を、屋外の搬入口から訓練所へ迎える大型EV。'},
   {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
  {id:'b1',label:'B1',name:'研究と支援',areas:[
   {id:'research',name:'研究所',text:'おこていゆの研究を支える施設。'},
   {id:'analysis',name:'珍生物分析室',text:'珍生物について調べる施設。'},
   {id:'production',name:'生産施設',text:'研究と支援のための生産エリア。'},
+  {id:'freight',name:'屋外につながる大型EV',mapOnly:true,text:'屋外の搬入口と、研究・生産施設の奥をつなぐ大型EV。'},
   {id:'maintenance',name:'整備施設',text:'研究と支援を支える整備エリア。'}]},
  {id:'1f',label:'F1',name:'おこていゆの暮らし',areas:[
   {id:'home',name:'おこていゆの部屋',text:'ホーム画面。おこていゆが暮らす部屋。'},
@@ -19,7 +22,12 @@ export const BUILDING_FLOORS=Object.freeze([
   {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
  {id:'2f',label:'F2',name:'あなたの暮らし',areas:[
   {id:'player',name:'あなたの部屋',text:'あなたが暮らす、おこていゆと同じ間取りの1K。'},
-  {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]}
+  {id:'core',name:'階段・エレベーター',text:'各階をつなぐ階段とエレベーター。'}]},
+ {id:'outdoor',label:'屋外',name:'おこていゆハウス周辺',areas:[
+  {id:'building',name:'おこていゆハウスの建物',mapOnly:true,text:'F1におこていゆ、F2にあなたが暮らす建物。'},
+  {id:'entrance',name:'建物入口',mapOnly:true,text:'セキュリティ付きの、通常の建物入口。'},
+  {id:'loading',name:'大型搬入口',mapOnly:true,text:'通常のEVに収まらないモアイや列車砲などを、訓練所へ直接迎える屋外の搬入口。'},
+  {id:'freight',name:'屋外大型EV',mapOnly:true,text:'B1の研究・生産施設の奥と、B2の訓練所の奥につながる大型EV。'}]}
 ]);
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" ${extra}/>`;
 const text=(x,y,value,size=24,extra='')=>`<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" ${extra}>${value}</text>`;
@@ -77,16 +85,19 @@ export function buildingFloorSvg(floorId,selected){
    text(362,475,home?'共用廊下':'共用通路',23)+zone('core',selected,481,430,124,75,'#d4dfd0')+stairs(492,443)+rect(549,442,44,49,'#f5f7ed','stroke="#a7b59c" stroke-width="2"')+text(571,474,'EV',18)+
    rect(440,409,40,26,'#faf2e1','data-apartment-entry="true"')+
    `<path data-door="apartment" d="M442 412v-36M478 412A36 36 0 0 0 442 376" fill="none" stroke="#b09774" stroke-width="2"/>`;
+ }else if(floor.id==='outdoor'){
+  viewBox=OUTDOOR_MAP_VIEWBOX;drawing=outdoorMapDrawing({selected});
  }else{
   viewBox=BASEMENT_MAP_VIEWBOX;
-  drawing=rect(30,160,1140,570,'#edf0e0','stroke="#b2bc9e" stroke-width="4"');
+  drawing=rect(-215,160,1385,570,'#edf0e0','stroke="#b2bc9e" stroke-width="4"');
   if(floor.id==='b1'){
-   drawing+='<path data-basement-access="core" d="M282 340V410M762 340V410M282 374H1102" fill="none" stroke="#e2d9c4" stroke-width="44" stroke-linejoin="round"/>'+
+   drawing+='<path data-basement-access="freight" d="M10 374H42V270H65M42 374V552H65" fill="none" stroke="#e2d9c4" stroke-width="24" stroke-linejoin="round"/>'+
+    '<path data-basement-access="core" d="M282 340V410M762 340V410M42 374H1102" fill="none" stroke="#e2d9c4" stroke-width="44" stroke-linejoin="round"/>'+
     zone('research',selected,65,190,435,150,'#e1ead7')+zone('analysis',selected,545,190,435,150,'#dfecea')+
     zone('production',selected,65,410,435,285,'#eee1c6')+zone('maintenance',selected,545,410,435,285,'#e8dfd5')+
-    '<path data-basement-access="room-doors" d="M260 340h44M740 340h44M260 410h44M740 410h44" fill="none" stroke="#e2d9c4" stroke-width="8"/>'+
+    '<path data-basement-access="room-doors" d="M260 340h44M740 340h44M260 410h44M740 410h44M65 254v32M65 536v32" fill="none" stroke="#e2d9c4" stroke-width="8"/>'+
     text(282,282,'研究所',46)+text(762,282,'珍生物分析室',46)+text(282,562,'生産施設',46)+text(762,562,'整備施設',46)+
-    text(550,125,'研究・支援エリア',35)+basementCoreDrawing({selected});
+    text(550,125,'研究・支援エリア',35)+basementCoreDrawing({selected})+basementFreightDrawing({selected});
   }else{
    drawing=trainingMapDrawing({selected});
   }
@@ -98,7 +109,7 @@ export class BuildingMapDialog{
  constructor({canOpen=()=>true,getRoomSvg=()=>null,getCurrentArea=()=>({floorId:'1f',areaId:'home'}),canTravel=()=>false,onTravel=()=>false}={}){
   Object.assign(this,{canOpen,getRoomSvg,getCurrentArea,canTravel,onTravel});this.floorId='1f';this.areaId='home';this.opener=null;
   const dialog=this.dialog=document.createElement('dialog');dialog.id='buildingMapDialog';dialog.className='building-map-dialog';dialog.setAttribute('aria-labelledby','buildingMapTitle');dialog.setAttribute('aria-modal','true');
-  dialog.innerHTML=`<header class="building-map__header"><h2 id="buildingMapTitle">建物マップ</h2><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><figure class="building-map__figure"><div class="building-map__drawing"></div></figure><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div>`;
+  dialog.innerHTML=`<header class="building-map__header"><h2 id="buildingMapTitle">建物マップ</h2><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階・屋外" style="--building-floor-count:${BUILDING_FLOORS.length}">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><figure class="building-map__figure"><div class="building-map__drawing"></div></figure><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div>`;
   document.body.append(dialog);
   this.confirmation=null;
   this.confirmOverlay=document.createElement('div');this.confirmOverlay.className='building-map-confirm';this.confirmOverlay.hidden=true;
@@ -119,7 +130,7 @@ export class BuildingMapDialog{
    const region=event.target.closest('[data-building-map-area]');if(region&&['Enter',' '].includes(event.key)){event.preventDefault();if(!event.repeat)this.activateMapArea(region.dataset.buildingMapArea);}
   });
   dialog.querySelector('[role=tablist]').addEventListener('keydown',event=>{
-   const index=BUILDING_FLOORS.findIndex(f=>f.id===this.floorId),next=event.key==='Home'?0:event.key==='End'?3:['ArrowRight','ArrowDown'].includes(event.key)?(index+1)%4:['ArrowLeft','ArrowUp'].includes(event.key)?(index+3)%4:null;
+   const count=BUILDING_FLOORS.length,index=BUILDING_FLOORS.findIndex(f=>f.id===this.floorId),next=event.key==='Home'?0:event.key==='End'?count-1:['ArrowRight','ArrowDown'].includes(event.key)?(index+1)%count:['ArrowLeft','ArrowUp'].includes(event.key)?(index+count-1)%count:null;
    if(next===null)return;event.preventDefault();this.selectFloor(BUILDING_FLOORS[next].id);dialog.querySelector('[data-building-floor="'+this.floorId+'"]').focus();
   });
  }

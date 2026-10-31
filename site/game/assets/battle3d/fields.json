@@ -78,8 +78,8 @@
       "region": "training",
       "timeOfDay": "day",
       "url": "training_day.glb",
-      "bytes": 3952884,
-      "sha256": "b19567d36ecefc164bf78cfc4a4407370dc89ed8a59d5127b9e5c2d37a92fd71",
+      "bytes": 3598496,
+      "sha256": "ecd8db13fa6ab8c29fa2b047b918987bc1dd1bb89253df5460252cb256fe8ad7",
       "sky": "#e1e7df",
       "ambient": 1.6,
       "sunIntensity": 0.8,
@@ -120,7 +120,7 @@
           3.22
         ]
       },
-      "modelRevision": "R135",
+      "modelRevision": "R140",
       "modelScale": 1,
       "trainingTerminals": [
         {
@@ -317,8 +317,8 @@
       "region": "training",
       "timeOfDay": "night",
       "url": "training_night.glb",
-      "bytes": 3953192,
-      "sha256": "e616b4cdc00d5be56e27ebcf430d9251c2aa51dede7880c147b85e5ea124c09f",
+      "bytes": 3598796,
+      "sha256": "761827d2c6d606c47ce3b1388c6f8ae51d76c8de06ab98f8ebd21470b4e9bdbe",
       "sky": "#c3d0c9",
       "ambient": 1.35,
       "sunIntensity": 0.65,
@@ -359,7 +359,7 @@
           3.22
         ]
       },
-      "modelRevision": "R135",
+      "modelRevision": "R140",
       "modelScale": 1,
       "trainingTerminals": [
         {

@@ -2,7 +2,7 @@
 // Looking into the hall from that entrance, camera-left (-X) is map-down.
 // Rooms outside the existing hall are schematic; the guest lounge awaits 3D art.
 const SCALE=28.8,ORIGIN={x:70,y:220},WORLD={minX:-5.36,minZ:-28.12,maxX:5.36,maxZ:3.46};
-export const BASEMENT_MAP_VIEWBOX='0 55 1200 685';
+export const BASEMENT_MAP_VIEWBOX='-240 55 1440 685';
 export const TRAINING_MAP_VIEWBOX=BASEMENT_MAP_VIEWBOX;
 export function trainingMapPoint(position){return {x:ORIGIN.x+(position[2]-WORLD.minZ)*SCALE,y:ORIGIN.y+(WORLD.maxX-position[0])*SCALE};}
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${fill}" ${extra}/>`;
@@ -19,11 +19,21 @@ export function basementCoreDrawing({selected=null,compact=false}={}){
   '<g data-training-feature="stairs" stroke="#9e8a69" stroke-width="3">'+Array.from({length:6},(_,i)=>`<path d="M1053 ${320+i*10}h41"/>`).join('')+'</g>'+rect(1110,317,40,58,'#f5f7ed','data-basement-feature="elevator" stroke="#a7b59c" stroke-width="2"')+text(1130,355,'EV',22)+text(1102,compact?421:413,'階段・EV',compact?32:28);
 }
 
+/** The outdoor freight shaft is separate from the ordinary passenger core. */
+export function basementFreightDrawing({selected=null,compact=false}={}){
+ return rect(-190,264,200,220,'#dce4d9',`data-building-zone="freight" stroke="${selected==='freight'?'#936843':'#9faa98'}" stroke-width="${selected==='freight'?5:2}"`)+
+  text(-90,314,compact?'搬入EV':'大型EV',compact?34:36)+
+  rect(-155,335,130,84,'#f4f4e8','data-basement-feature="freight-elevator" stroke="#a2af9d" stroke-width="3"')+
+  '<path d="M-90 337v80m-47-55h94m-94 28h94" fill="none" stroke="#bdc6b5" stroke-width="2"/>'+
+  text(-90,460,'屋外搬入口へ',24);
+}
+
 /** One floor drawing shared by the building dialog and the compact area map. */
 export function trainingMapDrawing({selected=null,compact=false,current=false}={}){
  const far=trainingMapPoint([WORLD.maxX,0,WORLD.minZ]),near=trainingMapPoint([WORLD.minX,0,WORLD.maxZ]),width=near.x-far.x,height=near.y-far.y;
  const zone=(id,x,y,w,h,fill,extra='')=>rect(x,y,w,h,fill,`data-building-zone="${id}" ${extra}`);
- let drawing=rect(30,160,1140,570,'#edf0e0','stroke="#b2bc9e" stroke-width="4"')+
+ let drawing=rect(-215,160,1385,570,'#edf0e0','stroke="#b2bc9e" stroke-width="4"')+
+  '<path data-training-access="freight" d="M10 374H82" fill="none" stroke="#e2d9c4" stroke-width="150"/>'+
   '<path data-training-access="core" d="M975 374H1102M1006 374V639H900" fill="none" stroke="#e2d9c4" stroke-width="44" stroke-linejoin="round"/>'+
   '<path data-training-access="guest-lounge" d="M1006 639V711H628V628H605" fill="none" stroke="#e2d9c4" stroke-width="32" stroke-linejoin="round"/>'+
   zone('training',far.x,far.y,width,height,'#ece8dd','data-map-marker-x="500" data-map-marker-y="95" data-map-marker-unit="1.6"')+
@@ -43,9 +53,11 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
   worldRect(4.23,-1.05,.69,2.8,'#d7bf98','data-training-feature="bench" stroke="#ad946d" stroke-width="2"');
  for(const [index,[x,z]]of[[-4.25,-4],[4.3,-8.55]].entries())drawing+=feature('pad-'+index,[x,0,z],'<circle r="12" fill="#80978a" stroke="#596e64" stroke-width="2"/><circle r="5" fill="none" stroke="#eef0db" stroke-width="2"/>');
  drawing+=feature('selector',[-1.15,0,.3],rect(-10,-15,20,30,'#536d65','stroke="#b5a07c" stroke-width="2"')+'<path d="M-6-9H6M-6-4H6M-6 1H6M-6 6H6M-6 11H6" stroke="#e9e9cb" stroke-width="2"/>');
- const door=trainingMapPoint([0,0,3.22]);
- drawing+=`<path d="M${near.x} ${door.y-44}V${far.y}H${far.x}V${near.y}H${near.x}V${door.y+44}" fill="none" stroke="${selected==='training'?'#936843':'#a89c80'}" stroke-width="4" stroke-linejoin="round"/>`+
-  feature('entrance',[0,0,3.22],'<path d="M3-44V44M-2-42V-4M-2 4V42" stroke="#9abeb6" stroke-width="4" fill="none"/>');
+ const door=trainingMapPoint([0,0,3.22]),freightTop=trainingMapPoint([3.3,0,-27.8]),freightBottom=trainingMapPoint([-3.3,0,-27.8]);
+ drawing+=`<path d="M${near.x} ${door.y-44}V${far.y}H${far.x}V${freightTop.y}M${far.x} ${freightBottom.y}V${near.y}H${near.x}V${door.y+44}" fill="none" stroke="${selected==='training'?'#936843':'#a89c80'}" stroke-width="4" stroke-linejoin="round"/>`+
+  feature('entrance',[0,0,3.22],'<path d="M3-44V44M-2-42V-4M-2 4V42" stroke="#9abeb6" stroke-width="4" fill="none"/>')+
+  worldRect(0,-27.8,6.6,.14,'#b9c5bd','data-training-feature="freight-door" stroke="#899c8f" stroke-width="3"')+
+  `<path d="M${freightTop.x-4} ${door.y}h8" stroke="#7b8c80" stroke-width="3"/>`;
  // An invited guest's lounge: soft seating, gold trim, refreshments and an open entry.
  drawing+=zone('guest-lounge',70,550,535,145,'#f8f0de',`stroke="${selected==='guest-lounge'?'#936843':'#b89b62'}" stroke-width="${selected==='guest-lounge'?5:2}"`)+
   '<g data-guest-feature="gold-trim" fill="none" stroke="#d1b87a" stroke-width="2"><path d="M86 588V565H589V588M86 674V683H589V674"/><path d="m96 571 6-5 6 5-6 5Zm471 0 6-5 6 5-6 5Z"/></g>'+
@@ -62,7 +74,7 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
  drawing+=zone('control',650,550,250,145,'#e4ece5',`stroke="${selected==='control'?'#936843':'#a2b7a7'}" stroke-width="${selected==='control'?5:2}"`)+
   '<path data-training-access="control-door" d="M900 618v32" stroke="#e2d9c4" stroke-width="8"/><path d="M900 618h-30M900 648a30 30 0 0 1-30-30" fill="none" stroke="#9ba995" stroke-width="2"/>'+
   text(775,635,compact?'管理室':'訓練管理室',compact?48:36)+
-  basementCoreDrawing({selected,compact});
+  basementCoreDrawing({selected,compact})+basementFreightDrawing({selected,compact});
  if(!compact){
   drawing+=text(200,198,'訓練所',42)+text(1021,285,'入口',34)+
    equipmentLabel(false,804,286,'送風機')+equipmentLabel(false,561,286,'照明')+
@@ -74,5 +86,5 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
  return `<g data-training-plan="right-entrance" font-family="system-ui, sans-serif">${drawing}</g>`;
 }
 export function trainingMapSvg({compact=true,current=true}={}){
- return `<svg class="room-map" viewBox="${compact?'30 160 1140 580':TRAINING_MAP_VIEWBOX}" role="img" aria-label="右側が入口の訓練所。訓練マット、操作端末、送風機、照明、収納、ベンチと管理室。招待した珍生物がくつろぐ待機エリア。${current?'おこていゆは入口付近で待機しています。':''}">${trainingMapDrawing({compact,current})}</svg>`;
+ return `<svg class="room-map" viewBox="${compact?'-240 160 1440 580':TRAINING_MAP_VIEWBOX}" role="img" aria-label="右側が入口の訓練所。奥の大型EVは屋外搬入口につながります。訓練マット、操作端末、送風機、照明、収納、ベンチと管理室。招待した珍生物がくつろぐ待機エリア。${current?'おこていゆは入口付近で待機しています。':''}">${trainingMapDrawing({compact,current})}</svg>`;
 }
