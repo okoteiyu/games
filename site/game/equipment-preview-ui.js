@@ -16,7 +16,7 @@ export function equipmentPreviewMarkup(player,kind,id){
  const grouped=[player.equippedAura,kind==='aura'?id:null].some(aura=>CREATURES[aura]?.auraAdditionalEffects.some(effect=>effect.type==='living_opponent_species_group_damage_dealt'));
  if(grouped){
   const context={opponents:[{id:'preview-1',speciesId:'preview',hp:1},{id:'preview-2',speciesId:'preview',hp:1}]},conditional=equipmentChangePreview(player,kind,id,context);
-  damage+='<div data-equipment-damage="groupDamageDealt"><dt>同種の相手が2体以上いる時の与ダメージ</dt><dd><span>'+percent(conditional.before.damageDealt)+'</span><span aria-label="から">→</span><strong>'+percent(conditional.after.damageDealt)+'</strong></dd></div>';
+  damage+='<div data-equipment-damage="groupDamageDealt"><dt>おこていゆの相手チームに同種が2体以上いる時の与ダメージ</dt><dd><span>'+percent(conditional.before.damageDealt)+'</span><span aria-label="から">→</span><strong>'+percent(conditional.after.damageDealt)+'</strong></dd></div>';
  }
  const taller=[player.equippedAura,kind==='aura'?id:null].some(aura=>CREATURES[aura]?.auraAdditionalEffects.some(effect=>effect.type==='taller_attacker_damage_received'));
  if(taller){const conditional=equipmentChangePreview(player,kind,id,{attackerHeight:CREATURES.okoteiyu.height+1});damage+='<div data-equipment-damage="tallerDamageReceived"><dt>自分より大きい相手からの被ダメージ</dt><dd><span>'+percent(conditional.before.damageReceived)+'</span><span>→</span><strong>'+percent(conditional.after.damageReceived)+'</strong></dd></div>';}

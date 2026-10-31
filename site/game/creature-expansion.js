@@ -1,15 +1,15 @@
 import {NEW_CREATURE_DEFINITIONS} from './creature-expansion-c.js';
 /** Confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
 const definitions=[...NEW_CREATURE_DEFINITIONS,
- {"id":"fake_moai","name":"偽モアイ","description":"モアイに似ているが、何か違う。なぜか違うことがわかるんだ。","category":"threat","height":2.5,"levelBand":{"min":20,"max":100},"spawnRegions":["city","residential","forest"],"spawnTimes":["day","night"],"ranks":{"hp":15,"attack":12,"ki":12,"speed":5},"techniques":["fake_moai_beam","normal_attack"],"auraColor":"#ff7fbe","additionalEffects":[{"type":"living_ally_species_damage_dealt","speciesIds":["moai_king","gold_moai"],"multiplier":0.5,"description":"疲れていないモアイの戦士または金モアイが味方にいる間、与えるダメージが0.5倍になります。重複しません。"}],"auraAdditionalEffects":[{"type":"target_species_exclusion_damage_dealt","excludedSpeciesIds":["moai_king","gold_moai"],"multiplier":1.3,"description":"モアイの戦士・金モアイ以外の相手に与えるダメージが1.3倍になります。"}]},
+ {"id":"fake_moai","name":"偽モアイ","description":"モアイに似ているが、何か違う。なぜか違うことがわかるんだ。","category":"threat","height":2.5,"levelBand":{"min":20,"max":100},"spawnRegions":["city","residential","forest"],"spawnTimes":["day","night"],"ranks":{"hp":15,"attack":12,"ki":12,"speed":5},"techniques":["fake_moai_beam","normal_attack"],"auraColor":"#ff7fbe","additionalEffects":[{"type":"living_ally_species_damage_dealt","speciesIds":["moai_king","gold_moai"],"multiplier":0.5,"description":"偽モアイの味方チームに疲れていないモアイの戦士または金モアイがいる間、この偽モアイが与えるダメージが0.5倍になります。重複しません。"}],"auraAdditionalEffects":[{"type":"target_species_exclusion_damage_dealt","excludedSpeciesIds":["moai_king","gold_moai"],"multiplier":1.3,"description":"モアイの戦士・金モアイ以外の相手に与えるダメージが1.3倍になります。"}]},
  {id:'car',name:'カー',description:'一見するとただの車だけど、こいつは車じゃない!!!',category:'normal',height:1.5,levelBand:{min:20,max:100},spawnRegions:['city','residential'],spawnTimes:['day','night'],ranks:{hp:10,attack:5,ki:0,speed:10},techniques:['tackle'],auraColor:'#ffe34a',additionalEffects:[{type:'smaller_target_damage_dealt',multiplier:1.5,description:'自身より身長が小さい相手に与えるダメージが1.5倍になります。'}],auraAdditionalEffects:[{type:'taller_attacker_damage_received',multiplier:.8,description:'自身より身長が大きい相手から受けるダメージが0.8倍になります。'}]},
  {
   id:'mini_elephant',name:'ミニ象',category:'threat',height:.3,
   levelBand:{min:15,max:50},spawnRegions:['residential','forest'],spawnTimes:['day'],
   ranks:{hp:4,attack:14,ki:3,speed:12},techniques:['normal_attack'],auraColor:'#ffe34a',
   description:'小さくてかわいいね☺️☺️ おこていゆよりも小さいね☺️☺️ かわいいねえ☺️☺️',
-  additionalEffects:[{id:'mini_elephant_herd_guard',type:'living_same_species_ally_damage_received',multiplier:.5,description:'複数戦闘で、疲れていない他のミニ象がいる間、受けるダメージが0.5倍になります。仲間の数によって重複しません。'}],
-  auraAdditionalEffects:[{id:'mini_elephant_group_bonus',type:'living_opponent_species_group_damage_dealt',minimumCount:2,multiplier:1.3,description:'複数戦闘で、疲れていない同じ種類の相手が2体以上いる間、どの相手に与えるダメージも1.3倍になります。'}]
+  additionalEffects:[{id:'mini_elephant_herd_guard',type:'living_same_species_ally_damage_received',multiplier:.5,description:'複数戦闘で、ミニ象の味方チームに疲れていない他のミニ象がいる間、このミニ象が受けるダメージが0.5倍になります。条件を満たすミニ象の数によって重複しません。'}],
+  auraAdditionalEffects:[{id:'mini_elephant_group_bonus',type:'living_opponent_species_group_damage_dealt',minimumCount:2,multiplier:1.3,description:'複数戦闘で、オーラをまとった珍生物の相手チームに、疲れていない同じ種類の珍生物が2体以上いる間、どの相手に与えるダメージも1.3倍になります。'}]
  },
  {
   id:'rookie_kun',name:'新人くん',category:'normal',height:1.5,
