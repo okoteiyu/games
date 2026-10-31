@@ -1,6 +1,6 @@
 import {displayedWinChance,winChanceColor} from './win-chance-display.js';
 import {currentTimeOfDay} from './world-time.js';
-import {setPaintedText,releasePaintedLabels} from './painted-label.js';
+import {setPaintedText} from './painted-label.js';
 import { getBattleRegionAt } from './patrol-map.js';
 import { PatrolState,branchWinChance } from './patrol-state.js';
 import { isModalBlocked, tryOpenModal, releaseModal } from './modal-layer.js';
@@ -43,9 +43,9 @@ export class PatrolUI {
  returnHome({afterBattle=false}={}){if(isModalBlocked())return false;this.reset();this.onLeave({afterBattle:afterBattle===true});return true;}
  snapshot(){return this.model?.snapshot()??null;}
  buildScene(){
-  releasePaintedLabels(this.scene);this.mapElement?.remove();
+  this.mapElement?.remove();
   const scene=document.createElement('div');scene.className='patrol-scene';scene.setAttribute('aria-label','道中を奥へ進むおこていゆと、後ろで跳ねるモアイくん');
-  scene.innerHTML='<div class="patrol-render-status" role="status"><span>道中を読み込んでいます…</span><button type="button" hidden>もう一度読み込む</button></div><div class="patrol-meter"><span>道中</span><b id="patrolMoves">0 / 6 移動</b><small id="patrolRegionLabel"></small></div><div class="patrol-scene-note" id="patrolSceneNote">こっそり、あとをつけている。</div>';
+  scene.innerHTML='<div class="patrol-render-status" role="status"><span>道中を読み込んでいます…</span><button type="button" hidden>もう一度読み込む</button></div>';
   this.scene=scene;scene.prepend(this.renderMount);this.view.surface.append(scene);
   scene.querySelector('.patrol-render-status button').addEventListener('click',()=>this.retryRenderer());
   this.mapElement=document.createElement('button');this.mapElement.type='button';this.mapElement.className='patrol-map';this.mapElement.id='patrolMapTrigger';this.mapElement.setAttribute('aria-label','道中マップを拡大');this.mapElement.setAttribute('aria-haspopup','dialog');this.mapElement.setAttribute('aria-controls','patrolMapDialog');this.mapElement.setAttribute('aria-expanded','false');this.mapElement.innerHTML='<svg viewBox="0 0 140 140" aria-hidden="true"></svg>';
@@ -116,7 +116,7 @@ export class PatrolUI {
   const s=this.snapshot();if(!s)return;
   this.skipButton.disabled=!this.active||!['walking','approaching'].includes(s.phase)||Boolean(this.turn)||Boolean(this.throwPending)||Boolean(this.renderer?.eggplantBusy);
   this.panel.dataset.phase=s.phase;const battle=s.phase==='battle';this.panel.querySelector('.patrol-encounter-actions').hidden=!battle||Boolean(this.onEncounter);for(const section of this.panel.querySelectorAll('.fairy-choice'))section.hidden=battle;this.panel.querySelector('.patrol-window').hidden=battle;
-  setPaintedText(this.panel.querySelector('#eggplantStock b'),s.remainingThrows,{background:'#edf1df'});setPaintedText(this.scene.querySelector('#patrolMoves'),s.moves+' / '+s.maxMoves+' 移動',{background:'#f6f7ec',align:'right'});this.panel.querySelector('#eggplantStock small').textContent=' / '+s.maxThrows+'回';
+  setPaintedText(this.panel.querySelector('#eggplantStock b'),s.remainingThrows,{background:'#edf1df'});this.panel.querySelector('#eggplantStock small').textContent=' / '+s.maxThrows+'回';
   setPaintedText(this.panel.querySelector('#tomatoStock b'),s.remainingTomatoThrows,{background:'#edf1df'});this.panel.querySelector('#tomatoStock small').textContent=' / '+s.maxTomatoThrows+'回';
   for(const button of this.panel.querySelectorAll('[data-direction]')){
    const branch=s.branches.find(b=>b.direction===button.dataset.direction),tomato=button.dataset.fairy==='tomato',allowed=tomato?s.canThrowTomato&&s.tomatoAvailableNodes.includes(branch?.nodeId):s.canThrow;
@@ -125,7 +125,6 @@ export class PatrolUI {
    button.querySelector('small').textContent=info?.planned?'予定':info?'珍生物':'';
   }
   this.panel.querySelector('#patrolWindowText').textContent=s.remainingThrows===0&&s.remainingTomatoThrows===0?'今回のお願いは、ここまで。':s.windowUsed?'妖精に頼んで、見守っている。':s.phase==='approaching'?'交差点に着くまでに、ひとつ。':'分かれ道が近づくのを待つ。';
-  this.scene.querySelector('#patrolSceneNote').textContent=this.turn?'進む道へ向きを変えている。':this.throwPending?'妖精が道の奥へ飛んでいる。':battle?'珍生物と遭遇。ここから戦闘が始まる。':'こっそり、あとをつけている。';
   this.paintMotion();
  }
  refreshTimeOfDay(){const value=currentTimeOfDay(this.now());if(value!==this.timeOfDay){this.timeOfDay=value;this.paintMotion();}return value;}
@@ -171,7 +170,5 @@ export class PatrolUI {
   const s=this.snapshot();if(!s||!this.scene)return;this.skipButton.disabled=!this.active||!['walking','approaching'].includes(s.phase)||Boolean(this.turn)||Boolean(this.throwPending)||Boolean(this.renderer?.eggplantBusy)||!this.renderer?.ready||this.renderer.loading;
   this.renderer?.setState({snapshot:s,progress:this.progress,timeOfDay:this.timeOfDay,turn:this.turn?{direction:this.turn.direction,progress:this.turn.elapsed/this.turn.duration}:null});this.paintMapArrow();
   this.panel.querySelector('.patrol-window i').style.width=s.phase==='approaching'?Math.max(0,(1-this.progress)/.6*100)+'%':'0%';
-  const diagnostics=this.renderer?.getDiagnostics(),region=diagnostics?.region||this.nodeById?.get(s.current)?.region;
-  setPaintedText(this.scene.querySelector('#patrolRegionLabel'),(REGION_LABELS[region]||'')+' · '+(this.timeOfDay==='morning'?'朝':this.timeOfDay==='night'?'夜':'昼'),{background:'#f6f7ec',align:'right'});
  }
 }
