@@ -39,7 +39,8 @@ export class TrainingHallUI{
   listen('pointermove',event=>{const gesture=this.pointerGesture;if(gesture?.id===event.pointerId&&Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>8)gesture.dragged=true;});
   listen('pointerup',event=>{const gesture=this.pointerGesture;this.pointerGesture=null;if(gesture?.id!==event.pointerId||gesture.dragged||Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>8||performance.now()-gesture.at>650)return;this.pendingTap={x:event.clientX,y:event.clientY,at:performance.now(),target:gesture.target};});
   listen('pointercancel',()=>{this.pointerGesture=null;this.pendingTap=null;});
-  listen('pointerleave',()=>{this.pointerGesture=null;this.pendingTap=null;});
+  // Touch release can leave the element before its compatibility click arrives.
+  listen('pointerleave',event=>{if(this.pointerGesture?.id===event.pointerId){this.pointerGesture=null;this.pendingTap=null;}});
   listen('click',event=>{
    if(event.target!==this.controller?.canvas)return;
    const tap=this.pendingTap;this.pendingTap=null;
