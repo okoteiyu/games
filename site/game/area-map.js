@@ -47,9 +47,9 @@ export class AreaMap {
    ${rect(2.12,-3.96,2.58,-2.92,'#c3ad89')}
    ${rect(-2.57,-2.37,-1.98,-1.83,'#fcfff6')}
    ${rect(-2.59,-1.62,-2.34,-.48,'#ffffff')}
-   <path d="M230 163v38" stroke="#9dbfbd" stroke-width="3"/>
    <path d="M99 250H10V10H230V250H141" stroke="#ae9a79" stroke-width="3" fill="none" stroke-linejoin="round"/>
    <path d="M100 250H140M101 247H120V253H101M121 247H139" stroke="#bfa67f" fill="none" stroke-width="1.2"/>
+   <path data-room-window="right" d="M230 163v38" stroke="#9dbfbd" stroke-width="3"/>
    <g id="roomMapMoai"><path d="M0-5 4-2 3 5H-3L-4-2Z" fill="#8e9687" stroke="#fffef7" stroke-width="1.3"/></g>
    <g id="roomMapOkoteiyu"><circle r="6" fill="#fff7e9" stroke="#bb817a" stroke-width="1.8"/><circle cx="-2.5" cy="1" r="1.1" fill="#d8a1a0"/><circle cx="2.5" cy="1" r="1.1" fill="#d8a1a0"/></g>
   </svg></button>`;
