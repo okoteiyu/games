@@ -13,7 +13,7 @@ import { loadAssetBuffer } from './asset-store.js';
 export class GameRuntime {
  constructor({view,house,patrol,trainingHall,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage}){
   Object.assign(this,{view,house,patrol,trainingHall,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage});
-  this.scene='house';this.messageLocked=false;this.manualClock=false;this.pendingEncounter=null;this.pendingCutin=false;this.resultDelay=null;this.messages=[];this.lastAngerResult=null;
+  this.scene='house';this.messageLocked=false;this.manualClock=false;this.pendingEncounter=null;this.pendingCutin=false;this.resultDelay=null;this.messages=[];this.lastAngerResult=null;this.battlePresentationSerial=0;
   this.session=new GameSession({onEvent:event=>this.onSessionEvent(event)});
   this.battleUI=new BattleUI({view,homeElement,isPaused:()=>this.isPaused()||document.hidden,onCall:id=>this.requestBattleAction(id),onReturn:()=>this.returnHomeAfterBattle(),onError:()=>this.toast('3Dの読み込みを再試行してください。戦闘の時計は停止しています。')});
   this.angerPlayer=new AngerCutinPlayer({view,prepareSource:(url,{signal})=>loadAssetBuffer(url,{signal}),isPaused:()=>this.isModalPaused()||document.hidden,
@@ -124,17 +124,23 @@ export class GameRuntime {
   if(this.messages.length){this.say(this.messages.shift());return true;}
   if(this.scene==='battle'&&this.battleUI.ready){
    const wasEnded=this.session.snapshotBattle()?.phase==='ended';
+   const resultReadyBeforeAdvance=this.battleUI.resultReady;
    this.session.update(dt);this.battleUI.setSnapshot(this.session.snapshotBattle());this.battleUI.advance(dt);
-   if(wasEnded&&this.resultDelay!==null&&!this.battleUI.controller?.cutin){this.resultDelay-=dt;if(this.resultDelay<=0){this.resultDelay=null;this.startSceneCutin(this.session.snapshotBattle().result);}}
+   if(wasEnded&&this.resultDelay!==null&&!this.battleUI.controller?.cutin){
+    this.resultDelay=Math.max(0,this.resultDelay-dt);
+    // Keep the final fatigue pose visible for a frame before replacing the view.
+    if(this.resultDelay===0&&resultReadyBeforeAdvance&&this.battleUI.resultReady){this.resultDelay=null;this.startSceneCutin(this.session.snapshotBattle().result);}
+   }
   }
   return true;
  }
  startBattle(enemy,stage={}){
   this.patrol.suspendForBattle();this.scene='battle';this.setLocation(stage.encounterType==='training'?(TRAINING_COURSES[stage.trainingTier]?.label||'訓練（易）'):'戦闘');
-  const snapshot=this.session.startBattle(enemy,{kind:stage.encounterType==='training'?'training':'patrol'});this.battleUI.start(snapshot,stage);this.sync();return snapshot;
+  const snapshot=this.session.startBattle(enemy,{kind:stage.encounterType==='training'?'training':'patrol'});this.resultDelay=null;this.battleUI.start(snapshot,{...stage,presentationId:'battle-'+(++this.battlePresentationSerial)});this.sync();return snapshot;
  }
  requestBattleAction(id){if(this.scene!=='battle'||this.isPaused()||document.hidden||!this.battleUI.ready)return {ok:false,reason:'paused'};const result=this.session.requestBattleAction(id);this.battleUI.setSnapshot(this.session.snapshotBattle());return result;}
  startSceneCutin(kind){
+  if(['win','loss'].includes(kind)&&(this.scene!=='battle'||!this.battleUI.resultReady))return false;
   this.messageLocked=true;this.hideMessage();this.scene='scene-cutin';this.homeElement.hidden=true;this.battleUI.hud.hidden=true;this.battleUI.panel.hidden=true;
   this.resultMessageElapsed=0;if(kind!=='departure')this.showBattleResult();
   this.sceneCutin.play(kind);this.sync();

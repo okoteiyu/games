@@ -9,9 +9,13 @@ export function superDetailsMarkup(player,{editable=false,disabled=false}={}){
  const state=superStateDetails(player),stats=profileStats(player),boosted=playerStats(player,{superMultiplier:state.multiplier}),attack=boosted.attack,ki=boosted.ki;
  return '<section class="super-configuration"><h3>'+esc(state.name)+'</h3>'+(editable?'<label>カスタム設定<select data-super-configuration'+(disabled?' disabled':'')+'>'+Object.values(SUPER_CONFIGURATIONS).map(c=>'<option value="'+c.id+'"'+(c.id===state.configuration?' selected':'')+'>'+esc(c.label)+'</option>').join('')+'</select></label><p class="option-note">接頭辞を含む追加のカスタム設定は、今後増えていきます。</p>':'<p>カスタム設定：'+esc(state.configurationLabel)+'</p>')+'<p class="option-note">'+esc(additionalEffectsText(SUPER_CONFIGURATIONS[state.configuration].additionalEffects))+'</p><dl class="collection-facts"><div><dt>レベル</dt><dd>'+state.level+' / '+state.maxLevel+'</dd></div><div><dt>発動中の攻撃力</dt><dd>'+number(attack)+'（+'+number(attack-stats.attack)+'）</dd></div><div><dt>発動中の気</dt><dd>'+number(ki)+'（+'+number(ki-stats.ki)+'）</dd></div><div><dt>行動速度</dt><dd>'+state.multiplier.toFixed(2)+'倍</dd></div><div><dt>効果時間</dt><dd>'+state.duration.toFixed(2)+'秒</dd></div></dl><p>1戦闘に1回。自分または相手のHPが25%以下になると自動で発動します。かけごえでも発動を指示できます。効果中は攻撃技だけを使います。</p></section>';
 }
-/** The record book lists names only. Technique details live in the collection. */
+/** The record book pairs names with icons. Technique details live in the collection. */
 export function repertoireMarkup(ids){
- return '<section class="journal-techniques"><h4>使える技</h4><ul class="journal-technique-names">'+ids.filter(id=>TECHNIQUES[id]).map(id=>'<li>'+esc(TECHNIQUES[id].name)+'</li>').join('')+'</ul></section>';
+ return '<section class="journal-techniques"><h4>使える技</h4><ul class="journal-technique-names" role="list">'+ids.filter(id=>TECHNIQUES[id]).map(id=>{
+  // The enemy's basic body attacks share the existing punch pictogram.
+  const iconId=id==='normal_attack'||id==='enemy_attack'?'punch':id;
+  return '<li><img class="journal-technique-icon" src="'+esc(collectionThumbnail('technique',iconId))+'" width="28" height="28" alt="" decoding="async"><span>'+esc(TECHNIQUES[id].name)+'</span></li>';
+ }).join('')+'</ul></section>';
 }
 export function techniquePageMarkup(player,{slot=0,selected='punch',canEdit=false,attackMultiplier=1}={}){
  const ids=availableTechniqueIds(player);if(!ids.includes(selected))selected=ids[0];const t=TECHNIQUES[selected],slots=player.techniqueSlots||['punch',null,null],equipped=slots[slot]===selected,last=equipped&&slots.filter(Boolean).length===1,level=playerTechniqueLevel(player,selected),power=techniquePower(selected,playerStats(player,{superMultiplier:attackMultiplier}),level);
