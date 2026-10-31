@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="28" fill="#fff5dd"/><g fill="none" stroke="#715e51" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="32" r="10" fill="#c8d69c"/><path d="M48 49 67 66 83 58M65 65 48 87 26 91M49 50 30 64M48 87 67 104M14 40h17M12 55h10"/></g><path d="m94 37-8 17 16-5-8 19 22-20-15 2 4-13" fill="#e7b842"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+<title id="title">肩から前へ体当たりするタックル</title>
+<rect width="128" height="128" rx="28" fill="#fff5dd"/>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M17 47h18M13 60h13" stroke="#b7a17e" stroke-width="4.5"/>
+ <path d="m96 44 7-7m0 17h11m-18 10 7 7" stroke="#d9a846" stroke-width="6"/>
+ <path d="m50 75-15 16-16-5m36-10 16 10 8 19h12" stroke="#715e51" stroke-width="10"/>
+ <path d="M66 47c5-6 12-7 17-2l2 4c2 4 1 8-3 12L62 79c-3 3-7 3-10 0l-7-6c-2-2-2-6 0-8Z" fill="#c8d69c" stroke="#715e51" stroke-width="4.5"/>
+ <path d="m72 52 12 9-11 8" stroke="#715e51" stroke-width="7"/>
+</g>
+<circle cx="75" cy="28" r="9" fill="#715e51"/>
+</svg>

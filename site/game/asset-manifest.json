@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
   "fileCount": 138,
-  "totalBytes": 104538645,
+  "totalBytes": 104539029,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -1081,8 +1081,8 @@
       "label": "タックルのアイコン",
       "type": "image",
       "priority": 3,
-      "bytes": 425,
-      "sha256": "42b7f260906864c5d61fe244a7c8c4b18b3c3c555097d541e4ab15abd8b638da"
+      "bytes": 809,
+      "sha256": "ac5da9feaf0f213c597b71e225f0d7a4778eb0919287db2559fe2cf863c52b9e"
     },
     {
       "url": "assets/collection/fake_moai.webp",
