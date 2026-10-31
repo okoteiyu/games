@@ -35,17 +35,20 @@ export class AreaMap {
   const point=(x,z)=>roomMapPoint([x,0,z],this.bounds);
   const rect=(x1,z1,x2,z2,fill,stroke='#baac94',radius=3)=>{const a=point(x1,z1),b=point(x2,z2);return `<rect x="${a.x}" y="${a.y}" width="${b.x-a.x}" height="${b.y-a.y}" rx="${radius}" fill="${fill}" stroke="${stroke}" stroke-width="1.1"/>`;};
   const bed=point(-.72,-5.12),chair=point(1.98,-4.8);
+  // Physical model bounds, distinct from the character's stairsTop/Bottom anchors.
+  const loft={minX:-2.595,maxX:2.595,minZ:-5.60,frontZ:-3.96},stairs={minX:-2.24,maxX:-1.52,minZ:-3.96,maxZ:-3.00};
+  const railZ=-3.985,railStart=point(loft.minX,railZ),railEnd=point(loft.maxX,railZ),openingStart=point(-2.2525,railZ),openingEnd=point(-1.5075,railZ);
   this.content.innerHTML=`<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="おこていゆハウスの建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false"><svg class="room-map" viewBox="7 7 226 248" role="img" aria-label="入口が下側、奥がロフトのお部屋の地図。おこていゆとモアイくんの現在位置">
    <defs><pattern id="roomMapFloor" width="18" height="24" patternUnits="userSpaceOnUse"><rect width="18" height="24" fill="#f6efdf"/><path d="M0 0H18M0 12H9M9 12V24M0 0V12" fill="none" stroke="#d7c6a7" stroke-width=".5"/></pattern></defs>
    <rect x="10" y="10" width="220" height="240" rx="6" fill="url(#roomMapFloor)"/>
-   ${rect(-2.55,-5.5,2.55,-3.78,'#e6e8d9')}
+   <g data-room-feature="loft">${rect(loft.minX,loft.minZ,loft.maxX,loft.frontZ,'#e6e8d9')}</g>
    ${rect(-1.15,-5.34,-.28,-4.55,'#fffdf6')}
    <rect x="${bed.x-12}" y="${bed.y-2}" width="24" height="10" rx="4" fill="#f3ebd8" stroke="#c4b496" stroke-width=".7"/>
    ${rect(1.60,-5.17,2.36,-4.39,'#c9d1be','#a8b394',7)}
    <path d="M${chair.x-8} ${chair.y+9}h16" stroke="#a5b18f" fill="none"/>
-   ${rect(-2.36,-3.74,-1.40,-2.79,'#e4d0ae')}
-   ${[-3.48,-3.20,-2.94].map(z=>{const a=point(-2.36,z),b=point(-1.40,z);return `<path d="M${a.x} ${a.y}H${b.x}" stroke="#bda681"/>`;}).join('')}
-   <path d="M17 88H70M103 88H223" stroke="#9fac8a" stroke-width="2" stroke-dasharray="3 3"/>
+   <g data-room-feature="loft-stairs">${rect(stairs.minX,stairs.minZ,stairs.maxX,stairs.maxZ,'#e4d0ae')}
+   ${[-3.64,-3.32].map(z=>{const a=point(stairs.minX,z),b=point(stairs.maxX,z);return `<path d="M${a.x} ${a.y}H${b.x}" stroke="#bda681"/>`;}).join('')}</g>
+   <path data-room-feature="loft-rail" data-opening-start-x="${openingStart.x}" data-opening-end-x="${openingEnd.x}" d="M${railStart.x} ${railStart.y}H${openingStart.x}M${openingEnd.x} ${railEnd.y}H${railEnd.x}" stroke="#9fac8a" stroke-width="2" stroke-dasharray="3 3"/>
    ${rect(-.92,-2.68,.92,-.95,'#fffdf5','#d9d9c7',12)}
    ${rect(-.70,-2.28,.70,-1.54,'#dcc9a4','#baa17b',8)}
    ${[[-.8,-1.91],[.8,-1.91],[0,-2.55],[0,-1.23]].map(([x,z],i)=>rect(x-.13,z-.13,x+.13,z+.13,['#bfcbc0','#d9c1a8','#d0c0cf','#d4d4b6'][i],'#bec0a5',3)).join('')}
