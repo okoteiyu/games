@@ -1,5 +1,5 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
-import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMultiplier} from './additional-effects.js';
+import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {currentTimeOfDay} from './world-time.js';
@@ -315,7 +315,9 @@ export class GameSession{
    const stats=applySuperStats({...base,attack:base.attack*first.attack,ki:base.ki*first.ki},actorId==='player'&&b.super.active?b.super.multiplier:1);
    const power=techniquePower(action.technique,stats,actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique));
    const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
-   const damageMultiplier=additionalDamageMultiplier(bodyEffects)*additionalDamageMultiplier(auraEffects);
+   const opponents=actorId==='player'?b.enemies:[b.player],allies=target.id==='player'?[b.player]:b.enemies;
+   const targetBodyEffects=CREATURES[target.speciesId].additionalEffects,targetAuraEffects=target.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
+   const damageMultiplier=additionalDamageMultiplier(bodyEffects,{opponents})*additionalDamageMultiplier(auraEffects,{opponents})*additionalDamageReceivedMultiplier(targetBodyEffects,{actor:target,allies})*additionalDamageReceivedMultiplier(targetAuraEffects,{actor:target,allies});
    const nextAttackDamageMultiplier=actor.nextAttackDamageMultiplier;
    const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt:factors.damageReceived)*damageMultiplier*nextAttackDamageMultiplier;
    actor.nextAttackDamageMultiplier=1;

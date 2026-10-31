@@ -1,19 +1,19 @@
 import {CREATURES,SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,playerStats} from './game-session.js';
 import {additionalDamageMultiplier} from './additional-effects.js';
 
-function snapshot(player){
+function snapshot(player,context){
  const factors=equipmentMultipliers(player.equipment);
  const bodyEffects=CREATURES.okoteiyu.additionalEffects;
  const auraEffects=CREATURES[player.equippedAura]?.auraAdditionalEffects;
  return {
   stats:playerStats(player),
-  damageDealt:factors.damageDealt*additionalDamageMultiplier(bodyEffects)*additionalDamageMultiplier(auraEffects),
+  damageDealt:factors.damageDealt*additionalDamageMultiplier(bodyEffects,context)*additionalDamageMultiplier(auraEffects,context),
   damageReceived:factors.damageReceived
  };
 }
 
 /** Compare an equipped item's removal or a selected item's replacement, without changing progress. */
-export function equipmentChangePreview(player,kind,id){
+export function equipmentChangePreview(player,kind,id,context={}){
  if(!['support','defense','aura'].includes(kind))throw new RangeError('Unknown equipment category.');
  const owned=kind==='aura'
   ?Object.hasOwn(CREATURES,id)&&Object.hasOwn(player.auras??{},id)
@@ -24,5 +24,5 @@ export function equipmentChangePreview(player,kind,id){
  const next=kind==='aura'
   ?{...player,equippedAura:nextId}
   :{...player,equipment:{...player.equipment,[kind]:nextId}};
- return {removing,before:snapshot(player),after:snapshot(next)};
+ return {removing,before:snapshot(player,context),after:snapshot(next,context)};
 }

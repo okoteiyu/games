@@ -2,6 +2,14 @@ import {NEW_CREATURE_DEFINITIONS} from './creature-expansion-c.js';
 /** Confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
 const definitions=[...NEW_CREATURE_DEFINITIONS,
  {
+  id:'mini_elephant',name:'ミニ象',category:'threat',height:.3,
+  levelBand:{min:15,max:50},spawnRegions:['residential','forest'],spawnTimes:['day'],
+  ranks:{hp:4,attack:14,ki:3,speed:12},techniques:['normal_attack'],auraColor:'#ffe34a',
+  description:'小さくてかわいいね☺️☺️ おこていゆよりも小さいね☺️☺️ かわいいねえ☺️☺️',
+  additionalEffects:[{id:'mini_elephant_herd_guard',type:'living_same_species_ally_damage_received',multiplier:.5,description:'複数戦闘で、疲れていない他のミニ象がいる間、受けるダメージが0.5倍になります。仲間の数によって重複しません。'}],
+  auraAdditionalEffects:[{id:'mini_elephant_group_bonus',type:'living_opponent_species_group_damage_dealt',minimumCount:2,multiplier:1.3,description:'複数戦闘で、疲れていない同じ種類の相手が2体以上いる間、どの相手に与えるダメージも1.3倍になります。'}]
+ },
+ {
   id:'rookie_kun',name:'新人くん',category:'normal',height:1.5,
   levelBand:{min:1,max:30},spawnRegions:['city','residential','forest'],spawnTimes:['day','night'],
   ranks:{hp:6,attack:3,ki:3,speed:3},techniques:['punch','energy_ray'],auraColor:'#ffffff',

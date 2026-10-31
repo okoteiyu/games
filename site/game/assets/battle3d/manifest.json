@@ -821,6 +821,63 @@
       },
       "editable_source": "rare_creatures/rookie_kun/models/rookie_kun.blend",
       "idle_description": "Two short grounded steps forward and back in a 1.5 second loop."
+    },
+    "mini_elephant": {
+      "id": "mini_elephant",
+      "name": "ミニ象",
+      "url": "mini_elephant.glb",
+      "height": 0.3,
+      "height_m": 0.3,
+      "canonical_height_m": 0.3,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R108",
+      "softAlpha": true,
+      "bytes": 700612,
+      "sha256": "9d8033e3a3fa8de7e7c25318987f84d2610a33c894d716154c8fc30adc03cd61",
+      "native_bounds": {
+        "min": [
+          -0.1541113555431366,
+          -0.20891274511814117,
+          0.0
+        ],
+        "max": [
+          0.15411138534545898,
+          0.18000000715255737,
+          0.30000001192092896
+        ]
+      },
+      "native_bounds_with_inherent_aura": {
+        "min": [
+          -0.17618733644485474,
+          -0.20891274511814117,
+          0.0
+        ],
+        "max": [
+          0.17003615200519562,
+          0.18000000715255737,
+          0.4119601547718048
+        ]
+      },
+      "bodyBoundsExcludeTag": "inherent_aura",
+      "editable_source": "rare_creatures/mini_elephant/models/mini_elephant.blend",
+      "idle_description": "Trunk gently sways. Separate white and black soft wisps rise continuously in a 1.5 second loop.",
+      "inherentAura": {
+        "embedded": true,
+        "rootNode": "MiniElephant.InherentAura",
+        "colors": [
+          "white",
+          "black"
+        ],
+        "independentOfEquippedAura": true
+      }
     }
   },
   "commonMotion": {
@@ -847,5 +904,5 @@
   },
   "existingApprovedSourcesUnchanged": true,
   "prototypeDerivatives": true,
-  "creatureExpansionRevision": "R102"
+  "creatureExpansionRevision": "R108"
 }

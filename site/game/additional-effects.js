@@ -17,7 +17,23 @@ export function firstAttackParameterMultipliers(effects=NO_ADDITIONAL_EFFECTS,co
  }
  return result;
 }
-/** Damage effects stay independent of parameter ranks, aura levels and held items. */
-export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS){
- return effects.reduce((value,effect)=>effect?.type==='damage_dealt_multiplier'?value*factor(effect.multiplier):value,1);
+function hasLivingSpeciesGroup(opponents,minimumCount){
+ const counts=new Map();
+ for(const opponent of opponents)if(opponent.hp>0){
+  const count=(counts.get(opponent.speciesId)||0)+1;counts.set(opponent.speciesId,count);
+  if(count>=minimumCount)return true;
+ }
+ return false;
+}
+/** Check living groups at damage completion, independently of the selected target. */
+export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS,{opponents=[]}={}){
+ return effects.reduce((value,effect)=>{
+  if(effect?.type==='damage_dealt_multiplier')return value*factor(effect.multiplier);
+  if(effect?.type==='living_opponent_species_group_damage_dealt'&&hasLivingSpeciesGroup(opponents,effect.minimumCount))return value*factor(effect.multiplier);
+  return value;
+ },1);
+}
+/** One qualifying ally enables the effect; further allies do not multiply it. */
+export function additionalDamageReceivedMultiplier(effects=NO_ADDITIONAL_EFFECTS,{actor=null,allies=[]}={}){
+ return effects.reduce((value,effect)=>effect?.type==='living_same_species_ally_damage_received'&&actor?.hp>0&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&ally.speciesId===actor.speciesId)?value*factor(effect.multiplier):value,1);
 }

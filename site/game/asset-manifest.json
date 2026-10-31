@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
-  "fileCount": 128,
-  "totalBytes": 95627624,
+  "fileCount": 131,
+  "totalBytes": 96346161,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 23924,
+      "bytes": 25503,
       "priority": 2,
-      "sha256": "bc8176ceb34572515dd180ac34e0d51cf52d372cfa9776333c42e292723396e0"
+      "sha256": "1b46f53ff594251814e4aa24a5d1787dc3a8710873f69a941faf2b86ed71d641"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1027,6 +1027,30 @@
       "bytes": 1795,
       "priority": 3,
       "sha256": "34a29d7c134ae7e111c69786d5e7adf2e4ae32475495038a4e30b35ab0bccc72"
+    },
+    {
+      "url": "assets/battle3d/mini_elephant.glb?v=9d8033e3a3fa8de7e7c25318987f84d2610a33c894d716154c8fc30adc03cd61",
+      "label": "ミニ象の3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "9d8033e3a3fa8de7e7c25318987f84d2610a33c894d716154c8fc30adc03cd61",
+      "bytes": 700612
+    },
+    {
+      "url": "assets/collection/mini_elephant.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "bbf1dc4aed88ef06a467884e81370c17ceae8dc18ed412469336bbbebc0ddfc0",
+      "bytes": 12074
+    },
+    {
+      "url": "assets/collection/aura-mini_elephant.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137",
+      "bytes": 4272
     }
   ]
 }
