@@ -896,6 +896,48 @@
       "softAlpha": true,
       "bytes": 268748,
       "sha256": "b1985e62900a538c9f110f77b5e425511ee188099e7af99654e3983f2911cf32"
+    },
+    "fake_moai": {
+      "url": "moai_king.glb",
+      "sha256": "21aabbd1c330302b72e23f3c4da599c39c45b984a35a52ed9a47fba69a1bfcef",
+      "bytes": 10517448,
+      "height": 2.5,
+      "height_m": 2.5,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "stone_normal": [
+            512,
+            512
+          ],
+          "stone_basecolor": [
+            512,
+            512
+          ],
+          "stone_roughness": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 117,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 58,
+      "appearanceReuse": "moai_king",
+      "revision": "R110"
     }
   },
   "commonMotion": {

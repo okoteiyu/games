@@ -5,17 +5,18 @@ function softRingTexture(kind='void_wave'){
  const size=128,canvas=document.createElement('canvas');canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(size,size),color=new THREE.Color(),chaosColors=[0x08090e,0x8027ca,0x2459eb,0xf5f5ff].map(c=>new THREE.Color(c));
  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
   const dx=(x-size/2)/(size/2),dy=(y-size/2)/(size/2),r=Math.hypot(dx,dy),angle=Math.atan2(dy,dx),i=(y*size+x)*4;
-  const wave=Math.exp(-(((r-.60)/.13)**2))+.28*Math.exp(-(((r-.34)/.11)**2));color.set(0x030308);if(kind==='cosmos_wave')color.setHSL((angle/Math.PI/2+1)%1,.9,.68);
+  const wave=Math.exp(-(((r-.60)/.13)**2))+.28*Math.exp(-(((r-.34)/.11)**2));color.set(kind==='fake_moai_beam'?0xff93da:0x030308);if(kind==='cosmos_wave')color.setHSL((angle/Math.PI/2+1)%1,.9,.68);
   if(kind==='chaos_wave'){const u=((angle/Math.PI/2+1+.12*Math.sin(r*12))%1+1)%1*4,index=Math.floor(u);color.copy(chaosColors[index]).lerp(chaosColors[(index+1)%4],u-index);}
   pixels.data[i]=Math.round(color.r*255);pixels.data[i+1]=Math.round(color.g*255);pixels.data[i+2]=Math.round(color.b*255);pixels.data[i+3]=Math.round(Math.min(1,wave)*255*Math.max(0,Math.min(1,(1-r)*6)));
  }
  ctx.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
 }
 
-function softBeamTexture(){
+function softBeamTexture(kind){
  const canvas=document.createElement('canvas');canvas.width=canvas.height=128;const ctx=canvas.getContext('2d');
  const rainbow=ctx.createLinearGradient(0,0,0,128);
- for(const [i,color]of ['#ff3869','#ff9c31','#ffe745','#36e98c','#32cfff','#7166ff','#cd50ff'].entries())rainbow.addColorStop(i/6,color);
+ const colors=kind==='fake_moai_beam'?['#cb3c91','#ff93da','#ffe1f3','#ffb6e2','#ffe1f3','#ff93da','#cb3c91']:['#ff3869','#ff9c31','#ffe745','#36e98c','#32cfff','#7166ff','#cd50ff'];
+ for(const [i,color]of colors.entries())rainbow.addColorStop(i/6,color);
  ctx.fillStyle=rainbow;ctx.fillRect(0,0,128,128);ctx.globalCompositeOperation='destination-in';
  const edges=ctx.createLinearGradient(0,0,128,0);for(const [at,alpha]of [[0,0],[.1,.16],[.25,.72],[.5,1],[.75,.72],[.9,.16],[1,0]])edges.addColorStop(at,'rgba(255,255,255,'+alpha+')');ctx.fillStyle=edges;ctx.fillRect(0,0,128,128);
  const ends=ctx.createLinearGradient(0,0,0,128);for(const [at,alpha]of [[0,0],[.08,1],[.92,1],[1,0]])ends.addColorStop(at,'rgba(255,255,255,'+alpha+')');ctx.fillStyle=ends;ctx.fillRect(0,0,128,128);
@@ -28,15 +29,16 @@ export class AttackEffects{
   const group=new THREE.Group();group.name='Battle.AttackEffect.'+kind;group.visible=false;this.record.anchor.add(group);const parts=[];
   if(kind==='tackle_impact'){
    for(let i=0;i<14;i++){const part=new THREE.Mesh(new THREE.SphereGeometry(1,6,4),new THREE.MeshBasicMaterial({color:i%2?0xffd76d:0xffffff,transparent:true,opacity:0,depthWrite:false}));group.add(part);parts.push(part);}
-  }else if(kind==='okoteiyu_beam'){
-   const map=softBeamTexture(),geometry=new THREE.PlaneGeometry(1,1);
+  }else if((kind==='okoteiyu_beam'||kind==='fake_moai_beam')){
+   const map=softBeamTexture(kind),geometry=new THREE.PlaneGeometry(1,1);
    // Crossed, translucent light ribbons stay soft from every viewing angle.
    for(let layer=0;layer<2;layer++)for(let i=0;i<3;i++){
     const part=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({map,transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));part.rotation.y=i*Math.PI/3;part.userData.beamWidth=layer?.46:.23;part.userData.beamOpacity=layer?.09:.44;group.add(part);parts.push(part);
    }
    const core=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,16,1,true),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));core.userData.beamCore=true;group.add(core);parts.push(core);
-   const haloMap=softRingTexture('cosmos_wave');
+   const haloMap=softRingTexture(kind==='fake_moai_beam'?'fake_moai_beam':'cosmos_wave');
    for(let i=0;i<2;i++){const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:haloMap,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));halo.userData.beamHalo=i?'target':'source';group.add(halo);parts.push(halo);}
+  if(kind==='fake_moai_beam'){const canvas=document.createElement('canvas');canvas.width=canvas.height=64;const ctx=canvas.getContext('2d'),glow=ctx.createRadialGradient(32,32,0,32,32,32);glow.addColorStop(0,'rgba(255,255,255,1)');glow.addColorStop(.25,'rgba(255,255,255,.8)');glow.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=glow;ctx.fillRect(0,0,64,64);ctx.fillStyle='white';ctx.beginPath();ctx.moveTo(32,2);ctx.lineTo(38,26);ctx.lineTo(62,32);ctx.lineTo(38,38);ctx.lineTo(32,62);ctx.lineTo(26,38);ctx.lineTo(2,32);ctx.lineTo(26,26);ctx.closePath();ctx.fill();const map=new THREE.CanvasTexture(canvas);for(let i=0;i<20;i++){const sparkle=new THREE.Sprite(new THREE.SpriteMaterial({map,color:i%2?0xffffff:0xff72c6,transparent:true,opacity:0,depthWrite:false,toneMapped:false}));sparkle.userData.beamSparkle=i+1;group.add(sparkle);parts.push(sparkle);}}
   }else if(kind==='shell'){
    const metal=new THREE.MeshStandardMaterial({color:0xb1a37f,metalness:.92,roughness:.24}),round=new THREE.Mesh(new THREE.CapsuleGeometry(.055,.16,4,12),metal);round.rotation.x=Math.PI/2;group.add(round);parts.push(round);
    const tip=new THREE.Mesh(new THREE.ConeGeometry(.055,.12,16),metal);tip.rotation.x=Math.PI/2;tip.position.z=.18;group.add(tip);
@@ -58,12 +60,13 @@ export class AttackEffects{
    const phase=elapsed/duration;if(phase<.4-1e-9||phase>=.68){effect.group.visible=false;return;}const u=Math.max(0,(phase-.4)/.28);
    effect.group.position.copy(this.record.anchor.worldToLocal(origin.clone()));
    for(const [i,part]of effect.parts.entries()){const a=i*Math.PI*2/effect.parts.length;part.position.set(Math.cos(a)*height*.28*u,Math.sin(a)*height*.22*u,0);part.scale.setScalar(height*.025*(1-u));part.material.opacity=1-u;}
-  }else if(kind==='okoteiyu_beam'){
+  }else if((kind==='okoteiyu_beam'||kind==='fake_moai_beam')){
    const from=this.record.anchor.worldToLocal(origin.clone()),to=this.record.anchor.worldToLocal(target.clone()),delta=to.clone().sub(from),fullLength=delta.length();
    effect.group.position.copy(from);effect.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),fullLength>1e-6?delta.normalize():new THREE.Vector3(0,1,0));
    const launch=Math.max(0,Math.min(1,(elapsed-.16)/.22)),length=Math.max(.001,fullLength*launch),fadeIn=Math.max(0,Math.min(1,(elapsed-.12)/.18)),fadeOut=Math.max(0,Math.min(1,(duration-elapsed)/.18)),envelope=fadeIn*fadeOut;
    for(const part of effect.parts){
-    if(part.userData.beamHalo){const impact=part.userData.beamHalo==='target';part.position.set(0,impact?length:0,0);part.scale.setScalar(height*(impact?.40:.34)*(1+.04*Math.sin(elapsed*12)));part.material.opacity=envelope*(impact?launch*.40:.72);}
+    if(part.userData.beamSparkle){const i=part.userData.beamSparkle,u=(elapsed*.37+i*.618)%1,angle=elapsed*2+i*2.4;part.position.set(Math.cos(angle)*height*.12,length*u,Math.sin(angle)*height*.12);const size=height*.025*Math.sin(Math.PI*u);part.scale.set(size,size,1);part.material.opacity=envelope*Math.sin(Math.PI*u);}
+    else if(part.userData.beamHalo){const impact=part.userData.beamHalo==='target';part.position.set(0,impact?length:0,0);part.scale.setScalar(height*(impact?.40:.34)*(1+.04*Math.sin(elapsed*12)));part.material.opacity=envelope*(impact?launch*.40:.72);}
     else if(part.userData.beamCore){part.position.set(0,length/2,0);part.scale.set(height*.008,length,height*.008);part.material.opacity=envelope*.46;}
     else{part.position.set(0,length/2,0);part.scale.set(height*part.userData.beamWidth,length,1);part.material.opacity=part.userData.beamOpacity*envelope;}
    }

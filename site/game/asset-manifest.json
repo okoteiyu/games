@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
-  "fileCount": 135,
-  "totalBytes": 96632152,
+  "fileCount": 138,
+  "totalBytes": 96648424,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 25951,
+      "bytes": 27044,
       "priority": 2,
-      "sha256": "edb35e0b681b141fd5fa113f4638cb7cac85bdaeb1aa60a74a96ac565a16cf06"
+      "sha256": "48b0091156f6a995e6961288172770f6ab77195c31d5180bf3a14c176e9e43a7"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1083,6 +1083,30 @@
       "priority": 3,
       "bytes": 425,
       "sha256": "42b7f260906864c5d61fe244a7c8c4b18b3c3c555097d541e4ab15abd8b638da"
+    },
+    {
+      "url": "assets/collection/fake_moai.webp",
+      "label": "偽モアイの画像",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10458,
+      "sha256": "43c6b86ff12565cbd9ceb6c43b8f1229725f45a6ba7b974014e05826d504d7ed"
+    },
+    {
+      "url": "assets/collection/aura-fake_moai.webp",
+      "label": "偽モアイの画像",
+      "type": "image",
+      "priority": 3,
+      "bytes": 4380,
+      "sha256": "ec95c0a2b4bca76c4106eb648f428ad7b2b7189cc54c73ffd1fd7a1c66671a3b"
+    },
+    {
+      "url": "assets/collection/technique-fake_moai_beam.svg",
+      "label": "偽モアイの画像",
+      "type": "image",
+      "priority": 3,
+      "bytes": 341,
+      "sha256": "22c872ba8b8dd9863edb3c1e692ff1fc758cb4a3321c16d393b8c7e97472a7d3"
     }
   ]
 }

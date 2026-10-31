@@ -20,5 +20,7 @@ export function equipmentPreviewMarkup(player,kind,id){
  }
  const taller=[player.equippedAura,kind==='aura'?id:null].some(aura=>CREATURES[aura]?.auraAdditionalEffects.some(effect=>effect.type==='taller_attacker_damage_received'));
  if(taller){const conditional=equipmentChangePreview(player,kind,id,{attackerHeight:CREATURES.okoteiyu.height+1});damage+='<div data-equipment-damage="tallerDamageReceived"><dt>自分より大きい相手からの被ダメージ</dt><dd><span>'+percent(conditional.before.damageReceived)+'</span><span>→</span><strong>'+percent(conditional.after.damageReceived)+'</strong></dd></div>';}
+ const excluded=[player.equippedAura,kind==='aura'?id:null].some(aura=>CREATURES[aura]?.auraAdditionalEffects.some(effect=>effect.type==='target_species_exclusion_damage_dealt'));
+ if(excluded){const conditional=equipmentChangePreview(player,kind,id,{targetSpeciesId:'punim'});damage+='<div data-equipment-damage="nonMoaiDamageDealt"><dt>モアイの戦士・金モアイ以外への与ダメージ</dt><dd><span>'+percent(conditional.before.damageDealt)+'</span><span>→</span><strong>'+percent(conditional.after.damageDealt)+'</strong></dd></div>';}
  return '<section class="equipment-preview" aria-label="着脱によるステータスの変化"><h4>'+(removing?'外した場合の変化':'装備した場合の変化')+'</h4><table><thead><tr><th scope="col">能力</th><th scope="col">現在</th><th scope="col">'+action+'</th><th scope="col">変化</th></tr></thead><tbody>'+rows+'</tbody></table><dl class="equipment-preview__damage">'+damage+'</dl><p class="equipment-preview__note">ほかの装備を含む通常時の値です。HPは最大値、ダメージ補正は通常を100%として表示します。</p></section>';
 }
