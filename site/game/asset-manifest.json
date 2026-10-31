@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
-  "fileCount": 131,
-  "totalBytes": 96346161,
+  "fileCount": 135,
+  "totalBytes": 96632152,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 25503,
+      "bytes": 25951,
       "priority": 2,
-      "sha256": "1b46f53ff594251814e4aa24a5d1787dc3a8710873f69a941faf2b86ed71d641"
+      "sha256": "edb35e0b681b141fd5fa113f4638cb7cac85bdaeb1aa60a74a96ac565a16cf06"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1051,6 +1051,38 @@
       "priority": 3,
       "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137",
       "bytes": 4272
+    },
+    {
+      "url": "assets/battle3d/car.glb?v=b1985e62900a538c9f110f77b5e425511ee188099e7af99654e3983f2911cf32",
+      "label": "カーの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 268748,
+      "sha256": "b1985e62900a538c9f110f77b5e425511ee188099e7af99654e3983f2911cf32"
+    },
+    {
+      "url": "assets/collection/car.webp",
+      "label": "カーの写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 12098,
+      "sha256": "e82d8ec735571c9199165288f2b077fc38bdaafa0be33c43b80851a4770be2f8"
+    },
+    {
+      "url": "assets/collection/aura-car.webp",
+      "label": "黄色のオーラ写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 4272,
+      "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137"
+    },
+    {
+      "url": "assets/collection/technique-tackle.svg",
+      "label": "タックルのアイコン",
+      "type": "image",
+      "priority": 3,
+      "bytes": 425,
+      "sha256": "42b7f260906864c5d61fe244a7c8c4b18b3c3c555097d541e4ab15abd8b638da"
     }
   ]
 }

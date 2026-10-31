@@ -1,6 +1,7 @@
 import {NEW_CREATURE_DEFINITIONS} from './creature-expansion-c.js';
 /** Confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
 const definitions=[...NEW_CREATURE_DEFINITIONS,
+ {id:'car',name:'カー',description:'一見するとただの車だけど、こいつは車じゃない!!!',category:'normal',height:1.5,levelBand:{min:20,max:100},spawnRegions:['city','residential'],spawnTimes:['day','night'],ranks:{hp:10,attack:5,ki:0,speed:10},techniques:['tackle'],auraColor:'#ffe34a',additionalEffects:[{type:'smaller_target_damage_dealt',multiplier:1.5,description:'自身より身長が小さい相手に与えるダメージが1.5倍になります。'}],auraAdditionalEffects:[{type:'taller_attacker_damage_received',multiplier:.8,description:'自身より身長が大きい相手から受けるダメージが0.8倍になります。'}]},
  {
   id:'mini_elephant',name:'ミニ象',category:'threat',height:.3,
   levelBand:{min:15,max:50},spawnRegions:['residential','forest'],spawnTimes:['day'],

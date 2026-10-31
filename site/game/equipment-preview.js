@@ -1,5 +1,5 @@
 import {CREATURES,SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,playerStats} from './game-session.js';
-import {additionalDamageMultiplier} from './additional-effects.js';
+import {additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 
 function snapshot(player,context){
  const factors=equipmentMultipliers(player.equipment);
@@ -8,7 +8,7 @@ function snapshot(player,context){
  return {
   stats:playerStats(player),
   damageDealt:factors.damageDealt*additionalDamageMultiplier(bodyEffects,context)*additionalDamageMultiplier(auraEffects,context),
-  damageReceived:factors.damageReceived
+  damageReceived:factors.damageReceived*additionalDamageReceivedMultiplier(bodyEffects,{...context,actorHeight:CREATURES.okoteiyu.height})*additionalDamageReceivedMultiplier(auraEffects,{...context,actorHeight:CREATURES.okoteiyu.height})
  };
 }
 

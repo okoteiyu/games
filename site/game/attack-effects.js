@@ -26,7 +26,9 @@ export class AttackEffects{
  constructor(record){this.record=record;this.effects=new Map();}
  make(kind){
   const group=new THREE.Group();group.name='Battle.AttackEffect.'+kind;group.visible=false;this.record.anchor.add(group);const parts=[];
-  if(kind==='okoteiyu_beam'){
+  if(kind==='tackle_impact'){
+   for(let i=0;i<14;i++){const part=new THREE.Mesh(new THREE.SphereGeometry(1,6,4),new THREE.MeshBasicMaterial({color:i%2?0xffd76d:0xffffff,transparent:true,opacity:0,depthWrite:false}));group.add(part);parts.push(part);}
+  }else if(kind==='okoteiyu_beam'){
    const map=softBeamTexture(),geometry=new THREE.PlaneGeometry(1,1);
    // Crossed, translucent light ribbons stay soft from every viewing angle.
    for(let layer=0;layer<2;layer++)for(let i=0;i<3;i++){
@@ -52,7 +54,11 @@ export class AttackEffects{
   if(elapsed<.12||elapsed>=duration)return;
   const effect=this.effects.get(kind)||this.make(kind),distance=origin.distanceTo(target),direction=target.clone().sub(origin).normalize(),height=this.record.height;
   effect.group.visible=true;
-  if(kind==='okoteiyu_beam'){
+  if(kind==='tackle_impact'){
+   const phase=elapsed/duration;if(phase<.4-1e-9||phase>=.68){effect.group.visible=false;return;}const u=Math.max(0,(phase-.4)/.28);
+   effect.group.position.copy(this.record.anchor.worldToLocal(origin.clone()));
+   for(const [i,part]of effect.parts.entries()){const a=i*Math.PI*2/effect.parts.length;part.position.set(Math.cos(a)*height*.28*u,Math.sin(a)*height*.22*u,0);part.scale.setScalar(height*.025*(1-u));part.material.opacity=1-u;}
+  }else if(kind==='okoteiyu_beam'){
    const from=this.record.anchor.worldToLocal(origin.clone()),to=this.record.anchor.worldToLocal(target.clone()),delta=to.clone().sub(from),fullLength=delta.length();
    effect.group.position.copy(from);effect.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),fullLength>1e-6?delta.normalize():new THREE.Vector3(0,1,0));
    const launch=Math.max(0,Math.min(1,(elapsed-.16)/.22)),length=Math.max(.001,fullLength*launch),fadeIn=Math.max(0,Math.min(1,(elapsed-.12)/.18)),fadeOut=Math.max(0,Math.min(1,(duration-elapsed)/.18)),envelope=fadeIn*fadeOut;

@@ -1,4 +1,5 @@
 export const TECHNIQUES=Object.freeze({
+ tackle:Object.freeze({id:'tackle',maxLevel:30,name:'タックル',duration:1,motion:'tackle',effect:'tackle_impact',description:'自身の体を相手にぶつけて攻撃する。',power:'攻撃力 × 1.5'}),
  charged_punch:Object.freeze({id:'charged_punch',maxLevel:30,name:'溜めパンチ',duration:1.5,motion:'punch',description:'力を溜め、全身を使って放つ重いストレート。',power:'攻撃力 × 2.5 ＋ 技レベル'}),
  charged_energy_ray:Object.freeze({id:'charged_energy_ray',maxLevel:30,name:'溜めエネルギーレイ',duration:2,motion:'energy_ray',description:'気を溜め、頭の前から強い光線を放つ。',power:'気 × 3 ＋ 技レベル'}),
  energy_punch:Object.freeze({id:'energy_punch',maxLevel:30,name:'エネルギーパンチ',duration:1,motion:'punch',description:'全身の力と気を合わせて放つストレート。',power:'（攻撃力 ＋ 気） ＋ 技レベル'}),
@@ -18,7 +19,7 @@ export function techniqueDuration(id,definitions=TECHNIQUES){
  if(!Number.isFinite(duration)||duration<TECHNIQUE_MOTION_LIMITS.min||duration>TECHNIQUE_MOTION_LIMITS.max)throw new RangeError('技モーションの時間は0.5〜10秒で設定してください。');
  return duration;
 }
-export const ADDED_TECHNIQUE_IDS=Object.freeze(['charged_punch','charged_energy_ray','energy_punch','void_wave','cosmos_wave','cannon_shell','chaos_wave','okoteiyu_beam']);
+export const ADDED_TECHNIQUE_IDS=Object.freeze(['charged_punch','charged_energy_ray','energy_punch','void_wave','cosmos_wave','cannon_shell','chaos_wave','okoteiyu_beam','tackle']);
 export const PLAYER_TECHNIQUE_IDS=Object.freeze(['punch','energy_ray',...ADDED_TECHNIQUE_IDS]);
 export const SUPER_MAX_LEVEL=100;
 export function techniqueMaxLevel(id,definitions=TECHNIQUES){const max=definitions[id]?.maxLevel;if(!Number.isSafeInteger(max)||max<1)throw new RangeError('技の最大レベルが設定されていません。');return max;}
@@ -34,6 +35,7 @@ export function syncLevelTechniques(player){
 }
 export function techniquePower(id,stats,level){
  level=clampTechniqueLevel(id,level);
+ if(id==='tackle')return stats.attack*1.5;
  if(id==='charged_punch')return stats.attack*2.5+level;
  if(id==='charged_energy_ray')return stats.ki*3+level;
  if(id==='energy_punch')return stats.attack+stats.ki+level;

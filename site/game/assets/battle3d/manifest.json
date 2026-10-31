@@ -878,6 +878,24 @@
         ],
         "independentOfEquippedAura": true
       }
+    },
+    "car": {
+      "id": "car",
+      "url": "car.glb",
+      "height": 1.5,
+      "height_m": 1.5,
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R109",
+      "fitVisualBounds": true,
+      "softAlpha": true,
+      "bytes": 268748,
+      "sha256": "b1985e62900a538c9f110f77b5e425511ee188099e7af99654e3983f2911cf32"
     }
   },
   "commonMotion": {

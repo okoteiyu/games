@@ -154,7 +154,7 @@ export class BattleView{
    this.scene.add(anchor);anchor.visible=false;
    const height=number(definition.height??definition.height_m??definition.canonical_height_m,id==='moai_king'?2.5:id==='okoteiyu'?.45:.4);
    const record={id,instanceId,definition,anchor,facing,hitRoot,attackRoot,model,height,clips:gltf.animations,mixer:new THREE.AnimationMixer(model),actions:new Map(),hitAt:-Infinity,superAt:-Infinity,currentClip:null,currentActionId:null,fixedGround:findNode(model,'Combat.GroundFrame')};
-   if(definition.expansionRevision){model.updateWorldMatrix(true,true);const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());record.fitRadius=Math.max(size.x,size.z)/2;if(definition.expansionRevision==='R089'){record.visualBounds=bounds;record.forwardExtent=Math.max(0,bounds.max.z);record.halfWidth=Math.max(Math.abs(bounds.min.x),Math.abs(bounds.max.x));}}
+   if(definition.expansionRevision){model.updateWorldMatrix(true,true);const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3());record.fitRadius=Math.max(size.x,size.z)/2;if(definition.fitVisualBounds||definition.expansionRevision==='R089'){record.visualBounds=bounds;record.forwardExtent=Math.max(0,bounds.max.z);record.halfWidth=Math.max(Math.abs(bounds.min.x),Math.abs(bounds.max.x));}}
    record.appearance={};for(const [name,names]of Object.entries(definition.appearance||{}))record.appearance[name]=(Array.isArray(names)?names:[]).map(name=>findNode(record.model,name)).filter(Boolean);
    if(id==='okoteiyu'){this.prepareAuraMaterials(record);record.glow=this.makeGlow(height);hitRoot.add(record.glow);}
    record.model.traverse(node=>{if(node.isMesh){node.frustumCulled=true;node.castShadow=false;node.receiveShadow=false;if(definition.softAlpha){for(const material of Array.isArray(node.material)?node.material:[node.material])if(material.transparent){material.depthWrite=false;material.side=THREE.DoubleSide;}}}});
@@ -245,13 +245,15 @@ export class BattleView{
   record.currentClip=chosen?.name||null;record.currentActionId=current?.id??null;
   record.hitRoot.position.set(0,0,-record.height*(role==='player'?.06:.16)*combatOffset(this.time-record.hitAt));
   const attackElapsed=current?number(current.elapsed,this.time-number(current.startedAt,this.time)):Infinity;
-  record.attackRoot.position.set(0,0,current&&(role!=='player'||motion==='common_attack')?record.height*(role==='player'?.06:.16)*combatOffset(attackElapsed):0);
+  const tackleProgress=current?clamp(attackElapsed/number(current.duration,1),0,1):0,tackleOffset=tackleProgress<.4?ease(tackleProgress/.4):1-ease((tackleProgress-.4)/.6);
+  record.attackRoot.position.set(0,0,motion==='tackle'?record.height*.28*tackleOffset:current&&(role!=='player'||motion==='common_attack')?record.height*(role==='player'?.06:.16)*combatOffset(attackElapsed):0);
   if(role!=='player')this.sampleEnemyEffects(record,current);
   const effectKind=TECHNIQUES[technique]?.effect;
   if(effectKind||record.attackEffects){
    record.attackEffects??=new AttackEffects(record);record.anchor.updateWorldMatrix(true,true);
    const target=role==='player'?this.actors[this.snapshot?.targetId]||this.actors.enemy:this.actors.player;
    const muzzle=effectKind==='shell'?findNode(record.model,'Vehicle.Muzzle'):effectKind==='okoteiyu_beam'?findNode(record.model,'Ray.Charge'):null,origin=muzzle?muzzle.getWorldPosition(new THREE.Vector3()):record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*(effectKind==='okoteiyu_beam'?.78:.60),0));
+   if(effectKind==='tackle_impact')origin.add(new THREE.Vector3(0,0,record.forwardExtent??record.height*.55).applyQuaternion(record.facing.getWorldQuaternion(new THREE.Quaternion())));
    const point=target?.anchor.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,target.height*.58,0));
    record.attackEffects.sample(effectKind,current?{...current,elapsed:attackElapsed}:null,origin,point);
   }

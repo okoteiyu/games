@@ -26,14 +26,15 @@ function hasLivingSpeciesGroup(opponents,minimumCount){
  return false;
 }
 /** Check living groups at damage completion, independently of the selected target. */
-export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS,{opponents=[]}={}){
+export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS,{opponents=[],actorHeight=null,targetHeight=null}={}){
  return effects.reduce((value,effect)=>{
+  if(effect?.type==='smaller_target_damage_dealt'&&Number.isFinite(actorHeight)&&Number.isFinite(targetHeight)&&actorHeight>targetHeight)return value*factor(effect.multiplier);
   if(effect?.type==='damage_dealt_multiplier')return value*factor(effect.multiplier);
   if(effect?.type==='living_opponent_species_group_damage_dealt'&&hasLivingSpeciesGroup(opponents,effect.minimumCount))return value*factor(effect.multiplier);
   return value;
  },1);
 }
 /** One qualifying ally enables the effect; further allies do not multiply it. */
-export function additionalDamageReceivedMultiplier(effects=NO_ADDITIONAL_EFFECTS,{actor=null,allies=[]}={}){
- return effects.reduce((value,effect)=>effect?.type==='living_same_species_ally_damage_received'&&actor?.hp>0&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&ally.speciesId===actor.speciesId)?value*factor(effect.multiplier):value,1);
+export function additionalDamageReceivedMultiplier(effects=NO_ADDITIONAL_EFFECTS,{actor=null,allies=[],actorHeight=null,attackerHeight=null}={}){
+ return effects.reduce((value,effect)=>effect?.type==='taller_attacker_damage_received'&&Number.isFinite(actorHeight)&&Number.isFinite(attackerHeight)&&attackerHeight>actorHeight?value*factor(effect.multiplier):effect?.type==='living_same_species_ally_damage_received'&&actor?.hp>0&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&ally.speciesId===actor.speciesId)?value*factor(effect.multiplier):value,1);
 }
