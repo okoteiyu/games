@@ -79,6 +79,22 @@
   <div class="asset-loading__meter"><progress id="assetLoadingProgress" max="100" value="0" aria-label="ゲームの読み込み進捗" aria-valuetext="0%・読み込みを開始しています"></progress><output class="asset-loading__percent" id="assetLoadingPercent">0%</output></div>
   <p class="asset-loading__details" id="assetLoadingDetails">通信を開始しています…</p>
   <p class="asset-loading__label" id="assetLoadingLabel" role="status" aria-live="polite">もう少しお待ちください…</p>
+  <button class="asset-loading__tip" id="assetLoadingTip" type="button" data-kind="warning" aria-label="次のTipsを表示" aria-describedby="assetLoadingTipCopy">
+   <span class="asset-loading__tip-top"><span id="assetLoadingTipKind">セーブの注意</span><span id="assetLoadingTipCount">1 / 10</span></span>
+   <span class="asset-loading__tip-copy" id="assetLoadingTipCopy" role="status" aria-live="polite" aria-atomic="true"><strong>セーブデータを守ろう</strong><span>ブラウザのサイトデータを消すと、セーブデータも消えます。大切な記録は「オプション」→「セーブデータ読み書き」からファイルに書き出しておきましょう。</span></span>
+   <span class="asset-loading__tip-next">タップで次のヒント<span aria-hidden="true">→</span></span>
+  </button>
+  <template id="assetLoadingMoreTips">
+   <article data-kind="tip"><h3>お出かけ前に、ひと休み</h3><p>おこていゆハウスで食べる・飲む・寝る・くつろぐと、穏やかポイントが貯まります。パトロールや訓練の前に、ゆっくり準備しましょう。</p></article>
+   <article data-kind="tip"><h3>最初の練習相手はプニム</h3><p>プニムは最初から訓練で会える珍生物です。まずはマップから「訓練（易）」を選んで、経験を積んでみましょう。</p></article>
+   <article data-kind="tip"><h3>もちものを見直してみよう</h3><p>コレクションから、もちもの・オーラ・技を設定できます。手ごわい相手には、装備の組み合わせを変えてみるのもおすすめです。</p></article>
+   <article data-kind="tip"><h3>オーラを集めて、少しずつ強く</h3><p>戦いで相手全員を疲れさせると、オーラを手に入れることがあります。同じオーラを集めると、オーラのレベルが上がります。</p></article>
+   <article data-kind="tip"><h3>戦闘のあとは、ボーナスのちょっかい</h3><p>戦闘から帰ったあとの最初のちょっかいは、穏やかポイントを使いません。怒りを貯めると、おこていゆイベントで新しい力に出会えるかもしれません。</p></article>
+   <article data-kind="tip"><h3>ここぞというときの、かけごえ</h3><p>戦闘中のかけごえで、スーパーおこていゆ状態になるようお願いできます。使うタイミングを工夫してみましょう。</p></article>
+   <article data-kind="tip"><h3>妖精たちに、こっそりお願い</h3><p>ナスは苦手、トマトは好物。道中で妖精にお願いすると、おこていゆの進路に働きかけられます。</p></article>
+   <article data-kind="warning"><h3>別の端末へは、ファイルで引き継ぎ</h3><p>セーブデータは端末やブラウザを変えても自動では共有されません。書き出したセーブファイルと、そのパスワードを使って引き継ぎましょう。</p></article>
+   <article data-kind="warning"><h3>ひと区切りついたら、おこていゆハウスへ</h3><p>道中や戦闘の途中でブラウザを閉じると、最後に保存されたホームの状態から再開します。おこていゆハウスでの進行は自動保存されます。</p></article>
+  </template>
   <p class="asset-loading__error" id="assetLoadingError" role="alert" hidden></p>
   <button id="assetLoadingRetry" type="button" hidden>再試行</button>
   <div class="asset-loading__fallback" id="assetLoadingFallback">この表示が続く場合は、通信環境を確認して開き直してください。<button type="button" onclick="location.reload()">ページを再読み込み</button></div>

@@ -2,7 +2,7 @@ import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
 
 export const BUILDING_FLOORS=Object.freeze([
  {id:'1f',label:'1F',name:'おこていゆの暮らし',summary:'おこていゆの1Kと、建物の共用スペース。',areas:[
-  {id:'home',name:'おこていゆの部屋',tag:'HOME · 1K',text:'ホーム画面のリビングは、この1Kの一室です。窓は右側の外壁に面し、玄関から左側の通路へ進むと台所・トイレ・洗面台・バスルームへつながります。',note:'台所と水回りは間取りの表示のみです。個別の移動先にはなりません。'},
+  {id:'home',name:'おこていゆの部屋',tag:'HOME · 1K',text:'ホーム画面のリビングは、この1Kの一室です。窓は右側の外壁に面しています。玄関脇には広めの台所があり、左側の通路からトイレと洗面・浴室へつながります。洗面台と浴室は一つの部屋で、中に仕切りがあります。',note:'台所と水回りは間取りの表示のみです。個別の移動先にはなりません。'},
   {id:'hall',name:'共用廊下',tag:'PASSAGE',text:'部屋の外にある短い廊下。片方は建物の入り口、もう片方は階段とエレベーターにつながっています。'},
   {id:'entrance',name:'建物の入り口',tag:'SECURITY',text:'建物の外と共用廊下をつなぐ入り口。セキュリティのロックがかかっています。',note:'解錠方法などの詳細は、これから決まります。'},
   {id:'core',name:'階段・エレベーター',tag:'FLOOR ACCESS',text:'地上の住居と地下の研究・支援エリアをつなぐ、上下移動のためのスペースです。'}]},
@@ -23,15 +23,27 @@ const text=(x,y,value,size=24,extra='')=>`<text x="${x}" y="${y}" font-size="${s
 const stairs=(x,y)=>`<g stroke="#9e8a69" stroke-width="3">${Array.from({length:6},(_,i)=>`<path d="M${x} ${y+i*8}h42"/>`).join('')}</g>`;
 const zone=(id,selected,x,y,w,h,fill)=>rect(x,y,w,h,fill,`stroke="${selected===id?'#936843':'#bcad91'}" stroke-width="${selected===id?5:2}"`);
 
-/** Right-side doorway opens to the left service passage, away from the living window. */
-function wetRoom(id,y,height,label,doorTop,fill){
- const x=169,width=66,gap=32,doorX=x+width;
- return `<g data-apartment-room="${id}">`+
-  rect(x,y,width,height,fill,`data-room-floor="${id}"`)+
-  `<path data-room-wall="${id}" d="M${doorX} ${doorTop}V${y}H${x}V${y+height}H${doorX}V${doorTop+gap}" fill="none" stroke="#b7c7b9" stroke-width="2" stroke-linejoin="round"/>`+
-  (id==='bath'?rect(177,y+8,50,36,'#f8fcfa','stroke="#a8bfbc" stroke-width="2"'):id==='wash'?rect(177,y+7,50,18,'#fbfcf7','stroke="#bdc8b4"'):rect(191,y+8,20,16,'#fbfcf7','stroke="#bdc8b4"'))+
-  `<path data-door="${id}" d="M${doorX} ${doorTop}h-${gap}M${doorX} ${doorTop+gap}A${gap} ${gap} 0 0 1 ${doorX-gap} ${doorTop}" fill="none" stroke="#a3af96" stroke-width="1.5"/>`+
-  text(202,y+height-12,label,id==='bath'?22:20)+'</g>';
+/** Service-room doors face the left passage, away from the living window. */
+function toiletRoom(){
+ return '<g data-apartment-room="toilet">'+
+  rect(169,56,66,79,'#edf2e8','data-room-floor="toilet"')+
+  '<path data-room-wall="toilet" d="M235 84V56H169V135H235V116" fill="none" stroke="#b7c7b9" stroke-width="2" stroke-linejoin="round"/>'+
+  rect(191,64,20,16,'#fbfcf7','data-room-fixture="toilet" stroke="#bdc8b4"')+
+  '<path data-door="toilet" d="M235 84h-32M235 116A32 32 0 0 1 203 84" fill="none" stroke="#a3af96" stroke-width="1.5"/>'+
+  text(202,123,'トイレ',20)+'</g>';
+}
+
+/** One exterior room; the internal sliding partition keeps a clear way to the bath. */
+function washBathRoom(){
+ return '<g data-apartment-room="wash-bath">'+
+  rect(169,147,66,187,'#e7efeb','data-room-floor="wash-bath"')+
+  '<path data-room-wall="wash-bath" d="M235 176V147H169V334H235V208" fill="none" stroke="#b7c7b9" stroke-width="2" stroke-linejoin="round"/>'+
+  rect(177,154,50,18,'#fbfcf7','data-room-fixture="basin" stroke="#bdc8b4"')+text(202,208,'洗面台',20)+
+  '<path data-door="wash-bath" d="M235 176h-32M235 208A32 32 0 0 1 203 176" fill="none" stroke="#a3af96" stroke-width="1.5"/>'+
+  '<path data-room-partition="bath" d="M169 224H203" fill="none" stroke="#b7c7b9" stroke-width="2"/>'+
+  '<path data-door="bath-partition" d="M204 227h30m-30 4h14" fill="none" stroke="#a3af96" stroke-width="1.5"/>'+
+  rect(177,242,24,48,'#f8fcfa','data-room-fixture="bathtub" stroke="#a8bfbc" stroke-width="2"')+
+  rect(181,248,16,35,'#e1eeec','stroke="#c7dad6" stroke-width="1"')+text(202,322,'浴室',22)+'</g>';
 }
 
 /** A schematic, not a finalized architectural plan or a game destination picker. */
@@ -48,11 +60,13 @@ export function buildingFloorSvg(floorId,selected){
     rect(170,57,270,78,'#e6e8d9')+rect(182,137,47,48,'#e4d0ae')+stairs(185,139)+rect(324,73,101,55,'#c9d7cc','stroke="#abbcaf"')+rect(396,77,24,47,'#f8faf5')+rect(184,282,100,34,'#dccbad')+rect(202,208,115,48,'#d5c7b6')+rect(236,185,48,22,'#d5c7b6')+rect(355,232,64,62,'#e8ddc5'))+
    text(305,home?171:164,home?'':'リビング',26)+'</g>'+
    rect(241,56,40,340,'#fffbf1','data-apartment-passage="wet"')+
-   `<path d="M460 398V372H261V88M261 100H235M261 192H235M261 294H235" stroke="#c3cbae" stroke-width="2" stroke-dasharray="5 5" fill="none" aria-hidden="true"/>`+
-   wetRoom('toilet',56,79,'トイレ',84,'#edf2e8')+
-   wetRoom('wash',147,71,'洗面台',176,'#edf2e8')+
-   wetRoom('bath',230,104,'浴室',278,'#e3efed')+
-   rect(169,345,66,51,'#e5d6b9','data-apartment-kitchen="true"')+rect(177,352,50,17,'#faf6ec')+text(202,390,'台所',23)+text(514,378,'玄関',23)+
+   `<path d="M460 398V350H261V88M261 100H235M261 192H235" stroke="#c3cbae" stroke-width="2" stroke-dasharray="5 5" fill="none" aria-hidden="true"/>`+
+   toiletRoom()+washBathRoom()+
+   rect(287,365,138,31,'#e5d6b9','data-apartment-kitchen="true" data-kitchen-counter="true" stroke="#c8b493" stroke-width="1.5"')+
+   rect(296,371,34,18,'#faf6ec','data-kitchen-fixture="sink" stroke="#c8b99f" stroke-width="1"')+
+   rect(397,371,20,18,'#f8f3e7','data-kitchen-fixture="stove" stroke="#c8b99f" stroke-width="1"')+
+   '<g fill="none" stroke="#ab987b" stroke-width="1.2"><circle cx="403" cy="377" r="2.5"/><circle cx="411" cy="384" r="2.5"/></g>'+
+   text(363,387,'台所',21)+text(514,378,'玄関',23)+
    rect(402,331,48,8,'#faf2e1')+`<path data-door="living" d="M405 338h42m-42 4h20" stroke="#b09774" stroke-width="2"/>`+
    zone('hall',selected,119,430,486,75,'#eee6d5')+
    (home?zone('entrance',selected,119,430,126,75,'#e8dbc2')+text(182,461,'入口',24)+text(182,486,'ロック',19)+`<rect x="157" y="436" width="12" height="10" rx="2" fill="#a38051"/><path d="M159 437v-5a4 4 0 0 1 8 0v5" stroke="#a38051" fill="none" stroke-width="2"/>`:'')+

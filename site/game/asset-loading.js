@@ -6,6 +6,14 @@ export class AssetLoadingPopup {
  constructor(dialog=document.querySelector('#assetLoadingDialog')){
   if(!dialog)throw new TypeError('読み込み画面がありません。');
   this.dialog=dialog;this.title=dialog.querySelector('#assetLoadingTitle');this.description=dialog.querySelector('#assetLoadingDescription');this.progress=dialog.querySelector('#assetLoadingProgress');this.percent=dialog.querySelector('#assetLoadingPercent');this.details=dialog.querySelector('#assetLoadingDetails');this.label=dialog.querySelector('#assetLoadingLabel');this.retryButton=dialog.querySelector('#assetLoadingRetry');this.errorText=dialog.querySelector('#assetLoadingError');this.fallback=dialog.querySelector('#assetLoadingFallback');
+  this.tipButton=dialog.querySelector('#assetLoadingTip');this.tipCopy=dialog.querySelector('#assetLoadingTipCopy');this.tipKind=dialog.querySelector('#assetLoadingTipKind');this.tipCount=dialog.querySelector('#assetLoadingTipCount');this.tipIndex=0;
+  // Keep the first warning in the initial HTML, before the boot module arrives.
+  // The remaining cards stay inert in a template; only one item is ever shown.
+  if(this.tipButton){
+   this.tips=[{kind:this.tipButton.dataset.kind,title:this.tipCopy.querySelector('strong').textContent,body:this.tipCopy.querySelector('span').textContent},
+    ...[...dialog.querySelector('#assetLoadingMoreTips').content.querySelectorAll('article')].map(item=>({kind:item.dataset.kind,title:item.querySelector('h3').textContent,body:item.querySelector('p').textContent}))];
+   this.tipButton.addEventListener('click',()=>this.showTip(this.tipIndex+1));this.showTip(0);
+  }
   dialog.addEventListener('cancel',event=>event.preventDefault());
   dialog.addEventListener('close',()=>releaseModal(dialog));
   this.retryButton.addEventListener('click',()=>this.onRetry?.());
@@ -14,6 +22,12 @@ export class AssetLoadingPopup {
   if(dialog.open)dialog.removeAttribute('open');
   if(!tryOpenModal(dialog))throw new Error('読み込み画面を開けませんでした。');
   this.fallback.hidden=true;this.retryButton.hidden=true;this.errorText.hidden=true;
+ }
+ showTip(index){
+  if(!this.tips?.length)return;
+  this.tipIndex=index%this.tips.length;const tip=this.tips[this.tipIndex];
+  this.tipButton.dataset.kind=tip.kind;this.tipKind.textContent=tip.kind==='warning'?'セーブの注意':'遊びのヒント';this.tipCount.textContent=(this.tipIndex+1)+' / '+this.tips.length;
+  const title=document.createElement('strong'),body=document.createElement('span');title.textContent=tip.title;body.textContent=tip.body;this.tipCopy.replaceChildren(title,body);
  }
  fetching(detail={}){
   this.dialog.dataset.state='fetching';this.title.textContent='読み込んでいます';this.description.textContent='おこていゆの世界を準備しています。少しお待ちください。';
