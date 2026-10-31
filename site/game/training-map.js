@@ -1,5 +1,5 @@
 // Plan coordinates follow the current training GLB: +Z is right, +X is down.
-// The management room is a 2D schematic outside the existing observation glass.
+// Rooms outside the existing hall are schematic; the guest lounge awaits 3D art.
 const SCALE=28.8,ORIGIN={x:70,y:220},WORLD={minX:-5.36,minZ:-28.12,maxX:5.36,maxZ:3.46};
 export const TRAINING_MAP_VIEWBOX='0 55 1200 685';
 export function trainingMapPoint(position){return {x:ORIGIN.x+(position[2]-WORLD.minZ)*SCALE,y:ORIGIN.y+(position[0]-WORLD.minX)*SCALE};}
@@ -15,8 +15,9 @@ function equipmentLabel(compact,x,y,label){return compact?'':text(x,y,label,32);
 export function trainingMapDrawing({selected=null,compact=false,current=false}={}){
  const far=trainingMapPoint([WORLD.minX,0,WORLD.minZ]),near=trainingMapPoint([WORLD.maxX,0,WORLD.maxZ]),width=near.x-far.x,height=near.y-far.y;
  const zone=(id,x,y,w,h,fill,extra='')=>rect(x,y,w,h,fill,`data-building-zone="${id}" ${extra}`);
- let drawing=rect(30,160,1140,560,'#edf0e0','stroke="#b2bc9e" stroke-width="4"')+
+ let drawing=rect(30,160,1140,570,'#edf0e0','stroke="#b2bc9e" stroke-width="4"')+
   '<path data-training-access="core" d="M975 374H1102M1006 374V639H900" fill="none" stroke="#e2d9c4" stroke-width="44" stroke-linejoin="round"/>'+
+  '<path data-training-access="guest-lounge" d="M1006 639V711H628V628H605" fill="none" stroke="#e2d9c4" stroke-width="32" stroke-linejoin="round"/>'+
   zone('training',far.x,far.y,width,height,'#ece8dd','data-map-marker-x="500" data-map-marker-y="95" data-map-marker-unit="1.6"')+
   worldRect(0,-12.1,6.92,24.5,'#bacbbb','data-training-feature="mat" stroke="#879d8c" stroke-width="3"')+
   worldRect(0,-12.1,6.69,24.1,'none','stroke="#f5f3df" stroke-width="3"')+
@@ -39,7 +40,19 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
   feature('entrance',[0,0,3.22],'<path d="M3-44V44M-2-42V-4M-2 4V42" stroke="#9abeb6" stroke-width="4" fill="none"/>')+
   `<path data-training-feature="observation-glass" d="M${glassStart.x} ${glassStart.y}H${glassEnd.x}" fill="none" stroke="#96c5c2" stroke-width="8"/>`+
   rect(glassStart.x,glassStart.y+6,glassEnd.x-glassStart.x,15,'#d5e6df');
- // A map-only room, aligned with the glass; no new 3D destination or service.
+ // An invited guest's lounge: soft seating, gold trim, refreshments and an open entry.
+ drawing+=zone('guest-lounge',70,550,535,145,'#f8f0de',`stroke="${selected==='guest-lounge'?'#936843':'#b89b62'}" stroke-width="${selected==='guest-lounge'?5:2}"`)+
+  '<g data-guest-feature="gold-trim" fill="none" stroke="#d1b87a" stroke-width="2"><path d="M86 588V565H589V588M86 674V683H589V674"/><path d="m96 571 6-5 6 5-6 5Zm471 0 6-5 6 5-6 5Z"/></g>'+
+  rect(compact?220:184,552,compact?234:306,36,'#f8f0de','data-guest-label-backdrop="true"')+
+  text(337,581,compact?'待機エリア':'珍生物待機エリア',compact?40:34)+
+  '<g data-guest-feature="rug"><rect x="254" y="594" width="174" height="84" rx="16" fill="#657b7b" stroke="#c4a466" stroke-width="4"/><rect x="264" y="603" width="154" height="66" rx="11" fill="none" stroke="#e2d6ad" stroke-width="2"/></g>'+
+  '<g data-guest-feature="sofa"><rect x="103" y="602" width="115" height="64" rx="17" fill="#b88e9c" stroke="#a78a60" stroke-width="2"/><rect x="113" y="611" width="94" height="44" rx="12" fill="#ead4ce"/><path d="M144 612v42m31-42v42" fill="none" stroke="#c6a9a3" stroke-width="2"/><rect x="99" y="605" width="15" height="56" rx="7" fill="#c5a2ab"/><rect x="205" y="605" width="15" height="56" rx="7" fill="#c5a2ab"/></g>'+
+  '<g data-guest-feature="armchairs">'+[594,651].map(y=>`<rect x="465" y="${y}" width="60" height="29" rx="10" fill="#b6c5b8" stroke="#b59a64" stroke-width="2"/><rect x="476" y="${y+5}" width="38" height="19" rx="6" fill="#e4ebe0"/>`).join('')+'</g>'+
+  '<g data-guest-feature="tea-table"><ellipse cx="341" cy="636" rx="38" ry="21" fill="#e8d6b4" stroke="#b7975a" stroke-width="3"/><ellipse cx="341" cy="636" rx="29" ry="14" fill="#fff8e7"/><circle cx="332" cy="634" r="4" fill="#b7cfc8" stroke="#9eaf99"/><circle cx="349" cy="641" r="4" fill="#d5b8a3"/></g>'+
+  '<g data-guest-feature="refreshments">'+rect(550,650,32,25,'#d1b57f','stroke="#ad9059" stroke-width="2"')+'<circle cx="559" cy="658" r="4" fill="#fffbeb"/><circle cx="572" cy="658" r="4" fill="#fffbeb"/><path d="M555 671h23" stroke="#fff8e5" stroke-width="2"/></g>'+
+  '<g data-guest-feature="plants">'+[[568,608],[91,662]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="12" fill="#b6cdb1"/><path d="M${x} ${y+8}v-15m0 12-7-7m7 3 7-7" stroke="#7e9e7c" stroke-width="2" fill="none"/>`).join('')+'</g>'+
+  '<path data-training-access="guest-open-entry" d="M605 600v56" fill="none" stroke="#e2d9c4" stroke-width="8"/><path d="M598 595h10m-10 66h10" stroke="#b59a64" stroke-width="3"/>';
+ // The management room stays map-only, aligned with the observation glass.
  drawing+=zone('control',650,550,250,145,'#e4ece5',`stroke="${selected==='control'?'#936843':'#a2b7a7'}" stroke-width="${selected==='control'?5:2}"`)+
   '<path data-training-access="control-door" d="M900 618v32" stroke="#e2d9c4" stroke-width="8"/><path d="M900 618h-30M900 648a30 30 0 0 1-30-30" fill="none" stroke="#9ba995" stroke-width="2"/>'+
   text(775,635,compact?'管理室':'訓練管理室',compact?48:36)+
@@ -57,5 +70,5 @@ export function trainingMapDrawing({selected=null,compact=false,current=false}={
  return `<g data-training-plan="right-entrance" font-family="system-ui, sans-serif">${drawing}</g>`;
 }
 export function trainingMapSvg({compact=true,current=true}={}){
- return `<svg class="room-map" viewBox="${compact?'30 160 1140 560':TRAINING_MAP_VIEWBOX}" role="img" aria-label="右側が入口の訓練所。訓練マット、操作端末、送風機、照明、収納、ベンチ、観測ガラスと管理室。${current?'おこていゆは入口付近で待機しています。':''}">${trainingMapDrawing({compact,current})}</svg>`;
+ return `<svg class="room-map" viewBox="${compact?'30 160 1140 580':TRAINING_MAP_VIEWBOX}" role="img" aria-label="右側が入口の訓練所。訓練マット、操作端末、送風機、照明、収納、ベンチ、観測ガラスと管理室。招待した珍生物がくつろぐ待機エリア。${current?'おこていゆは入口付近で待機しています。':''}">${trainingMapDrawing({compact,current})}</svg>`;
 }
