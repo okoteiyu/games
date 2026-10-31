@@ -123,9 +123,16 @@ export class GameRuntime {
   if(this.pendingEncounter&&this.scene==='patrol'){const {enemy,stage}=this.pendingEncounter;this.pendingEncounter=null;this.startBattle(enemy,stage);return true;}
   if(this.messages.length){this.say(this.messages.shift());return true;}
   if(this.scene==='battle'&&this.battleUI.ready){
+   if(this.battleUI.controller?.cutin||this.session.isSuperAwakening()){this.advanceSuperAwakening(dt);return true;}
    const wasEnded=this.session.snapshotBattle()?.phase==='ended';
    const resultReadyBeforeAdvance=this.battleUI.resultReady;
-   this.session.update(dt);this.battleUI.setSnapshot(this.session.snapshotBattle());this.battleUI.advance(dt);
+   const battleTimeBefore=this.session.snapshotBattle()?.time||0;
+   this.session.update(dt,{pauseOnSuperAwakening:true});const snapshot=this.session.snapshotBattle();this.battleUI.setSnapshot(snapshot);
+   if(this.session.isSuperAwakening()){
+    // Automatic/queued awakening may start halfway through this frame.
+    this.advanceSuperAwakening(Math.max(0,dt-(snapshot.time-battleTimeBefore)));return true;
+   }
+   this.battleUI.advance(dt);
    if(wasEnded&&this.resultDelay!==null&&!this.battleUI.controller?.cutin){
     this.resultDelay=Math.max(0,this.resultDelay-dt);
     // Keep the final fatigue pose visible for a frame before replacing the view.
@@ -133,6 +140,12 @@ export class GameRuntime {
    }
   }
   return true;
+ }
+ advanceSuperAwakening(dt){
+  this.battleUI.advance(dt);
+  if(this.battleUI.ready&&!this.battleUI.controller?.cutin&&this.session.completeSuperAwakening()){
+   this.battleUI.setSnapshot(this.session.snapshotBattle());this.battleUI.advance(0);
+  }
  }
  startBattle(enemy,stage={}){
   this.patrol.suspendForBattle();this.scene='battle';this.setLocation(stage.encounterType==='training'?(TRAINING_COURSES[stage.trainingTier]?.label||'訓練（易）'):'戦闘');

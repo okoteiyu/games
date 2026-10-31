@@ -291,6 +291,12 @@ export class GameSession{
   const {multiplier,duration}=superStateDetails(this.player);
   Object.assign(battle.super,{pending:false,active:true,multiplier,duration,until:battle.time+duration});this.emit('super-start',{actor:'player',active:true,multiplier,duration,time:battle.time});this.startAction('player','super_awaken');return true;
  }
+ isSuperAwakening(){return this.state.battle?.phase==='active'&&this.state.battle.player.action?.technique==='super_awaken';}
+ completeSuperAwakening(){
+  if(!this.isSuperAwakening())return false;
+  // The visual cutin has spent its own time; finish without advancing battle time.
+  this.finishAction('player');return true;
+ }
  autoSuper(){
   const b=this.state.battle;if(!b||b.phase!=='active'||b.super.used||b.player.hp<=0)return;
   const living=b.enemies.filter(enemy=>enemy.hp>0);if(!living.length)return;
@@ -332,8 +338,9 @@ export class GameSession{
   if(actorId==='player'&&b.super.pending){this.beginSuper();return;}
   actor.nextActionAt=b.time+this.nextInterval(actorId);
  }
- update(deltaSeconds){
+ update(deltaSeconds,{pauseOnSuperAwakening=false}={}){
   finite(deltaSeconds,'elapsed seconds');if(deltaSeconds<0)throw new RangeError('Elapsed seconds cannot be negative.');const b=this.state.battle;if(!b||b.phase!=='active'||deltaSeconds===0)return this.snapshotBattle();
+  if(pauseOnSuperAwakening&&this.isSuperAwakening())return this.snapshotBattle();
   const targetTime=b.time+deltaSeconds;let iterations=0;
   while(b.phase==='active'&&b.time<targetTime-EPSILON){
    if(++iterations>100000)throw new Error('Battle event budget exceeded.');
@@ -342,13 +349,14 @@ export class GameSession{
    if(b.super.active)next=Math.min(next,b.super.until);
    b.time=Math.max(b.time,next);
    if(b.super.active&&b.time+EPSILON>=b.super.until){const multiplier=b.super.multiplier;if(!b.player.action&&Number.isFinite(b.player.nextActionAt))b.player.nextActionAt=b.time+Math.max(0,b.player.nextActionAt-b.time)*multiplier;b.super.active=false;b.super.multiplier=1;this.emit('super-end',{actor:'player',active:false,time:b.time});}
-   for(const id of ids){const a=this.combatant(id);if(b.phase==='active'&&a.hp>0&&a.action&&a.action.endsAt<=b.time+EPSILON)this.finishAction(id);}
+   for(const id of ids){const a=this.combatant(id);if(b.phase==='active'&&a.hp>0&&a.action&&a.action.endsAt<=b.time+EPSILON)this.finishAction(id);if(pauseOnSuperAwakening&&this.isSuperAwakening())return this.snapshotBattle();}
    if(b.phase!=='active')break;
    this.autoSuper();if(b.super.pending&&!b.player.action)this.beginSuper();
+   if(pauseOnSuperAwakening&&this.isSuperAwakening())return this.snapshotBattle();
    for(const id of ids){const a=this.combatant(id);if(b.phase==='active'&&a.hp>0&&!a.action&&a.nextActionAt<=b.time+EPSILON)this.startAction(id);}
    if(next>=targetTime-EPSILON)break;
   }
-  if(b.phase==='active')b.time=targetTime;return this.snapshotBattle();
+  if(b.phase==='active'&&!(pauseOnSuperAwakening&&this.isSuperAwakening()))b.time=targetTime;return this.snapshotBattle();
  }
  endBattle(result){
   const b=this.state.battle;if(!b||b.phase!=='active')return false;b.phase=b.status='ended';b.result=result;for(const id of this.actorIds()){const a=this.combatant(id);a.action=null;a.nextActionAt=Infinity;a.nextAttackDamageMultiplier=1;}b.super.pending=false;

@@ -56,7 +56,7 @@ export class BattleUI{
   }
  }
  showError(error){this.failed=true;this.loading=false;this.status.hidden=!this.active;this.status.querySelector('span').textContent='戦闘の3D表示を読み込めませんでした。もう一度お試しください。';this.status.querySelector('button').hidden=false;this.hud.hidden=true;this.updateControls();this.onError(error);}
- async retry(){if(!this.active||this.isPaused()||isModalBlocked()||(!this.failed&&this.controller?.cutin))return false;const presentationState=this.controller?.captureFatigueState();return this.start(this.snapshot,this.stage,{presentationState});}
+ async retry(){if(!this.active||this.isPaused()||isModalBlocked()||(!this.failed&&this.controller?.cutin))return false;const presentationState=this.controller?.capturePresentationState();return this.start(this.snapshot,this.stage,{presentationState});}
  deactivate(){this.active=false;this.generation++;this.controller?.setActive(false);this.panel.hidden=true;this.hud.hidden=true;this.status.hidden=true;this.container.remove();}
  getDiagnostics(){return {active:this.active,ready:this.ready,loading:this.loading,failed:this.failed,ended:this.ended,resultReady:this.resultReady,visibleCalls:[...this.panel.querySelectorAll('[data-battle-call]')].filter(button=>!button.disabled).map(button=>button.dataset.battleCall),view:this.controller?.getDiagnostics()||null};}
  destroy(){this.deactivate();this.controller?.destroy();this.panel.remove();this.hud.remove();}
