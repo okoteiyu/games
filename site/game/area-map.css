@@ -7,6 +7,9 @@
 .area-map[data-area="house"]{grid-template-rows:minmax(0,1fr);}
 .area-map[data-area="house"] .area-map__header{display:none;}
 .area-map[data-area="house"] .area-map__content{padding:2px;}
+.area-map[data-area="house"] .area-map__house-trigger{position:relative;}
+.area-map__tap-cue{position:absolute;inset-inline-end:5px;inset-block-end:5px;display:grid;place-items:center;inline-size:clamp(25px,18%,32px);aspect-ratio:1;border:1px solid #b59c70;border-radius:50%;background:#fffaf0f2;color:#876a42;box-shadow:0 2px 5px #78644522;pointer-events:none;}
+.area-map__tap-cue>svg{display:block;inline-size:78%;block-size:78%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .area-map[data-area="training"]{grid-template-rows:minmax(0,1fr);}
 .area-map[data-area="training"] .area-map__header{display:none;}
 .area-map[data-area="training"] .area-map__content{padding:2px;}
