@@ -48,7 +48,7 @@ export class BattleView{
   this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1;
   this.makeEnvironment();
   this.canvas=this.renderer.domElement;this.canvas.className='battle-webgl';this.canvas.style.visibility='hidden';this.canvas.setAttribute('role','img');this.canvas.setAttribute('aria-label','おこていゆと珍生物の戦闘。攻撃はその場で行い、疲れると戦闘が終わります。');this.container.append(this.canvas);
-  const listen=(type,handler)=>{this.canvas.addEventListener(type,handler);this.listeners.push(()=>this.canvas.removeEventListener(type,handler));};
+  const canvas=this.canvas,listen=(type,handler)=>{canvas.addEventListener(type,handler);this.listeners.push(()=>canvas.removeEventListener(type,handler));};
   listen('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.onStatus('戦闘の3D表示を復旧しています…');});
   listen('webglcontextrestored',()=>{this.contextLost=false;this.makeEnvironment();this.resize();this.onStatus('');this.render();});
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(this.container);
@@ -463,8 +463,34 @@ export class BattleView{
   this.canvas.style.visibility='visible';this.renderFrames++;
  }
  setActive(active){this.active=Boolean(active);if(!this.active)for(const actor of this.actorCache.values())actor.hitParticles?.clear();if(this.active){this.resize();this.updatePose();this.render();}}
+ /** Replace a suspended GPU context, retaining CPU models and this battle's clocks. */
+ recoverAfterInterruption(snapshot=this.snapshot,stage=this.stageOptions,{presentationState=this.capturePresentationState()}={}){
+  if(this.recoveryPromise)return this.recoveryPromise;
+  if(this.destroyed||!snapshot)return Promise.resolve(false);
+  this.setActive(false);this.cancelPendingLoad();
+  this.recoveryPromise=(async()=>{
+   let timer,generation;
+   try{
+    this.releaseRenderer();this.contextLost=false;
+    const loading=this.load(snapshot,stage,{presentationState});generation=this.fieldGeneration;
+    const ready=await Promise.race([loading,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('戦闘の表示の復旧に時間がかかっています。もう一度続けてください。')),12000);})]);
+    if(!ready||this.destroyed||generation!==this.fieldGeneration)return false;
+    if(this.renderer?.getContext?.().isContextLost?.())throw new Error('戦闘の3D表示を復旧できませんでした。');
+    return true;
+   }catch(error){if(!this.destroyed&&(generation===undefined||generation===this.fieldGeneration)){this.cancelPendingLoad();this.ready=false;this.lastError=error?.message||String(error);this.onError(error);}return false;}
+   finally{clearTimeout(timer);}
+  })().finally(()=>{this.recoveryPromise=null;});
+  return this.recoveryPromise;
+ }
+ releaseRenderer(){
+  this.resizeObserver?.disconnect();this.resizeObserver=null;for(const stop of this.listeners)stop();this.listeners=[];
+  const renderer=this.renderer;this.canvas?.remove();this.canvas=null;this.renderer=null;
+  this.scene.environment=null;this.environmentTarget?.dispose();this.environmentTarget=null;
+  if(this.awakeningStage)this.awakeningStage.scene.environment=null;
+  if(renderer){try{renderer.dispose();}catch{}try{renderer.forceContextLoss?.();}catch{}}
+ }
  cancelPendingLoad(){if(!this.loading)return false;this.fieldGeneration=(this.fieldGeneration||0)+1;this.loading=false;this.ready=false;this.timeRequest=null;return true;}
  getDiagnostics(){return {field:this.field?.id||null,trainingEntranceFixed:this.field?.region==='training'&&this.stageOptions?.presentation==='training-hall',trainingFrame:this.field?.region==='training'?this.trainingFrame||null:null,trainingPlacements:this.field?.region==='training'?this.trainingPlacements||{}:null,camera:{position:this.camera.position.toArray(),target:this.cameraAim?.toArray()||null,fov:this.camera.fov,near:this.camera.near},fieldScale:this.fieldScene?.scale.toArray()||null,fieldPosition:this.fieldScene?.position.toArray()||null,awakeningCutin:this.cutin?{...this.cutin}:null,awakeningPresentation:this.awakeningState?{...this.awakeningState}:null,fatigue:this.getFatigueDiagnostics(),hitParticles:this.getHitParticleDiagnostics(),ready:this.ready,loading:this.loading,active:this.active,error:this.lastError,contextLost:this.contextLost,time:this.time,renderFrames:this.renderFrames,size:{width:this.width||0,height:this.height||0},actors:Object.fromEntries(Object.entries(this.actors).map(([role,actor])=>[role,{id:actor.id,height:actor.height,position:actor.anchor.position.toArray(),facingY:actor.facing.rotation.y,currentClip:actor.currentClip,shield:actor.shield?{id:this.snapshot?.player?.equipment?.defense,visible:actor.shield.visible,position:actor.shield.position.toArray(),animations:0}:null,auraId:actor.auraId||null,auraColor:actor.auraColor===undefined?null:'#'+actor.auraColor.toString(16).padStart(6,'0'),auraMaterialCount:actor.auraMaterials?.length||0,hitOffset:actor.hitRoot.position.toArray(),attackOffset:actor.attackRoot.position.toArray(),fixedGroundWorld:actor.fixedGround?.getWorldPosition(new THREE.Vector3()).toArray()||null,meshCount:(()=>{let count=0;actor.model.traverse(node=>{if(node.isMesh)count++;});return count;})()}]))};}
  disposeObject(object){const geometries=new Set(),materials=new Set(),textures=new Set();object?.traverse(node=>{if(node.geometry)geometries.add(node.geometry);for(const material of Array.isArray(node.material)?node.material:node.material?[node.material]:[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value);}});for(const value of geometries)value.dispose();for(const value of materials)value.dispose();for(const value of textures)if(value!==this.shadowTexture)value.dispose();}
- destroy(){if(this.destroyed)return;this.destroyed=true;this.active=false;this.resizeObserver?.disconnect();for(const stop of this.listeners)stop();const resources=new THREE.Group();for(const record of this.actorCache.values()){record.hitParticles?.dispose();record.mixer.stopAllAction();resources.add(record.anchor);}for(const template of this.templateCache.values())resources.add(template.scene);this.disposeObject(resources);this.awakeningStage?.dispose();this.clearStage();this.shadowTexture?.dispose();for(const texture of this.auraTextureCache?.values()||[])texture.dispose();this.auraTextureCache?.clear();this.environmentTarget?.dispose();this.actorCache.clear();this.actorPromises.clear();this.templateCache.clear();this.templatePromises.clear();this.renderer?.dispose();this.canvas?.remove();}
+ destroy(){if(this.destroyed)return;this.destroyed=true;this.active=false;const resources=new THREE.Group();for(const record of this.actorCache.values()){record.hitParticles?.dispose();record.mixer.stopAllAction();resources.add(record.anchor);}for(const template of this.templateCache.values())resources.add(template.scene);this.disposeObject(resources);this.awakeningStage?.dispose();this.clearStage();this.shadowTexture?.dispose();for(const texture of this.auraTextureCache?.values()||[])texture.dispose();this.auraTextureCache?.clear();this.actorCache.clear();this.actorPromises.clear();this.templateCache.clear();this.templatePromises.clear();this.releaseRenderer();}
 }

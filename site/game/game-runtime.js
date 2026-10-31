@@ -8,11 +8,13 @@ import { GameSession } from './game-session.js';
 import { BattleUI } from './battle-ui.js';
 import { AngerCutinPlayer } from './anger-cutin.js';
 import { loadAssetBuffer } from './asset-store.js';
+import {CutinRecovery} from './cutin-recovery.js';
 
 /** Connect the existing scenes to one persistent, renderer-independent session. */
 export class GameRuntime {
  constructor({view,house,patrol,trainingHall,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage}){
   Object.assign(this,{view,house,patrol,trainingHall,homeElement,isPaused,isModalPaused,isMessageVisible,showMessage,hideMessage,setLocation,setGauges,toast,readMessagePage,advanceMessagePage});
+  this.isPaused=()=>Boolean(this.recovery?.blocked)||Boolean(isPaused?.());this.isModalPaused=()=>Boolean(this.recovery?.blocked)||Boolean(isModalPaused?.());this.destroyed=false;this.frameEpoch=0;
   this.scene='house';this.messageLocked=false;this.manualClock=false;this.pendingEncounter=null;this.pendingCutin=false;this.resultDelay=null;this.messages=[];this.lastAngerResult=null;this.battlePresentationSerial=0;
   this.session=new GameSession({onEvent:event=>this.onSessionEvent(event)});
   this.battleUI=new BattleUI({view,homeElement,isPaused:()=>this.isPaused()||document.hidden,onCall:id=>this.requestBattleAction(id),onReturn:()=>this.returnHomeAfterBattle(),onError:()=>this.toast('3Dの読み込みを再試行してください。戦闘の時計は停止しています。')});
@@ -22,7 +24,36 @@ export class GameRuntime {
    onStateChange:state=>{if(['blocked','error'].includes(state.state))this.hideMessage();else if(state.state==='playing'&&state.cueSent&&!this.isMessageVisible())this.say({speaker:'おこていゆ',text:'ｵｺﾃｲﾕ',kind:'speech',type:'anger'},{record:false});}
   });
   this.sceneCutin=new SceneCutin({view,onComplete:kind=>this.finishSceneCutin(kind),onError:()=>this.toast('カットインの読み込みを再試行してください。')});
-  let previous=performance.now();const frame=now=>{const dt=Math.min(.1,Math.max(0,(now-previous)/1000));previous=now;if(!this.manualClock)this.tick(dt);this.raf=requestAnimationFrame(frame);};this.raf=requestAnimationFrame(frame);this.sync();
+  this.recovery=new CutinRecovery({game:document.querySelector('#game')||view.element,getContext:()=>this.recoveryContext(),onSuspend:()=>this.angerPlayer.suspendForInterruption?.(),onContinue:context=>this.recoverInterruptedView(context),onResumed:()=>{this.restartFrameLoop();this.angerPlayer.synchronizePause();this.battleUI.updateControls();},onWake:()=>this.restartFrameLoop()});
+  this.restartFrameLoop();this.sync();
+ }
+ recoveryContext(){
+  if(this.destroyed)return null;
+  if(this.scene==='battle'&&this.session.snapshotBattle())return {key:'battle:'+this.battlePresentationSerial,scene:'battle',title:'戦闘に復帰します',message:'戦闘の状態を保って、続きを再開します。'};
+  if(this.scene==='scene-cutin')return {key:'scene:'+this.battlePresentationSerial+':'+this.sceneCutin.kind,scene:'scene-cutin',title:'ゲームに復帰します',message:['win','loss'].includes(this.sceneCutin.kind)?'戦闘の結果表示から再開します。':'出発の場面から再開します。'};
+  if(this.scene==='cutin')return {key:'anger:'+this.angerPlayer.completionCount,scene:'cutin',title:'ゲームに復帰します',message:'おこていゆの場面から、続きを再開します。'};
+  return null;
+ }
+ async recoverInterruptedView(context){
+  if(this.destroyed||this.recoveryContext()?.key!==context.key)return true;
+  if(context.scene==='battle')return this.battleUI.recoverAfterInterruption();
+  if(context.scene==='scene-cutin')return this.sceneCutin.recoverAfterInterruption();
+  if(context.scene==='cutin')return this.angerPlayer.recoverAfterInterruption();
+  return true;
+ }
+ serviceRecovery(){
+  const lost=this.scene==='battle'?this.battleUI.controller?.contextLost:this.scene==='scene-cutin'?this.sceneCutin.contextLost:false;
+  if(lost&&!this.recovery?.blocked)this.recovery?.request('context-lost');
+  this.recovery?.pump();
+ }
+ restartFrameLoop(){
+  if(this.destroyed)return;cancelAnimationFrame(this.raf);const epoch=++this.frameEpoch;this.previousFrameAt=performance.now();
+  const schedule=()=>{if(this.destroyed||epoch!==this.frameEpoch)return;this.raf=requestAnimationFrame(now=>{
+   if(this.destroyed||epoch!==this.frameEpoch)return;this.raf=0;const dt=Math.min(.1,Math.max(0,(now-this.previousFrameAt)/1000));this.previousFrameAt=now;
+   try{this.serviceRecovery();if(!this.manualClock)this.tick(dt);}
+   catch(error){this.lastFrameError=error?.message||String(error);try{this.recovery?.request('frame-error');}catch{}}
+   finally{schedule();}
+  });};schedule();
  }
  say(payload,{record=true}={}){this.showMessage({speaker:'ナレーション',kind:'narration',...payload},{record});}
  log(type,text){this.showMessage({type,text},{record:true,showMessage:false});}
@@ -116,6 +147,8 @@ export class GameRuntime {
  onEncounter(enemy,stage){if(this.scene!=='patrol'||!enemy)return false;this.pendingEncounter={enemy,stage};return true;}
  onMessageClosed(){this.sync();}
  tick(dt){
+  this.serviceRecovery();
+  if(this.recovery?.blocked){this.recovery.pump();return false;}
   if(this.scene==='scene-cutin'){if(!this.isModalPaused()&&!document.hidden){this.advanceResultMessage(dt);this.sceneCutin.advance(dt);}return true;}
   this.sync();if(this.scene==='battle')this.battleUI.updateControls();if(this.scene==='battle')this.battleUI.controller?.setTimeOfDay(currentTimeOfDay());if(this.isPaused()||document.hidden)return false;
   if(this.scene==='training-hall'){this.trainingHall.advance(dt);return true;}
@@ -216,5 +249,5 @@ export class GameRuntime {
   if(!Number.isFinite(seconds)||seconds<0||seconds>300||this.isPaused()||document.hidden)return false;
   for(let remaining=seconds;remaining>1e-8;remaining-=.1){const dt=Math.min(.1,remaining);if(this.isPaused()||document.hidden)break;if(this.scene==='house')this.house.controller?.advanceForPreview(dt);else if(this.scene==='patrol'&&this.patrol.active)this.patrol.tick(dt);this.tick(dt);}return this.snapshot();
  }
- destroy(){cancelAnimationFrame(this.raf);this.trainingHall?.destroy();this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
+ destroy(){if(this.destroyed)return;this.destroyed=true;this.frameEpoch++;cancelAnimationFrame(this.raf);this.recovery?.destroy();this.trainingHall?.destroy();this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
 }
