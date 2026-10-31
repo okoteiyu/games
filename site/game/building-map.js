@@ -21,7 +21,8 @@ export const BUILDING_FLOORS=Object.freeze([
 const rect=(x,y,w,h,fill,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" ${extra}/>`;
 const text=(x,y,value,size=24,extra='')=>`<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" ${extra}>${value}</text>`;
 const stairs=(x,y)=>`<g stroke="#9e8a69" stroke-width="3">${Array.from({length:6},(_,i)=>`<path d="M${x} ${y+i*8}h42"/>`).join('')}</g>`;
-const zone=(id,selected,x,y,w,h,fill)=>rect(x,y,w,h,fill,`stroke="${selected===id?'#936843':'#bcad91'}" stroke-width="${selected===id?5:2}"`);
+const zone=(id,selected,x,y,w,h,fill)=>rect(x,y,w,h,fill,`data-building-zone="${id}" stroke="${selected===id?'#936843':'#bcad91'}" stroke-width="${selected===id?5:2}"`);
+const svgNode=(tag,attributes={})=>{const node=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [name,value]of Object.entries(attributes))node.setAttribute(name,String(value));return node;};
 
 /** Service-room doors face the left passage, away from the living window. */
 function toiletRoom(){
@@ -100,16 +101,27 @@ export class BuildingMapDialog{
   const dialog=this.dialog=document.createElement('dialog');dialog.id='buildingMapDialog';dialog.className='building-map-dialog';dialog.setAttribute('aria-labelledby','buildingMapTitle');dialog.setAttribute('aria-modal','true');
   dialog.innerHTML=`<header class="building-map__header"><div><span class="building-map__eyebrow">OKOTEIYU HOUSE</span><h2 id="buildingMapTitle">建物マップ</h2></div><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><div class="building-map__intro"><h3></h3><p></p></div><div class="building-map__layout"><figure class="building-map__figure"><div class="building-map__drawing"></div><figcaption>各階を見やすい大きさで表示しています。<br>区画・家具の配置は概略です。</figcaption></figure><div class="building-map__information"><div class="building-map__areas" role="group" aria-label="表示するエリア"></div><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div></div><p class="building-map__note">この画面では建物の案内を見られます。<br>ホーム画面は1F・おこていゆの部屋です。</p></div>`;
   document.body.append(dialog);
-  dialog.querySelector('.building-map__note').textContent='3Dエリアができた場所から移動できます。ほかのエリアは案内を見られます。';
+  dialog.querySelector('.building-map__note').textContent='「タップで移動」の目印がある場所は、地図から直接選べます。移動前に確認します。';
+  this.confirmation=null;
+  this.confirmOverlay=document.createElement('div');this.confirmOverlay.className='building-map-confirm';this.confirmOverlay.hidden=true;
+  this.confirmOverlay.innerHTML='<section class="building-map-confirm__card"><span class="building-map-confirm__eyebrow">MOVE / 移動の確認</span><h3 id="buildingTravelTitle">ここへ移動しますか？</h3><p class="building-map-confirm__destination"></p><p id="buildingTravelBody">地図を閉じて、選んだ場所へ移動します。</p><div class="building-map-confirm__actions"><button type="button" data-building-confirm="cancel">地図に戻る</button><button type="button" data-building-confirm="move">移動する<span aria-hidden="true"> ↗</span></button></div></section>';dialog.append(this.confirmOverlay);
+  this.mapParts=[dialog.querySelector('.building-map__header'),dialog.querySelector('.building-map__floors'),dialog.querySelector('.building-map__body')];
   dialog.querySelector('.building-map__close').addEventListener('click',()=>this.close());
-  dialog.addEventListener('close',()=>{if(dialog.open)return;releaseModal(dialog);this.opener?.setAttribute('aria-expanded','false');if(this.canOpen()&&!isModalBlocked()&&this.opener?.isConnected)this.opener.focus({preventScroll:true});});
+  dialog.addEventListener('cancel',event=>{if(this.confirmation){event.preventDefault();this.cancelTravel();}});
+  dialog.addEventListener('close',()=>{if(dialog.open)return;this.hideConfirmation(false);releaseModal(dialog);this.opener?.setAttribute('aria-expanded','false');if(this.canOpen()&&!isModalBlocked()&&this.opener?.isConnected)this.opener.focus({preventScroll:true});});
   dialog.addEventListener('click',event=>{
+   if(this.confirmation){const action=event.target.closest('[data-building-confirm]')?.dataset.buildingConfirm;if(action==='cancel')this.cancelTravel();else if(action==='move')this.confirmTravel();return;}
+   const region=event.target.closest('[data-building-map-area]');if(region){this.activateMapArea(region.dataset.buildingMapArea);return;}
    const travel=event.target.closest('[data-building-travel]');
-   if(travel){const destination={floorId:this.floorId,areaId:this.areaId};if(!dialog.open||travel.disabled||!this.canTravel(destination))return;travel.disabled=true;dialog.addEventListener('close',()=>{if(this.canOpen())this.onTravel(destination);},{once:true});this.close();return;}
+   if(travel){if(!travel.disabled)this.requestTravel('button');return;}
    const floor=event.target.closest('[data-building-floor]'),area=event.target.closest('[data-building-area]');
    if(floor)this.selectFloor(floor.dataset.buildingFloor);
    else if(area)this.selectArea(area.dataset.buildingArea);
    else if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)this.close();}
+  });
+  dialog.addEventListener('keydown',event=>{
+   if(this.confirmation){if(event.key==='Tab'){event.preventDefault();const buttons=[...this.confirmOverlay.querySelectorAll('button:not(:disabled)')],index=buttons.indexOf(document.activeElement);buttons[(index+(event.shiftKey?-1:1)+buttons.length)%buttons.length]?.focus({preventScroll:true});}return;}
+   const region=event.target.closest('[data-building-map-area]');if(region&&['Enter',' '].includes(event.key)){event.preventDefault();if(!event.repeat)this.activateMapArea(region.dataset.buildingMapArea);}
   });
   dialog.querySelector('[role=tablist]').addEventListener('keydown',event=>{
    const index=BUILDING_FLOORS.findIndex(f=>f.id===this.floorId),next=event.key==='Home'?0:event.key==='End'?3:['ArrowRight','ArrowDown'].includes(event.key)?(index+1)%4:['ArrowLeft','ArrowUp'].includes(event.key)?(index+3)%4:null;
@@ -123,18 +135,58 @@ export class BuildingMapDialog{
   this.opener?.setAttribute('aria-expanded','true');return true;
  }
  close(){if(this.dialog.open)this.dialog.close();}
+ activateMapArea(id){
+  if(!this.dialog.open||this.confirmation)return false;
+  const scroll=this.dialog.querySelector('.building-map__body').scrollTop;
+  if(!this.selectArea(id))return false;
+  this.dialog.querySelector('.building-map__body').scrollTop=scroll;
+  const target=this.dialog.querySelector('[data-building-map-area="'+id+'"]');target?.focus({preventScroll:true});
+  return this.requestTravel('map');
+ }
+ requestTravel(source='button'){
+  if(!this.dialog.open||this.confirmation||!this.canOpen())return false;
+  const destination={floorId:this.floorId,areaId:this.areaId},current=this.getCurrentArea();
+  if(!this.canTravel(destination)||(current.floorId===destination.floorId&&current.areaId===destination.areaId))return false;
+  const floor=BUILDING_FLOORS.find(f=>f.id===destination.floorId),area=floor?.areas.find(a=>a.id===destination.areaId);if(!area)return false;
+  this.confirmation={...destination,source,scroll:this.dialog.querySelector('.building-map__body').scrollTop,submitted:false};
+  this.confirmOverlay.querySelector('.building-map-confirm__destination').textContent=floor.label+' · '+area.name;
+  for(const part of this.mapParts){part.inert=true;part.setAttribute('aria-hidden','true');}
+  this.dialog.setAttribute('aria-labelledby','buildingTravelTitle');this.dialog.setAttribute('aria-describedby','buildingTravelBody');this.confirmOverlay.hidden=false;
+  for(const button of this.confirmOverlay.querySelectorAll('button'))button.disabled=false;
+  this.confirmOverlay.querySelector('[data-building-confirm="cancel"]').focus({preventScroll:true});return true;
+ }
+ hideConfirmation(restoreFocus=true){
+  const pending=this.confirmation;this.confirmation=null;this.confirmOverlay.hidden=true;
+  for(const part of this.mapParts){part.inert=false;part.removeAttribute('aria-hidden');}
+  this.dialog.setAttribute('aria-labelledby','buildingMapTitle');this.dialog.removeAttribute('aria-describedby');
+  if(pending&&restoreFocus&&this.dialog.open){this.dialog.querySelector('.building-map__body').scrollTop=pending.scroll;this.dialog.querySelector(pending.source==='map'?'[data-building-map-area="'+pending.areaId+'"]':'[data-building-travel]')?.focus({preventScroll:true});}
+  return pending;
+ }
+ cancelTravel(){if(!this.confirmation)return false;this.hideConfirmation();return true;}
+ confirmTravel(){
+  const pending=this.confirmation;if(!this.dialog.open||!pending||pending.submitted)return false;
+  const destination={floorId:pending.floorId,areaId:pending.areaId},current=this.getCurrentArea();
+  if(!this.canOpen()||!this.canTravel(destination)||this.floorId!==pending.floorId||this.areaId!==pending.areaId||(current.floorId===pending.floorId&&current.areaId===pending.areaId)){
+   this.hideConfirmation(false);this.selectArea(this.areaId);const status=document.createElement('p');status.setAttribute('role','status');status.tabIndex=-1;status.textContent='いまは移動できません。もう一度、地図をご確認ください。';this.dialog.querySelector('.building-map__description').append(status);
+   const trigger=this.dialog.querySelector(pending.source==='map'?'[data-building-map-area="'+pending.areaId+'"]':'[data-building-travel]');(trigger&&!trigger.disabled?trigger:status).focus({preventScroll:true});this.dialog.querySelector('.building-map__body').scrollTop=pending.scroll;return false;
+  }
+  pending.submitted=true;for(const button of this.confirmOverlay.querySelectorAll('button'))button.disabled=true;
+  this.hideConfirmation(false);this.dialog.addEventListener('close',()=>{const now=this.getCurrentArea();if(this.canOpen()&&this.canTravel(destination)&&(now.floorId!==destination.floorId||now.areaId!==destination.areaId))this.onTravel(destination);},{once:true});this.close();return true;
+ }
  selectFloor(id){
+  if(this.confirmation)return false;
   const floor=BUILDING_FLOORS.find(f=>f.id===id);if(!floor)return false;
   this.floorId=id;this.areaId=floor.areas[0].id;
   for(const button of this.dialog.querySelectorAll('[data-building-floor]')){const active=button.dataset.buildingFloor===id;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;}
   this.dialog.querySelector('[role=tabpanel]').setAttribute('aria-labelledby','buildingFloor-'+id);
   this.dialog.querySelector('.building-map__intro h3').textContent=floor.label+' · '+floor.name;
   this.dialog.querySelector('.building-map__intro p').textContent=floor.summary;
-  this.dialog.querySelector('figcaption').textContent=(id.startsWith('b')?'破線は地上の建物の範囲です。':'')+'各階を見やすい大きさで表示。区画・家具の配置は概略です。';
+  this.dialog.querySelector('figcaption').textContent='色付きの枠と「タップで移動」の目印がある場所を選べます。区画・家具の配置は概略です。';
   this.dialog.querySelector('.building-map__areas').innerHTML=floor.areas.map(area=>`<button type="button" data-building-area="${area.id}" aria-pressed="false">${area.name}</button>`).join('');
   this.dialog.querySelector('.building-map__body').scrollTop=0;this.selectArea(this.areaId);return true;
  }
  selectArea(id){
+  if(this.confirmation)return false;
   const floor=BUILDING_FLOORS.find(f=>f.id===this.floorId),area=floor.areas.find(a=>a.id===id);if(!area)return false;
   this.areaId=id;for(const b of this.dialog.querySelectorAll('[data-building-area]'))b.setAttribute('aria-pressed',String(b.dataset.buildingArea===id));
   this.dialog.querySelector('.building-map__drawing').innerHTML=buildingFloorSvg(this.floorId,id);
@@ -142,7 +194,29 @@ export class BuildingMapDialog{
   for(const [tag,content]of [['span',area.tag],['h4',area.name],['p',area.text],...(area.note?[['p',area.note]]:[])]){const node=document.createElement(tag);node.textContent=content;description.append(node);}
   const current=this.getCurrentArea(),here=current.floorId===this.floorId&&current.areaId===id,destination={floorId:this.floorId,areaId:id},available=this.canTravel(destination);
   const travel=document.createElement('button');travel.type='button';travel.className='building-map__travel';travel.dataset.buildingTravel='';travel.disabled=here||!available;travel.textContent=here?'現在地':available?'ここへ移動する':'3Dエリアは準備中';description.append(travel);
-  this.mountRoomMap();return true;
+  this.mountRoomMap();this.decorateMap();return true;
+ }
+ decorateMap(){
+  const svg=this.dialog.querySelector('.building-plan'),floor=BUILDING_FLOORS.find(f=>f.id===this.floorId),current=this.getCurrentArea(),unit=this.floorId.startsWith('b')?2:1;
+  svg.setAttribute('role','group');svg.firstElementChild.setAttribute('aria-hidden','true');
+  const overlay=svgNode('g',{'class':'building-map-targets'});svg.append(overlay);
+  for(const area of floor.areas){
+   const rect=svg.querySelector('[data-building-zone="'+area.id+'"]');if(!rect)continue;
+   const [x,y,w,h]=['x','y','width','height'].map(k=>Number(rect.getAttribute(k))),here=current.floorId===this.floorId&&current.areaId===area.id,available=!here&&this.canTravel({floorId:this.floorId,areaId:area.id});
+   const target=svgNode('g',{'class':'building-map-region '+(available?'is-travelable':here?'is-current':'is-unavailable'),'data-building-map-area':area.id,'data-travel-available':String(available),role:'button',tabindex:0,'aria-label':area.name+'。'+(available?'タップして移動を確認':here?'現在地。説明を見る':'3Dエリアは準備中。説明を見る')});
+   target.append(svgNode('rect',{x,y,width:w,height:h,rx:8,'class':'building-map-region__hit','vector-effect':'non-scaling-stroke'}));
+   if(available){
+    const cx=x+w/2,cy=y+24*unit,badge=svgNode('g',{transform:'translate('+cx+' '+cy+') scale('+unit+')','class':'building-map-region__badge','aria-hidden':'true'});
+    badge.append(svgNode('path',{d:'M0-20c-12 0-20 8-20 19 0 14 20 30 20 30S20 13 20-1C20-12 12-20 0-20Z',fill:'#6e8652',stroke:'#fffdf2','stroke-width':2}));
+    badge.append(svgNode('path',{d:'M-7 3 7-9M-5-9H7V3',fill:'none',stroke:'#fffdf2','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'}));
+    badge.append(svgNode('rect',{x:-92,y:32,width:184,height:40,rx:18,fill:'#fffdf2',stroke:'#99ac78','stroke-width':2}));
+    const label=svgNode('text',{x:0,y:60,'font-size':24,'font-weight':600,'text-anchor':'middle',fill:'#5e7447'});label.textContent='タップで移動';badge.append(label);target.append(badge);
+   }else if(here){
+    const tag=svgNode('g',{'class':'building-map-region__badge','aria-hidden':'true'}),cy=Math.max(svg.viewBox.baseVal.y+18*unit,y-18*unit);tag.append(svgNode('rect',{x:x+w/2-64*unit,y:cy-16*unit,width:128*unit,height:32*unit,rx:14*unit,fill:'#8c7451',stroke:'#fffdf2','stroke-width':unit}));
+    const label=svgNode('text',{x:x+w/2,y:cy+7*unit,'font-size':21*unit,'text-anchor':'middle',fill:'#fffdf2'});label.textContent='● 現在地';tag.append(label);target.append(tag);
+   }
+   overlay.append(target);
+  }
  }
  mountRoomMap(){
   const target=this.dialog.querySelector('.building-live-room'),source=this.getRoomSvg();if(!target||!source)return;
