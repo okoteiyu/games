@@ -59,9 +59,9 @@
      <div class="lower-left__top">
       <section class="area-map" id="areaMap" aria-labelledby="areaMapTitle"><header class="area-map__header"><h2 id="areaMapTitle">おこていゆハウス</h2><span id="areaMapHint">お部屋の地図</span></header><div class="area-map__content" id="areaMapContent"></div></section>
      </div>
-     <nav class="lower-left__bottom" aria-label="所持品とマップ">
+     <nav class="lower-left__bottom" aria-label="コレクションとバトル">
       <button class="lower-action" id="collectionTrigger" type="button" aria-controls="optionsDialog" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m5 11 11-6 11 6v15H5V11Zm0 0 11 6 11-6M16 17v10M11 8l11 6"/><path d="m12 22 2 1"/></svg><span class="lower-action__label">コレクション</span></button>
-      <button class="lower-action" id="mapTrigger" type="button" aria-controls="optionsDialog" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m4 8 8-3 8 3 8-3v20l-8 3-8-3-8 3V8Zm8-3v20M20 8v20"/><path d="M8 13c7 5 7 1 15 4" stroke-dasharray="2 3"/><circle cx="23" cy="17" r="2"/></svg><span class="lower-action__label">マップ</span></button>
+      <button class="lower-action" id="mapTrigger" type="button" aria-label="バトルを開く" aria-controls="optionsDialog" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 32 32" aria-hidden="true" data-icon="battle"><path d="m5 4 5 1 14 14-5 5L5 10 4 5l1-1Z"/><path d="m17 26 9-9m-4.5 4.5 5 5m-2 1 3-3M20 7l5-3 3 3-2 5-4 4M12 20l-6 6m-2-7 9 9m-9-3 3 3"/></svg><span class="lower-action__label">バトル</span></button>
      </nav>
     </div>
     <section class="lower-right home-actions" id="homeChoices" aria-labelledby="homeChoicesTitle"><header class="home-actions__heading"><span>あなたから</span><h2 id="homeChoicesTitle">どうする？</h2></header><nav class="home-actions__list" aria-label="おこていゆハウスでの選択肢"><button class="home-choice" type="button" data-home-choice="interfere"><span class="home-choice__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 12V5a2 2 0 0 1 4 0v7m0-3h2l5 3-2 8H9l-5-6 2-2 3 3"/></svg></span><span class="home-choice__bonus" hidden>ボーナス</span><span class="home-choice__label">ちょっかいをかける</span><span class="home-choice__arrow" aria-hidden="true">›</span></button><button class="home-choice" type="button" data-home-choice="food"><span class="home-choice__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5V3Zm0 7h14M8 6v2m0 5v3"/></svg></span><span class="home-choice__label">食べ物を用意する</span><span class="home-choice__arrow" aria-hidden="true">›</span></button><button class="home-choice" type="button" data-home-choice="chair"><span class="home-choice__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12V7a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v5M3 10v8h18v-8M6 18v3m12-3v3M6 14h12"/></svg></span><span class="home-choice__label">椅子を掃除する</span><span class="home-choice__arrow" aria-hidden="true">›</span></button><button class="home-choice" type="button" data-home-choice="bed"><span class="home-choice__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v12m18-12v12M3 16h18M3 9h18v7H3m3-7V6h6v3"/></svg></span><span class="home-choice__label">ベットを綺麗にする</span><span class="home-choice__arrow" aria-hidden="true">›</span></button></nav></section>
@@ -87,7 +87,7 @@
   </button>
   <template id="assetLoadingMoreTips">
    <article data-kind="tip"><h3>お出かけ前に、ひと休み</h3><p>おこていゆハウスで食べる・飲む・寝る・くつろぐと、穏やかポイントが貯まります。パトロールや訓練の前に、ゆっくり準備しましょう。</p></article>
-   <article data-kind="tip"><h3>最初の練習相手はプニム</h3><p>プニムは最初から訓練で会える珍生物です。マップから訓練所へ行き、「訓練（易）」で経験を積んでみましょう。</p></article>
+   <article data-kind="tip"><h3>最初の練習相手はプニム</h3><p>プニムは最初から訓練で会える珍生物です。「バトル」から訓練所へ行き、「訓練（易）」で経験を積んでみましょう。</p></article>
    <article data-kind="tip"><h3>もちものを見直してみよう</h3><p>コレクションから、もちもの・オーラ・技を設定できます。手ごわい相手には、装備の組み合わせを変えてみるのもおすすめです。</p></article>
    <article data-kind="tip"><h3>オーラを集めて、少しずつ強く</h3><p>戦いで相手全員を疲れさせると、オーラを手に入れることがあります。同じオーラを集めると、オーラのレベルが上がります。</p></article>
    <article data-kind="tip"><h3>戦闘のあとは、ボーナスのちょっかい</h3><p>戦闘から帰ったあとの最初のちょっかいは、穏やかポイントを使いません。怒りを貯めると、おこていゆイベントで新しい力に出会えるかもしれません。</p></article>

@@ -43,7 +43,7 @@ const empty=(symbol,title,text)=>'<div class="option-empty-state"><span class="o
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 const count=value=>Number.isFinite(value)?Math.max(0,Math.floor(value)):0;
 const titles=Object.fromEntries(OPTION_ITEMS.map(x=>[x.id,x.label]));
-titles.main='オプション';titles.policy='ポリシー';titles.guideline='ガイドライン';titles.collection='コレクション';titles.maps='マップ';titles.trainings='訓練';
+titles.main='オプション';titles.policy='ポリシー';titles.guideline='ガイドライン';titles.collection='コレクション';titles.maps='バトル';titles.trainings='訓練';
 titles['confirm-patrol-return']='パトロールを中断しますか？';
 titles['ios-editions']='iOS版のご案内';titles.techniques='技';
 titles['growth-guide']='効率的成長の手引き';
