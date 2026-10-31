@@ -78,8 +78,8 @@
       "region": "training",
       "timeOfDay": "day",
       "url": "training_day.glb",
-      "bytes": 3334036,
-      "sha256": "c0c11338e865d0a7f78b236beb8dbec18fe5bbe50358f391334bb5e6baa6d61e",
+      "bytes": 3397976,
+      "sha256": "33b5a01a0487d996c2ebf851c206478ed8e3cbb50d524456f014673775b60b64",
       "sky": "#e1e7df",
       "ambient": 1.6,
       "sunIntensity": 0.8,
@@ -120,16 +120,101 @@
           3.22
         ]
       },
-      "modelRevision": "R116",
-      "modelScale": 1
+      "modelRevision": "R120",
+      "modelScale": 1,
+      "trainingTerminals": [
+        {
+          "id": "easy",
+          "tier": "easy",
+          "label": "易",
+          "node": "Training.Selector.easy",
+          "anchor": [
+            -1.15,
+            2.17,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "medium",
+          "tier": "medium",
+          "label": "中",
+          "node": "Training.Selector.medium",
+          "anchor": [
+            -1.15,
+            1.69,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "hard",
+          "tier": "hard",
+          "label": "難",
+          "node": "Training.Selector.hard",
+          "anchor": [
+            -1.15,
+            1.21,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "master",
+          "tier": "master",
+          "label": "マスター",
+          "node": "Training.Selector.master",
+          "anchor": [
+            -1.15,
+            0.73,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "infinity",
+          "tier": "infinity",
+          "label": "∞",
+          "node": "Training.Selector.infinity",
+          "anchor": [
+            -1.15,
+            0.25,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        }
+      ],
+      "trainingSelectorStation": {
+        "node": "Training.SelectorStation",
+        "role": "training_selector_station",
+        "bounds": {
+          "min": [
+            -1.51,
+            0,
+            0.06
+          ],
+          "max": [
+            -0.79,
+            2.39,
+            0.54
+          ]
+        },
+        "label_source": "runtime",
+        "production_dimensions_only": true
+      }
     },
     {
       "id": "training_night",
       "region": "training",
       "timeOfDay": "night",
       "url": "training_night.glb",
-      "bytes": 3334268,
-      "sha256": "6764d89c3b6c1788a033bbad3c35975b7450f8d8a8926b7d9005c395df3500b5",
+      "bytes": 3398204,
+      "sha256": "69dceb353c90304ab42921e517e7bddf082934168330e595777c1a1c63d06a0b",
       "sky": "#c3d0c9",
       "ambient": 1.35,
       "sunIntensity": 0.65,
@@ -170,8 +255,93 @@
           3.22
         ]
       },
-      "modelRevision": "R116",
-      "modelScale": 1
+      "modelRevision": "R120",
+      "modelScale": 1,
+      "trainingTerminals": [
+        {
+          "id": "easy",
+          "tier": "easy",
+          "label": "易",
+          "node": "Training.Selector.easy",
+          "anchor": [
+            -1.15,
+            2.17,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "medium",
+          "tier": "medium",
+          "label": "中",
+          "node": "Training.Selector.medium",
+          "anchor": [
+            -1.15,
+            1.69,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "hard",
+          "tier": "hard",
+          "label": "難",
+          "node": "Training.Selector.hard",
+          "anchor": [
+            -1.15,
+            1.21,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "master",
+          "tier": "master",
+          "label": "マスター",
+          "node": "Training.Selector.master",
+          "anchor": [
+            -1.15,
+            0.73,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        },
+        {
+          "id": "infinity",
+          "tier": "infinity",
+          "label": "∞",
+          "node": "Training.Selector.infinity",
+          "anchor": [
+            -1.15,
+            0.25,
+            0.512
+          ],
+          "width": 0.52,
+          "height": 0.38
+        }
+      ],
+      "trainingSelectorStation": {
+        "node": "Training.SelectorStation",
+        "role": "training_selector_station",
+        "bounds": {
+          "min": [
+            -1.51,
+            0,
+            0.06
+          ],
+          "max": [
+            -0.79,
+            2.39,
+            0.54
+          ]
+        },
+        "label_source": "runtime",
+        "production_dimensions_only": true
+      }
     }
   ],
   "modelCount": 8,

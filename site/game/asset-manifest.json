@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で現在使用するハウス、道中、戦闘、怒りカットイン、キャラクター、ナスの妖精と共通UI画像。専用モデル確認ページのみの素材は除外。",
   "fileCount": 138,
-  "totalBytes": 103092995,
+  "totalBytes": 103224641,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -592,9 +592,9 @@
       "url": "assets/battle3d/fields.json",
       "label": "戦闘フィールドの設定",
       "type": "json",
-      "bytes": 4089,
+      "bytes": 7859,
       "priority": 2,
-      "sha256": "a1d7180790d30db4f05d22ba12d053be07610f1178fa4ca952d62c7fd94a5149"
+      "sha256": "2e5d7f131f3331e49fb2e09c7863bf23cb4601f7bbc8bad7498beafac02c5c1f"
     },
     {
       "url": "assets/battle3d/city_day.glb?v=c355a3ee37b86a1a80441e46ce9a77283ca04947b19bc9ff4e4c56567af17167",
@@ -645,20 +645,20 @@
       "sha256": "30d3ba3f52a942b491301f1a21d57c98f703e619fa4afe7cf822c2247b5e3b87"
     },
     {
-      "url": "assets/battle3d/training_day.glb?v=c0c11338e865d0a7f78b236beb8dbec18fe5bbe50358f391334bb5e6baa6d61e",
+      "url": "assets/battle3d/training_day.glb?v=33b5a01a0487d996c2ebf851c206478ed8e3cbb50d524456f014673775b60b64",
       "label": "訓練広場・昼の戦闘フィールド",
       "type": "binary",
-      "bytes": 3334036,
+      "bytes": 3397976,
       "priority": 3,
-      "sha256": "c0c11338e865d0a7f78b236beb8dbec18fe5bbe50358f391334bb5e6baa6d61e"
+      "sha256": "33b5a01a0487d996c2ebf851c206478ed8e3cbb50d524456f014673775b60b64"
     },
     {
-      "url": "assets/battle3d/training_night.glb?v=6764d89c3b6c1788a033bbad3c35975b7450f8d8a8926b7d9005c395df3500b5",
+      "url": "assets/battle3d/training_night.glb?v=69dceb353c90304ab42921e517e7bddf082934168330e595777c1a1c63d06a0b",
       "label": "訓練広場・夜の戦闘フィールド",
       "type": "binary",
-      "bytes": 3334268,
+      "bytes": 3398204,
       "priority": 3,
-      "sha256": "6764d89c3b6c1788a033bbad3c35975b7450f8d8a8926b7d9005c395df3500b5"
+      "sha256": "69dceb353c90304ab42921e517e7bddf082934168330e595777c1a1c63d06a0b"
     },
     {
       "url": "assets/equipment3d/metadata.json",

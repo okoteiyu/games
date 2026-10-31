@@ -129,6 +129,34 @@ export class BattleView{
   record.model.traverse(node=>{if(!node.isMesh)return;node.geometry.computeBoundingBox();const local=node.geometry.boundingBox.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverse,node.matrixWorld));bounds.union(local);});
   return record.trainingBounds=bounds;
  }
+ trainingTerminalRecords(){
+  if(!this.ready||!this.active||this.loading||this.destroyed||this.contextLost||this.field?.region!=='training'||this.stageOptions?.presentation!=='training-hall'||this.snapshot?.phase!=='visiting'||!this.fieldScene)return [];
+  if(this.terminalFieldScene===this.fieldScene)return this.terminalRecords;
+  this.terminalFieldScene=this.fieldScene;
+  this.terminalRecords=(this.field.trainingTerminals||[]).map(definition=>{
+   const id=definition.tier||definition.id;let node=findNode(this.fieldScene,definition.node||'Training.Selector.'+id);
+   if(!node)this.fieldScene.traverse(candidate=>{if(!node&&candidate.userData?.trainingTier===id)node=candidate;});
+   return node?{...definition,id,node}:null;
+  }).filter(Boolean);return this.terminalRecords;
+ }
+ getTrainingTerminals(){
+  const records=this.trainingTerminalRecords(),box=this.canvas?.getBoundingClientRect();if(!records.length||!box?.width||!box?.height)return [];
+  this.fieldScene.updateWorldMatrix(true,true);this.camera.updateMatrixWorld(true);
+  return records.map(record=>{
+   const anchor=new THREE.Vector3().fromArray(record.anchor||[0,0,0]),point=anchor.clone().applyMatrix4(this.fieldScene.matrixWorld),projected=point.clone().project(this.camera),corners=[];
+   for(const x of [-.5,.5])for(const y of [-.5,.5])corners.push(anchor.clone().add(new THREE.Vector3(x*number(record.width,.52),y*number(record.height,.38),0)).applyMatrix4(this.fieldScene.matrixWorld).project(this.camera));
+   const width=(Math.max(...corners.map(p=>p.x))-Math.min(...corners.map(p=>p.x)))*box.width/2,height=(Math.max(...corners.map(p=>p.y))-Math.min(...corners.map(p=>p.y)))*box.height/2;
+   return {id:record.id,label:record.label||record.id,x:(projected.x+1)*box.width/2,y:(1-projected.y)*box.height/2,width,height,world:point.toArray(),visible:record.node.visible&&projected.z>=-1&&projected.z<=1&&Math.abs(projected.x)<1.1&&Math.abs(projected.y)<1.1};
+  });
+ }
+ pickTrainingTerminal(clientX,clientY){
+  const records=this.trainingTerminalRecords(),box=this.canvas?.getBoundingClientRect();if(!records.length||!box?.width||!box?.height||clientX<box.left||clientX>box.right||clientY<box.top||clientY>box.bottom)return null;
+  this.fieldScene.updateWorldMatrix(true,true);this.camera.updateMatrixWorld(true);const ray=this.terminalRaycaster??=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((clientX-box.left)/box.width*2-1,1-(clientY-box.top)/box.height*2),this.camera);
+  for(const hit of ray.intersectObjects(records.map(record=>record.node),true)){
+   const record=records.find(item=>{let node=hit.object;while(node){if(node===item.node)return true;node=node.parent;}return false;});if(record?.node.visible)return record.id;
+  }
+  return null;
+ }
  async prepareShield(player,id='acrylic_shield'){
   player.shields??=new Map();for(const shield of player.shields.values())shield.visible=false;
   if(player.shields.has(id)){player.shield=player.shields.get(id);player.shield.visible=true;return;}

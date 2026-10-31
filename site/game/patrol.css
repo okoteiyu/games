@@ -128,3 +128,11 @@
 .patrol-actions .patrol-encounter-actions{flex:1;}
 @container patrol-actions (max-height:240px){.patrol-actions__heading{display:none;}}
 @container patrol-actions (max-height:145px){.patrol-actions .patrol-skip{min-height:20px;}}
+/* Keep returning home available without putting it in the Battle menu. */
+.patrol-actions>.patrol-window{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:3px 4px;}
+.patrol-actions .patrol-window>div{grid-column:1 / -1;}
+.patrol-actions .patrol-window[hidden]{display:none;}
+.patrol-actions .patrol-skip,.patrol-actions .patrol-abort{margin:0;min-height:27px;padding:3px 4px;overflow-wrap:anywhere;line-height:1.25;}
+.patrol-actions .patrol-abort{border:1px solid #b9ab88;border-radius:8px 3px;background:#eee8df;color:#806b49;font:inherit;font-size:clamp(8px,5.7cqi,11px);cursor:pointer;touch-action:manipulation;}
+.patrol-abort:focus-visible{outline:2px solid #926d42;outline-offset:1px;}
+@container patrol-actions (max-height:145px){.patrol-actions .patrol-skip,.patrol-actions .patrol-abort{min-height:22px;padding:1px 2px;font-size:8px;}}

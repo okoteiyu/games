@@ -165,6 +165,7 @@ document.querySelector('#mapTrigger').addEventListener('click',event=>optionsUI.
 patrolUI=new PatrolUI({view,isSupportEquipped:()=>gameRuntime?.session.player.equipment.support==='moai_kun',canStart:()=>gameRuntime?.scene==='patrol'&&gameRuntime.session.state.location==='patrol',mapPanel:areaMap,homeElement:document.querySelector('#homeChoices'),
  enemyProvider:(map,options)=>gameRuntime.session.makePatrolEnemies(map,options),
  onEncounter:(enemy,stage)=>gameRuntime.onEncounter(enemy,stage),
+ onAbort:opener=>optionsUI.open('confirm-patrol-return',opener),
  onEnter:()=>{houseUI?.leaveHouse();setLocation('道中');},
  onLeave:({afterBattle=false}={})=>{if(gameRuntime){gameRuntime.pendingEncounter=null;gameRuntime.session.cancelPatrol();gameRuntime.scene='house';}houseUI?.arriveFromOutside?.({afterBattle});view.setHouse();setLocation('おこていゆハウス');events.dispatch({type:'move',text:'おこていゆハウスへ戻った。'},{showMessage:false});},
  onEvent:(event,options)=>events.dispatch(event,options),
@@ -194,7 +195,7 @@ for(const {action,button} of homeActionButtons){
   else toast('3Dビューの準備ができてから、もう一度指示してください。');
  });
 }
-trainingHallUI=new TrainingHallUI({view,homeElement:document.querySelector('#homeChoices'),readPlayer:()=>gameRuntime?.session.snapshot().player,isPaused:()=>needsVisitorName()||eventVisible||isModalBlocked(),onTrain:opener=>optionsUI.open('trainings',opener),onReturn:()=>gameRuntime?.returnFromTrainingHall(),onError:()=>toast('訓練所の3D表示を再試行してください。')});
+trainingHallUI=new TrainingHallUI({view,homeElement:document.querySelector('#homeChoices'),readPlayer:()=>gameRuntime?.session.snapshot().player,isPaused:()=>needsVisitorName()||eventVisible||isModalBlocked(),onTrain:opener=>optionsUI.open('trainings',opener),readTrainingCourses:()=>optionsUI.trainingCourseChoices(),onSelectTraining:(tier,opener)=>optionsUI.openTrainingConfirmation(tier,opener),onReturn:()=>gameRuntime?.returnFromTrainingHall(),onError:()=>toast('訓練所の3D表示を再試行してください。')});
 window.mainViewPreview.trainingHall=trainingHallUI;
 gameRuntime=new GameRuntime({view,house:houseUI,patrol:patrolUI,trainingHall:trainingHallUI,homeElement:document.querySelector('#homeChoices'),
  isPaused:()=>needsVisitorName()||eventVisible||isModalBlocked(),isModalPaused:()=>needsVisitorName()||isModalBlocked(),isMessageVisible:()=>eventVisible,

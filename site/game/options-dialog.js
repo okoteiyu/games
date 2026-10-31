@@ -45,6 +45,7 @@ const count=value=>Number.isFinite(value)?Math.max(0,Math.floor(value)):0;
 const titles=Object.fromEntries(OPTION_ITEMS.map(x=>[x.id,x.label]));
 titles.main='オプション';titles.policy='ポリシー';titles.guideline='ガイドライン';titles.collection='コレクション';titles.maps='バトル';titles.trainings='訓練';
 titles['confirm-patrol-return']='パトロールを中断しますか？';
+titles['confirm-training']='訓練を開始';
 titles['ios-editions']='iOS版のご案内';titles.techniques='技';
 titles['growth-guide']='効率的成長の手引き';
 for(const [kind,label]of Object.entries(COLLECTION_KINDS))titles['collection-'+kind]=label;
@@ -60,6 +61,7 @@ export class OptionsDialog {
   dialog.querySelector('#optionsClose').addEventListener('click',()=>dialog.close());
   this.back.addEventListener('click',()=>this.goBack());
   this.body.addEventListener('click',async event=>{
+   if(!dialog.open)return;
    const growthTab=event.target.closest('[data-growth-tab]');if(growthTab){selectGrowthGuideTab(this.body,growthTab.dataset.growthTab);return;}
    const techSlot=event.target.closest('[data-technique-slot]');if(techSlot){this.activeTechniqueSlot=Number(techSlot.dataset.techniqueSlot);this.renderTechniques();return;}
    const tech=event.target.closest('[data-technique-select]');if(tech){this.selectedTechnique=tech.dataset.techniqueSelect;this.renderTechniques();return;}
@@ -77,14 +79,17 @@ export class OptionsDialog {
     try{const accepted=await(kind==='aura'?this.onEquipAura(id):this.onEquipItem(kind,id));if(!accepted)throw new Error('装備を変更できませんでした。');if(dialog.open&&generation===this.generation)this.renderCollectionCategory(kind);}
     catch(error){if(dialog.open&&generation===this.generation){equip.disabled=false;this.body.querySelector('[data-collection-status]').textContent=error.message||'装備を変更できませんでした。';}}return;
    }
+   const training=event.target.closest('[data-training-select]');
+   if(training){const tier=training.dataset.trainingSelect;if(training.disabled||!this.canRequestTraining(this.readGame(),tier))return;this.selectedTrainingTier=tier;this.navigate('confirm-training');this.history.at(-1).trainingTier=tier;this.body.querySelector('[data-training-cancel]')?.focus();return;}
+   if(event.target.closest('[data-training-cancel]')){if(this.history.length)this.goBack();else dialog.close('cancel');return;}
    const map=event.target.closest('[data-map]');
    if(map&&['house','patrol','training','training-hall'].includes(map.dataset.map)){
     const destination=map.dataset.map,tier=map.dataset.trainingTier||'easy';
     if(map.disabled||!(destination==='patrol'?this.canRequestPatrol():destination==='training'?this.canRequestTraining(this.readGame(),tier):destination==='training-hall'?Boolean(this.readGame()?.canVisitTrainingHall&&!this.readGame()?.messageVisible):this.canSelectMap()))return;
     if(destination==='house'&&this.readGame()?.scene==='patrol'){this.navigate('confirm-patrol-return');return;}
-    dialog.addEventListener('close',()=>this.onSelectMap(destination,tier),{once:true});dialog.close();return;
+    map.disabled=true;dialog.addEventListener('close',()=>this.onSelectMap(destination,tier),{once:true});dialog.close();return;
    }
-   const confirmReturn=event.target.closest('[data-patrol-return]');if(confirmReturn){if(confirmReturn.dataset.patrolReturn==='cancel'){this.goBack();return;}if(!this.canSelectMap()||this.readGame()?.scene!=='patrol')return;dialog.addEventListener('close',()=>this.onSelectMap('house'),{once:true});dialog.close();return;}
+   const confirmReturn=event.target.closest('[data-patrol-return]');if(confirmReturn){if(confirmReturn.dataset.patrolReturn==='cancel'){if(this.history.length)this.goBack();else dialog.close('cancel');return;}if(confirmReturn.disabled||!this.canSelectMap()||this.readGame()?.scene!=='patrol')return;confirmReturn.disabled=true;dialog.addEventListener('close',()=>this.onSelectMap('house'),{once:true});dialog.close();return;}
    const button=event.target.closest('[data-panel]');if(button)this.navigate(button.dataset.panel);
   });
   this.body.addEventListener('change',async event=>{if(!event.target.matches('[data-super-configuration]'))return;await this.onSuperConfiguration(event.target.value);this.renderTechniques();});
@@ -100,11 +105,13 @@ export class OptionsDialog {
  updateWidth(){this.dialog.style.setProperty('--options-width',Math.max(1,Math.min(440,window.innerWidth-12,Math.max(this.game.getBoundingClientRect().width-12,Math.min(340,window.innerWidth-12))))+'px');}
  open(route='main',opener=this.trigger){if(isModalBlocked())return false;if(!hasRoute(route))throw new RangeError('表示先が正しくありません。');this.opener?.setAttribute('aria-expanded','false');this.opener=opener?.focus?opener:this.trigger;this.history=[];this.render(route);if(!tryOpenModal(this.dialog))return false;this.opener.setAttribute('aria-expanded','true');return true;}
  navigate(id){if(!hasRoute(id))return;this.history.push({id:this.route,focus:id});this.render(id);this.title.focus();}
- goBack(){const last=this.history.pop();if(!last)return;this.render(last.id);this.body.querySelector('[data-panel="'+last.focus+'"]')?.focus();}
+ goBack(){const last=this.history.pop();if(!last)return;this.render(last.id);this.body.querySelector(last.trainingTier?'[data-training-select="'+last.trainingTier+'"]':'[data-panel="'+last.focus+'"]')?.focus();}
+ openTrainingConfirmation(tier,opener){if(isModalBlocked()||!Object.hasOwn(TRAINING_COURSES,tier)||!this.canRequestTraining(this.readGame(),tier))return false;this.selectedTrainingTier=tier;const opened=this.open('confirm-training',opener);if(opened)this.body.querySelector('[data-training-cancel]')?.focus();return opened;}
+ trainingCourseChoices(){const snapshot=this.readGame(),shortLabels={easy:'易',medium:'中',hard:'難',master:'マスター',infinity:'∞'};return Object.values(TRAINING_COURSES).map(course=>{const possible=Boolean(snapshot?.player&&eligibleTrainingCreatures(snapshot.player,course.id).length),available=this.canRequestTraining(snapshot,course.id);return {id:course.id,label:course.label,shortLabel:shortLabels[course.id],available,reason:available?'':!possible?'現在の条件に合う珍生物がいません。':snapshot?.calmPoints<1?'穏やかポイントが足りません。':'今は訓練を開始できません。'};});}
  refreshGameView(){
-  if(!this.dialog.open||!['maps','trainings','membership','collection','journal','techniques',...Object.keys(COLLECTION_KINDS).map(k=>'collection-'+k)].includes(this.route)){this.liveStateKey=null;return;}
+  if(!this.dialog.open||!['maps','trainings','confirm-training','membership','collection','journal','techniques',...Object.keys(COLLECTION_KINDS).map(k=>'collection-'+k)].includes(this.route)){this.liveStateKey=null;return;}
   const state=this.readGame(),key=JSON.stringify([this.route,state?.location,state?.scene,state?.homeCommands,state?.pendingAngerEvent,state?.player,state?.patrolCount,state?.angerEvents,this.game.querySelector('#rankValue')?.textContent]);
-  if(!this.liveStateKey){this.liveStateKey=key;return;}if(key===this.liveStateKey)return;this.liveStateKey=key;
+  if(key===this.liveStateKey)return;this.liveStateKey=key;
   const scroll=this.body.scrollTop,active=document.activeElement,data=this.body.contains(active)&&active?.dataset&&Object.keys(active.dataset).length?{...active.dataset}:null;this.render(this.route);this.body.scrollTop=scroll;
   if(data){const focus=[...this.body.querySelectorAll('button')].find(b=>Object.entries(data).every(([k,v])=>b.dataset[k]===v));focus?.focus({preventScroll:true});}
  }
@@ -123,11 +130,11 @@ export class OptionsDialog {
   }else if(id==='techniques'){
    this.renderTechniques();
   }else if(id==='maps'){
-   const snapshot=this.readGame(),current=!snapshot||snapshot.location==='home',allowed=this.canSelectMap(snapshot);
-   const patrolAllowed=this.canRequestPatrol(snapshot),player=snapshot?.player;
+   const snapshot=this.readGame(),allowed=this.canSelectMap(snapshot);
+   const patrolAllowed=this.canRequestPatrol(snapshot);
    const patrolDetail=snapshot?.scene==='training-hall'?'パトロールは、おこていゆハウスから出発します。':snapshot?.location==='patrol'?'いま、道中をパトロールしています。':snapshot?.homeCommands?.patrolAvailable===false?'今の条件で出会える珍生物はいません。':!patrolAllowed?'ひと息つくのを、もう少し待ちましょう。':'パトロールに出かける';
    const inHall=snapshot?.scene==='training-hall',hallAllowed=Boolean(snapshot?.canVisitTrainingHall&&!snapshot?.messageVisible);
-   this.body.innerHTML='<button class="map-card" type="button" data-map="house" aria-label="おこていゆハウスに切り替える"'+(allowed?'':' disabled aria-describedby="mapRestriction"')+'><span class="map-card__icon">'+icon('house')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">HOME</small><strong class="map-card__name">おこていゆハウス</strong><span class="map-card__description">ホーム画面 · 研究と暮らし</span></span>'+(current?'<span class="option-tag">現在地</span>':'')+'<span class="map-card__arrow" aria-hidden="true">›</span></button><button class="map-card" type="button" data-map="patrol"'+(patrolAllowed?'':' disabled')+'><span class="map-card__icon">'+icon('map')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">PATROL</small><strong class="map-card__name">パトロールに出る</strong><span class="map-card__description">'+patrolDetail+'</span><span class="map-card__description">強敵も登場します。準備を万全に。</span></span><span class="map-card__arrow" aria-hidden="true">›</span></button>'+'<button class="map-card" type="button" '+(inHall?'data-panel="trainings"':'data-map="training-hall"')+((inHall&&allowed)||hallAllowed?'':' disabled')+'><span class="map-card__icon">'+icon('shield')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">B2 · TRAINING</small><strong class="map-card__name">'+(inHall?'訓練をはじめる':'訓練所へ移動')+'</strong><span class="map-card__description">'+(inHall?'難易度を選んで、腕を磨きます。':'地下2階の訓練所へ。移動ではポイントを使いません。')+'</span></span><span class="map-card__arrow" aria-hidden="true">›</span></button>'+(allowed?'':'<p class="option-note" id="mapRestriction">戦闘中とカットイン中は、マップを移動できません。</p>');
+   this.body.innerHTML='<button class="map-card" type="button" data-map="patrol"'+(patrolAllowed?'':' disabled')+'><span class="map-card__icon">'+icon('map')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">PATROL</small><strong class="map-card__name">パトロールに出る</strong><span class="map-card__description">'+patrolDetail+'</span><span class="map-card__description">強敵も登場します。準備を万全に。</span></span><span class="map-card__arrow" aria-hidden="true">›</span></button>'+'<button class="map-card" type="button" '+(inHall?'data-panel="trainings"':'data-map="training-hall"')+((inHall&&allowed)||hallAllowed?'':' disabled')+'><span class="map-card__icon">'+icon('shield')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">B2 · TRAINING</small><strong class="map-card__name">'+(inHall?'難易度を一覧で選ぶ':'訓練所へ移動')+'</strong><span class="map-card__description">'+(inHall?'難易度を選んで、腕を磨きます。':'地下2階の訓練所へ。移動ではポイントを使いません。')+'</span></span><span class="map-card__arrow" aria-hidden="true">›</span></button>'+(allowed?'':'<p class="option-note" id="mapRestriction">戦闘中とカットイン中は、マップを移動できません。</p>');
   }else if(id==='confirm-patrol-return'){
    this.body.innerHTML='<section class="patrol-return-confirm"><p>今回のパトロールを中断して、おこていゆハウスに戻りますか？</p><p class="option-note">道中の移動は、ここで終わりになります。</p><div><button class="option-action" type="button" data-patrol-return="cancel">パトロールを続ける</button><button class="option-action" type="button" data-patrol-return="confirm">中断して帰る</button></div></section>';
   }else if(id==='trainings'){
@@ -137,9 +144,13 @@ export class OptionsDialog {
     const range=course.id==='infinity'?'95〜':course.min+'〜'+course.max;
     const categories=course.categories.includes('threat')?'通常・脅威':'通常';
     const detail=possible?'穏やかポイントを1消費します。':'現在の条件に合う珍生物がいません。';
-    return '<button class="map-card" type="button" data-map="training" data-training-tier="'+course.id+'"'+(enabled?'':' disabled')+'><span class="map-card__icon">'+icon('shield')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">TRAINING · Lv.'+range+' · '+categories+'</small><strong class="map-card__name">'+course.label+'</strong><span class="map-card__description">'+detail+'</span></span><span class="map-card__arrow" aria-hidden="true">›</span></button>';
+    return '<button class="map-card" type="button" data-training-select="'+course.id+'"'+(enabled?'':' disabled')+'><span class="map-card__icon">'+icon('shield')+'</span><span class="map-card__copy"><small class="map-card__eyebrow">TRAINING · Lv.'+range+' · '+categories+'</small><strong class="map-card__name">'+course.label+'</strong><span class="map-card__description">'+detail+'</span></span><span class="map-card__arrow" aria-hidden="true">›</span></button>';
    }).join('');
    this.body.innerHTML='<p class="option-section-intro">難易度を選んでください。プニムは最初から相手をしてくれます。ほかにも、パトロールで勝った珍生物や、成長して出会えなくなった珍生物が相手をします。</p>'+courses;
+  }else if(id==='confirm-training'){
+   const course=TRAINING_COURSES[this.selectedTrainingTier],choice=this.trainingCourseChoices().find(item=>item.id===course?.id),enabled=Boolean(choice?.available);
+   const range=course?.id==='infinity'?'95〜':course?course.min+'〜'+course.max:'';
+   this.body.innerHTML='<section class="patrol-return-confirm"><h3>'+escapeHtml(course?.label||'訓練')+'</h3><p>この難易度で訓練を始めますか？</p><p class="option-note">Lv.'+range+' · 穏やかポイントを1消費します。</p>'+(enabled?'':'<p class="option-note" role="status">'+escapeHtml(choice?.reason||'今は訓練を開始できません。')+'</p>')+'<div><button class="option-action" type="button" data-training-cancel>やめる</button><button class="option-action" type="button" data-map="training" data-training-tier="'+escapeHtml(course?.id||'')+'"'+(enabled?'':' disabled')+'>訓練を開始</button></div></section>';
   }else if(id==='journal'){
    this.renderJournal();
   }else if(id==='catalog'){
