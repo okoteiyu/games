@@ -1,4 +1,5 @@
-import {TECHNIQUES,TECHNIQUE_RANKS,availableTechniqueIds,SUPER_CONFIGURATIONS,availableSuperConfigurationIds,superStateDetails,playerTechniqueLevel,techniquePower} from './technique-rules.js';
+import {TECHNIQUES,TECHNIQUE_RANKS,availableTechniqueIds,availableSuperConfigurationIds,superStateDetails,playerTechniqueLevel,techniquePower} from './technique-rules.js';
+import {superPrefixPickerMarkup} from './super-prefix-picker.js';
 import {playerStats} from './game-session.js';
 import {collectionThumbnail} from './collection-data.js';
 import {additionalEffectsText} from './additional-effects.js';
@@ -13,7 +14,7 @@ function rankStarsMarkup(id){
 export function profileStats(player){return player.stats||playerStats(player);}
 export function superDetailsMarkup(player,{editable=false,disabled=false}={}){
  const state=superStateDetails(player),stats=profileStats(player),boosted=playerStats(player,{superMultiplier:state.multiplier}),attack=boosted.attack,ki=boosted.ki,owned=availableSuperConfigurationIds(player),prefixed=state.configuration!=='none';
- const selector=editable?'<label>接頭辞オプション<select data-super-configuration'+(disabled?' disabled':'')+'>'+owned.map(id=>SUPER_CONFIGURATIONS[id]).map(c=>'<option value="'+c.id+'"'+(c.id===state.configuration?' selected':'')+'>'+esc(c.label)+'</option>').join('')+'</select></label>':'<p>接頭辞：'+esc(state.configurationLabel)+'</p>';
+ const selector=editable?superPrefixPickerMarkup(player,{disabled}):'<p>接頭辞：'+esc(state.configurationLabel)+'</p>';
  const levels='<div><dt>'+(prefixed?'接頭辞のレベル':'接頭辞なしのレベル')+'</dt><dd data-super-configuration-level>'+state.level+' / '+state.maxLevel+'</dd></div>'+(prefixed?'<div><dt>接頭辞なしのレベル</dt><dd data-super-base-level>'+state.baseLevel+' / '+state.baseMaxLevel+'</dd></div>':'');
  const inherited=prefixed?'<p class="option-note" data-super-base-inheritance>基本の強化と効果時間は、接頭辞なしのLv.'+state.baseLevel+'から受け継ぎます。</p>':'';
  const capped=state.level>=state.maxLevel?'<p class="option-note" data-super-configuration-max>この状態は最大レベルのため、おこていゆイベントの強化候補には入りません。'+(prefixed?'接頭辞なしを育てたいときは、「なし」を選んでください。':'')+'</p>':'';

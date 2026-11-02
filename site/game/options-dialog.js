@@ -1,7 +1,8 @@
 import {TIME_LABELS} from './world-time.js';
 import {TRAINING_COURSES,eligibleTrainingCreatures} from './game-session.js';
 import {REGION_LABELS} from './patrol-map.js';
-import {availableTechniqueIds,TECHNIQUES} from './technique-rules.js';
+import {availableTechniqueIds,availableSuperConfigurationIds,TECHNIQUES} from './technique-rules.js';
+import {SuperPrefixPicker} from './super-prefix-picker.js';
 import {techniquePageMarkup,repertoireMarkup,superDetailsMarkup,profileStats} from './technique-ui.js';
 import {STARTUP_NOTICE} from './notice-popup.js';
 import {COLLECTION_KINDS,collectionThumbnail,CREATURE_NOTES} from './collection-data.js';
@@ -59,6 +60,7 @@ export class OptionsDialog {
   this.dialog=dialog;this.trigger=trigger;this.game=game;this.readState=readState;this.readGame=readGame;this.applyState=applyState;this.onSelectMap=onSelectMap;this.onEquipAura=onEquipAura;this.onEquipItem=onEquipItem;this.onAssignTechnique=onAssignTechnique;this.onSuperConfiguration=onSuperConfiguration;this.activeTechniqueSlot=0;this.selectedTechnique='punch';this.selectedCollection={};this.selectedJournal=null;this.validateTransfer=validateTransfer;this.opener=trigger;
   this.body=dialog.querySelector('#optionsBody');this.title=dialog.querySelector('#optionsTitle');this.back=dialog.querySelector('#optionsBack');
   this.route='main';this.history=[];this.generation=0;this.pending=null;
+  this.superPrefixPicker=new SuperPrefixPicker({root:dialog,onSelect:value=>this.selectSuperConfiguration(value),canOpen:()=>{const state=this.readGame();return this.route==='techniques'&&state?.location==='home'&&!state.pendingAngerEvent;}});
   trigger.setAttribute('aria-expanded','false');
   trigger.addEventListener('click',()=>this.open());
   dialog.querySelector('#optionsClose').addEventListener('click',()=>dialog.close());
@@ -97,21 +99,6 @@ export class OptionsDialog {
    const confirmReturn=event.target.closest('[data-patrol-return]');if(confirmReturn){if(confirmReturn.dataset.patrolReturn==='cancel'){if(this.history.length)this.goBack();else dialog.close('cancel');return;}if(confirmReturn.disabled||!this.canSelectMap()||this.readGame()?.scene!=='patrol')return;confirmReturn.disabled=true;dialog.addEventListener('close',()=>this.onSelectMap('house'),{once:true});dialog.close();return;}
    const button=event.target.closest('[data-panel]');if(button)this.navigate(button.dataset.panel);
   });
-  this.body.addEventListener('change',async event=>{
-   const select=event.target;if(!select.matches('[data-super-configuration]')||select.disabled)return;
-   const snapshot=this.readGame();if(snapshot?.location!=='home'||snapshot.pendingAngerEvent){this.renderTechniques();return;}
-   const generation=this.generation,value=select.value;select.disabled=true;
-   try{
-    const accepted=await this.onSuperConfiguration(value);if(!this.dialog.open||this.route!=='techniques')return;
-    if(generation!==this.generation){
-     const current=this.body.querySelector('[data-super-configuration]');if(accepted&&current?.value===value)current.focus({preventScroll:true});return;
-    }
-    this.renderTechniques();this.body.querySelector('[data-super-configuration]')?.focus({preventScroll:true});
-    if(!accepted)this.body.querySelector('[data-technique-status]').textContent='接頭辞オプションを変更できませんでした。';
-   }catch(error){
-    if(this.dialog.open&&generation===this.generation){this.renderTechniques();this.body.querySelector('[data-technique-status]').textContent=error.message||'接頭辞オプションを変更できませんでした。';}
-   }
-  });
   this.body.addEventListener('keydown',event=>{
    const tab=event.target.closest('[role=tab][data-growth-tab]');if(!tab||!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
    event.preventDefault();const index=GROWTH_GUIDE_TABS.findIndex(([id])=>id===tab.dataset.growthTab),length=GROWTH_GUIDE_TABS.length;
@@ -122,6 +109,20 @@ export class OptionsDialog {
   this.resize=new ResizeObserver(()=>this.updateWidth());this.resize.observe(game);this.updateWidth();
  }
  updateWidth(){this.dialog.style.setProperty('--options-width',Math.max(1,Math.min(440,window.innerWidth-12,Math.max(this.game.getBoundingClientRect().width-12,Math.min(340,window.innerWidth-12))))+'px');}
+ async selectSuperConfiguration(value){
+  const trigger=this.body.querySelector('[data-super-configuration]'),snapshot=this.readGame();
+  if(!this.dialog.open||this.route!=='techniques'||!trigger||trigger.disabled||snapshot?.location!=='home'||snapshot.pendingAngerEvent||!availableSuperConfigurationIds(snapshot.player).includes(value))return;
+  const generation=this.generation;trigger.disabled=true;
+  try{
+   const accepted=await this.onSuperConfiguration(value);if(!this.dialog.open||this.route!=='techniques')return;
+   if(generation===this.generation)this.renderTechniques();
+   const current=this.body.querySelector('[data-super-configuration]');
+   if(generation===this.generation||accepted&&current?.value===value)current?.focus({preventScroll:true});
+   if(!accepted)this.body.querySelector('[data-technique-status]').textContent='接頭辞オプションを変更できませんでした。';
+  }catch(error){
+   if(this.dialog.open&&this.route==='techniques'&&generation===this.generation){this.renderTechniques();this.body.querySelector('[data-super-configuration]')?.focus({preventScroll:true});this.body.querySelector('[data-technique-status]').textContent=error.message||'接頭辞オプションを変更できませんでした。';}
+  }
+ }
  open(route='main',opener=this.trigger){if(isModalBlocked())return false;if(!hasRoute(route))throw new RangeError('表示先が正しくありません。');this.opener?.setAttribute('aria-expanded','false');this.opener=opener?.focus?opener:this.trigger;this.history=[];this.render(route);if(!tryOpenModal(this.dialog))return false;this.opener.setAttribute('aria-expanded','true');return true;}
  navigate(id){if(!hasRoute(id))return;this.history.push({id:this.route,focus:id});this.render(id);this.title.focus();}
  goBack(){const last=this.history.pop();if(!last)return;this.render(last.id);this.body.querySelector(last.trainingTier?'[data-training-select="'+last.trainingTier+'"]':'[data-panel="'+last.focus+'"]')?.focus();}
@@ -224,7 +225,7 @@ export class OptionsDialog {
   const rows=[['あなたの名前',snapshot?.visitorName||'未登録'],['撃退数',defeats.toLocaleString('ja-JP')+'体'],['勝利した戦闘',count(player.battlesWon)+'回'],['敗北した戦闘',count(player.battlesLost)+'回'],['パトロール',count(snapshot?.patrolCount)+'回'],['おこていゆイベント',count(snapshot?.angerEvents)+'回'],['キャラレベル',player.level||1],...Object.entries(stats).map(([key,value])=>[({hp:'HP',attack:'攻撃力',ki:'気',speed:'速さ'})[key],Number(value).toLocaleString('ja-JP',{maximumFractionDigits:1})])];
   this.body.innerHTML='<p class="option-section-intro">これまでの活動を記録しています。Web版では記録の確認ができ、ヒーロー会のサービスはiOS版で解放されます。</p><section class="membership-card"><span class="membership-card__overline">珍生物ヒーロー会 · 活動記録</span><div class="membership-card__name">おこていゆ</div><div class="membership-card__rank"><span>HERO RANK</span><strong>'+escapeHtml(rank)+'</strong></div></section><dl class="option-data">'+rows.map(([label,value])=>'<div><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(value)+'</dd></div>').join('')+'</dl>';
  }
- renderTechniques(){const snapshot=this.readGame();this.body.innerHTML=techniquePageMarkup(this.collectionPlayer(),{slot:this.activeTechniqueSlot,selected:this.selectedTechnique,canEdit:snapshot?.location==='home'&&!snapshot.pendingAngerEvent,attackMultiplier:snapshot?.battle?.super?.active?snapshot.battle.super.multiplier:1});}
+ renderTechniques(){const pickerState=this.superPrefixPicker.snapshot(),snapshot=this.readGame();this.body.innerHTML=techniquePageMarkup(this.collectionPlayer(),{slot:this.activeTechniqueSlot,selected:this.selectedTechnique,canEdit:snapshot?.location==='home'&&!snapshot.pendingAngerEvent,attackMultiplier:snapshot?.battle?.super?.active?snapshot.battle.super.multiplier:1});this.superPrefixPicker.restore(pickerState);}
  renderJournal(){
   const player=this.collectionPlayer(),journal=player.journal||{},entries=Object.entries(CREATURES).filter(([id,creature])=>id==='okoteiyu'||Object.hasOwn(CREATURE_CATEGORIES,creature.category)&&hasJournalRecord(journal[id])).map(([id,creature])=>({...journal[id],id,name:creature.name,creature,self:id==='okoteiyu'}));
   if(!entries.some(e=>e.id===this.selectedJournal))this.selectedJournal=entries[0].id;const selected=entries.find(e=>e.id===this.selectedJournal);
