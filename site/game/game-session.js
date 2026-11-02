@@ -1,6 +1,6 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
 import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
-import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
+import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES,INITIAL_STORY_CHAPTER} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {createFacilityStaff,normalizeFacilityStaff,advanceFacilityStaffShift,setFacilityStaffPlacements,clearFacilityStaffPlacements} from './facility-staff.js';
 import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superConfigurationAcquisition,superConfigurationLevel,superConfigurationMaxLevel,superPrefixDamageMultipliers} from './super-prefix-rules.js';
@@ -185,6 +185,13 @@ function restorePlayer(saved){
  return player;
 }
 
+function restoreStory(saved){
+ // Legacy saves start at chapter one; this never executes chapter-completion events.
+ if(saved===undefined)return {currentChapter:INITIAL_STORY_CHAPTER};
+ if(!saved||typeof saved!=='object'||Array.isArray(saved))throw new TypeError('Invalid story progress.');
+ return {currentChapter:integer(saved.currentChapter,'story chapter',1)};
+}
+
 /** Validate and normalize the persistent home-only save payload without side effects. */
 export function validateSessionState(saved){
  if(!saved||saved.schemaVersion!==1)throw new TypeError('Unsupported game-session save schema.');
@@ -194,14 +201,14 @@ export function validateSessionState(saved){
  const interferenceUsedSinceBattle=saved.interferenceUsedSinceBattle===undefined?false:saved.interferenceUsedSinceBattle;
  if(typeof interferenceUsedSinceBattle!=='boolean')throw new TypeError('Interference lock must be boolean.');
  const patrolUsedSinceRecovery=saved.patrolUsedSinceRecovery??false;if(typeof patrolUsedSinceRecovery!=='boolean')throw new TypeError('Patrol cooldown must be boolean.');
- return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount,facilityStaff:normalizeFacilityStaff(saved.facilityStaff)});
+ return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),story:restoreStory(saved.story),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount,facilityStaff:normalizeFacilityStaff(saved.facilityStaff)});
 }
 
 export class GameSession{
  constructor({rng=Math.random,staffRng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
   if(typeof rng!=='function'||typeof staffRng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
   this.rng=rng;this.staffRng=staffRng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
-  this.state={schemaVersion:1,visitorName:null,location:'home',player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined};
+  this.state={schemaVersion:1,visitorName:null,location:'home',story:{currentChapter:INITIAL_STORY_CHAPTER},player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined};
   if(state!==null)this.importState(state);
  }
  emit(type,detail={}){const event={type,...detail};this.eventLog.push(clone(event));if(this.eventLog.length>120)this.eventLog.shift();this.onEvent(event);return event;}
@@ -512,7 +519,7 @@ export class GameSession{
   const departing=allowDepartureCheckpoint&&['patrol','training'].includes(this.state.location);
   if((this.state.location!=='home'&&!departing)||this.state.battle||this.state.pendingAngerEvent&&!allowPending)throw new Error('Save only at home, outside patrol, battle, and the anger cut-in.');
   this.player.superConfigurationLevels.none=superConfigurationLevel(this.player,'none');
-  return clone({schemaVersion:1,visitorName:this.state.visitorName,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount,facilityStaff:this.state.facilityStaff});
+  return clone({schemaVersion:1,visitorName:this.state.visitorName,story:this.state.story,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount,facilityStaff:this.state.facilityStaff});
  }
  importState(saved){
   if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)throw new Error('Load only at home, outside an event.');
