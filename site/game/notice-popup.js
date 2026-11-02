@@ -2,9 +2,9 @@ import { isModalBlocked, tryOpenModal, releaseModal } from './modal-layer.js';
 const make=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
 export const STARTUP_NOTICE={title:'珍生物「おこていゆ」',message:'このゲームは、ベータ版かつLite版です。プレイ前に、以下をご確認ください。',sections:[
   {title:'ベータ版について',text:'ベータ版はWebブラウザでのみプレイ可能です。動作確認を主な用途としているため、グラフィックス・アニメーション・UIのクオリティは保証しません。'},
-  {title:'Web版の収録内容',text:'Web公開のベータ版・Lite版には、ストーリーとヒーロー会のサービスは含まれていません。会員証の活動記録は確認できます。ストーリーとサービスはiOSのLite版・フル版で解放されます。'},
+  {title:'Web版の収録内容',text:'Web版でも、おこていゆの物語を楽しめるよう、ストーリーを段階的に追加していきます。収録内容は開発に合わせて更新されます。ヒーロー会のサービスは未解放ですが、会員証の活動記録は確認できます。'},
   {title:'製品版の配信予定',text:'製品版は、まずiOSのApp Storeで配信し、その後Google Playストアで配信する予定です。'},
-  {title:'iOSのLite版とフル版について',text:'iOS版では、Lite版・フル版ともにストーリーとヒーロー会が解放され、キャラクターとアイテムのバリエーションが増えます。フル版はさらに内容が充実し、声・アニメーション付き追加ストーリー・全クリア後のアフターストーリーが付きます。フル版は少額の有料買い切りを予定しています。詳しくはオプションの「iOSのLite版・フル版のご案内」をご覧ください。'}
+  {title:'iOSのLite版とフル版について',text:'iOS版では、Lite版・フル版ともにストーリーを収録し、ヒーロー会のサービスを利用できる予定です。キャラクターとアイテムのバリエーションも増えます。フル版はさらに内容が充実し、声・アニメーション付き追加ストーリー・全クリア後のアフターストーリーが付きます。フル版は少額の有料買い切りを予定しています。詳しくはオプションの「iOSのLite版・フル版のご案内」をご覧ください。'}
  ]};
 export class NoticePopup {
  constructor({game}) {

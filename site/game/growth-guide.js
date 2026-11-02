@@ -26,7 +26,7 @@ export function growthGuideMarkup(){
    <section class="growth-guide__chapter"><h4>戦略</h4><p>戦闘が始まったら、早めに「スーパーおこていゆ状態」をお願いするのがおすすめです。最初から畳み掛けることで、強化されている時間を攻撃にたっぷり使えます。</p><p>自動で発動するのを待つより、最初のひと押し。もちものやオーラの準備と合わせて試してみてください。</p></section>`,
   after:`<header class="growth-guide__intro"><span class="growth-guide__eyebrow">強くなった、その先へ</span><h3>成長後</h3><p>準備が整ってきたら、またパトロールへ。まだ見ぬ珍生物を探してみましょう。</p></header>
    <section class="growth-guide__chapter"><h4>新しい出会いを探そう</h4><p>おこていゆが成長すると、パトロールで出会う相手も変わっていきます。別の場所や時間帯も歩きながら、記録帳を少しずつにぎやかにしてみてください。</p><p>新しいオーラを育てたり、もちものや技の組み合わせを変えたり。自分なりの戦い方を見つけるのも、楽しみのひとつです。</p></section>
-   <section class="growth-guide__chapter growth-guide__chapter--future"><h4>iOS版では、さらに</h4><p>iOS版では、ストーリーや新たな珍生物の追加も予定しています。おこていゆの世界は、もう少し先へ続く予定です。</p><p>詳しくは、オプションの「iOSのLite版・フル版のご案内」をのぞいてみてください。</p></section>`
+   <section class="growth-guide__chapter growth-guide__chapter--future"><h4>物語のつづきへ</h4><p>Web版でも、ストーリーを段階的に追加していきます。iOS版では、さらに珍生物やアイテムのバリエーションが増える予定です。</p><p>詳しくは、オプションの「iOSのLite版・フル版のご案内」をのぞいてみてください。</p></section>`
  };
  return '<div class="growth-guide"><nav class="growth-guide__tabs" role="tablist" aria-label="育成の手引きのページ">'+GROWTH_GUIDE_TABS.map(([id,label],i)=>`<button type="button" role="tab" id="growth-tab-${id}" aria-controls="growth-panel-${id}" aria-selected="${i===0}" tabindex="${i===0?0:-1}" data-growth-tab="${id}">${label}</button>`).join('')+'</nav>'+GROWTH_GUIDE_TABS.map(([id],i)=>`<article class="growth-guide__page" id="growth-panel-${id}" role="tabpanel" aria-labelledby="growth-tab-${id}" tabindex="0"${i?' hidden':''}>${pages[id]}</article>`).join('')+'</div>';
 }
