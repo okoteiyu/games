@@ -285,7 +285,6 @@ export class GameRuntime {
   this.messages=this.messages.filter(payload=>!ids.has(payload.acquisitionId));
   const replay=Boolean(this.story?.battlePending&&this.story.replay);
   this.resultMessages=battleResultMessages(replay?{...battle,rewards:{experience:0}}:battle,{superUnlocks:replay?[]:unlocks});
-  if(replay)this.resultMessages.push({category:'narration',speaker:'ナレーション',kind:'narration',text:'物語の読み返しのため、成長や持ち物の記録は変わりません。'});
   this.resultMessageActive=true;this.resultMessagesComplete=false;
   this.say(this.resultMessages.shift());return true;
  }
@@ -308,15 +307,14 @@ export class GameRuntime {
   this.lastAngerResult=this.session.resolveAngerEvent();const outcome=this.lastAngerResult;
   if(!result.utteranceSent)this.enqueueMessages({type:'anger',speaker:'おこていゆ',kind:'speech',category:'conversation',text:'ｵｺﾃｲﾕ'});
   this.enqueueMessages({type:'anger',category:'narration',text:'おこていゆイベントが起きた。'});
-  let text='おこていゆは少しむっとして、ひと息ついた。',category='narration';
-  if(outcome?.id==='super_state_level_up'){
-   category='experience';const name=outcome.superName||'スーパーおこていゆ状態',level=outcome.superConfigurationLevel??outcome.superLevel;
-   text=outcome.changed?name+'のレベルが'+level+'に上がった！':name+'は、すでに最高レベルだ。';
-  }else if(outcome?.techniqueId){
-   const name=outcome.techniqueName||TECHNIQUES[outcome.techniqueId]?.name||'技';category=outcome.newlyLearned?'item':outcome.changed?'experience':'narration';
-   text=outcome.newlyLearned?name+'を取得した！ コレクションの「技」から設定できます。':outcome.changed?name+'が少し上達した！':name+'は、すでに最高レベルだ。';
+  if(outcome?.id==='super_state_level_up'&&outcome.changed){
+   const name=outcome.superName||'スーパーおこていゆ状態',level=outcome.superConfigurationLevel??outcome.superLevel;
+   this.enqueueMessages({type:'growth',category:'experience',text:name+'のレベルが'+level+'に上がった！'});
+  }else if(outcome?.techniqueId&&(outcome.newlyLearned||outcome.changed)){
+   const name=outcome.techniqueName||TECHNIQUES[outcome.techniqueId]?.name||'技',category=outcome.newlyLearned?'item':'experience';
+   this.enqueueMessages({type:'growth',category,text:outcome.newlyLearned?name+'を取得した！ コレクションの「技」から設定できます。':name+'が少し上達した！'});
   }
-  this.enqueueMessages({type:outcome?.changed?'growth':'anger',category,text});this.sync();
+  this.sync();
  }
  exportProgress({browser=false}={}){if(browser&&this.story?.active)return this.story.exportProgress();if(this.scene!=='house'&&!(browser&&isBuildingVisitScene(this.scene)))throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
  importProgress(progress){if(this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');validateVisitorProgress(progress?.session,progress?.relaxStreak);this.session.importState(progress.session);if(this.story){this.story.autoSuppressed=false;this.story.hadRewardBattle=false;}this.messages=[];this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;this.clearMessage();this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);this.session.state.interferenceUsedSinceBattle=false;this.sync();}

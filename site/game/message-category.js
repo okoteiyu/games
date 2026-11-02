@@ -3,7 +3,8 @@ export const MESSAGE_CATEGORIES=Object.freeze({
  narration:Object.freeze({id:'narration',label:'ナレーション',border:'#91b5a0',ink:'#354d43',line:'#e3eee7'}),
  experience:Object.freeze({id:'experience',label:'経験値・レベルアップ',border:'#83a8cf',ink:'#3c577a',line:'#e1eaf5'}),
  conversation:Object.freeze({id:'conversation',label:'会話',border:'#d8a6aa',ink:'#805859',line:'#f4e5e8'}),
- item:Object.freeze({id:'item',label:'アイテム獲得',border:'#caa460',ink:'#725726',line:'#f1e6cd'})
+ item:Object.freeze({id:'item',label:'アイテム獲得',border:'#caa460',ink:'#725726',line:'#f1e6cd'}),
+ innerThought:Object.freeze({id:'innerThought',label:'おこていゆの心の中',border:'#ffffff',ink:'#4a5250',line:'#e4e9e7',accent:'#87958f'})
 });
 export function normalizeMessageCategory(category,{kind='narration'}={}){
  if(category===undefined)return kind==='speech'?'conversation':'narration';
@@ -13,6 +14,6 @@ export function normalizeMessageCategory(category,{kind='narration'}={}){
 export function getMessageCategory(category){return MESSAGE_CATEGORIES[normalizeMessageCategory(category)];}
 export function categorizeMessage(payload={}){
  const kind=payload.kind??'narration',category=normalizeMessageCategory(payload.category,{kind}),meta=MESSAGE_CATEGORIES[category];
- const speaker=category==='experience'||category==='item'?meta.label:payload.speaker??(kind==='speech'?'おこていゆ':'ナレーション');
+ const speaker=category==='innerThought'?'':category==='experience'||category==='item'?meta.label:payload.speaker??(kind==='speech'?'おこていゆ':'ナレーション');
  return {...payload,kind,category,speaker};
 }

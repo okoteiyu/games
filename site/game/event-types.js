@@ -30,10 +30,10 @@ export function normalizeGameEvent(input) {
   if (kind !== 'narration' && kind !== 'speech') {
     throw new TypeError('イベントの表示種別はnarrationまたはspeechで指定してください。');
   }
-  const speaker = value.speaker === undefined ? (kind === 'speech' ? 'おこていゆ' : 'ナレーション') : value.speaker;
-  if (typeof speaker !== 'string' || !speaker.trim()) {
+  const category=normalizeMessageCategory(value.category,{kind});
+  const speaker = category==='innerThought'?'':value.speaker === undefined ? (kind === 'speech' ? 'おこていゆ' : 'ナレーション') : value.speaker;
+  if (typeof speaker !== 'string' || (category!=='innerThought'&&!speaker.trim())) {
     throw new TypeError('イベントの話者は空でない文字列で指定してください。');
   }
-  const category=normalizeMessageCategory(value.category,{kind});
   return Object.freeze({ type, text: value.text, kind, speaker, category });
 }

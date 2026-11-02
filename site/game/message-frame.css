@@ -139,5 +139,9 @@
 .message-frame[data-category] .message-frame__speaker::before{background:var(--message-category-accent);}
 .message-frame[data-category] .message-frame__continue{color:var(--message-category-accent);}
 .view-message .message-frame[data-category]::before{border-color:var(--message-category-line);}
+.message-frame[data-category="innerThought"]{background:#fff;box-shadow:0 5px 0 #e7ece9,0 11px 26px rgb(64 75 69 / 12%);}
+.message-frame[data-category="innerThought"] .message-frame__speaker{display:none;}
+.message-frame[data-category="innerThought"] .message-frame__sprig i{background:#dce4df;}
+.message-frame[data-category="innerThought"] .message-frame__sprig i:nth-child(2){background:#e8edea;}
 @media(max-height:540px){.message-frame[data-category] .message-frame__speaker{max-inline-size:calc(100% - 54px);}}
 @media(max-height:340px){.message-frame[data-category] .message-frame__speaker{max-inline-size:calc(100% - 38px);}}

@@ -87,7 +87,7 @@ export class StoryDirector {
    if(ready===false)throw new Error('物語の3D画面を準備できませんでした。');
    this.loading=false;
    if(scene.type==='choice'){this.paint('choice',{choices:scene.options,prompt:scene.prompt});return true;}
-   this.setPortrait(scene);r.messageLocked=this.paused||Boolean(scene.auto);r.say({speaker:scene.speaker||'ナレーション',kind:scene.portrait?'speech':'narration',category:scene.portrait?'conversation':'narration',text:scene.text},{record:false});
+   this.setPortrait(scene);r.messageLocked=this.paused||Boolean(scene.auto);r.say({speaker:scene.speaker||'ナレーション',kind:scene.portrait?'speech':'narration',category:scene.category??(scene.portrait?'conversation':'narration'),text:scene.text},{record:false});
    const page=r.readMessagePage?.()||{pages:1};this.autoDuration=Math.max(Number(scene.duration)||0,Array.from(scene.text||'').length/7+1.2,page.pages*2.4);
    this.paint(scene.auto?'auto':'read');return true;
   }catch(error){if(this.active&&serial===this.serial)this.fail(error);return false;}
