@@ -1,11 +1,15 @@
 import * as THREE from './vendor/three/three.module.js';
 
+/** Presentation colors only; the unprefixed appearance keeps its authored tint. */
+export const TRUE_SUPER_AURA_COLORS=Object.freeze([0xffcf47,0x287cff]);
+
 /** Soft upward streams and sparks; all animation follows the battle/view clock. */
 export class SuperRisingAura{
  constructor(height){
   this.root=new THREE.Group();this.root.name='Battle.SuperRisingAura';this.root.visible=false;
   let seed=97104;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
-  this.uniforms={time:{value:0},height:{value:height},strength:{value:1},edgeColor:{value:new THREE.Color('#d6ed43')},coreColor:{value:new THREE.Color('#fff6b1')}};
+  this.configuration='none';
+  this.uniforms={time:{value:0},height:{value:height},strength:{value:1},edgeColor:{value:new THREE.Color('#d6ed43')},coreColor:{value:new THREE.Color('#fff6b1')},secondEdgeColor:{value:new THREE.Color('#d6ed43')},secondCoreColor:{value:new THREE.Color('#fff6b1')},dualPalette:{value:0}};
   this.streams=this.makeLayer(42,false,random);this.sparks=this.makeLayer(120,true,random);this.root.add(this.streams,this.sparks);
  }
  makeLayer(count,sparks,random){
@@ -36,7 +40,7 @@ export class SuperRisingAura{
      gl_Position=projectionMatrix*view;vUv=uv;vLife=pow(sin(age*3.14159265),.75);vSeed=aPhase*27.;vHeight=center.y+position.y*length;
     }`,
    fragmentShader:`
-    uniform float time;uniform float height;uniform float strength;uniform float sparks;uniform vec3 edgeColor;uniform vec3 coreColor;
+    uniform float time;uniform float height;uniform float strength;uniform float sparks;uniform vec3 edgeColor;uniform vec3 coreColor;uniform vec3 secondEdgeColor;uniform vec3 secondCoreColor;uniform float dualPalette;
     varying vec2 vUv;varying float vLife;varying float vSeed;varying float vHeight;
     void main(){
      float bend=sin(vUv.y*8.-time*5.+vSeed)*.13*(1.-sparks);
@@ -46,13 +50,25 @@ export class SuperRisingAura{
      float wisps=.68+.32*sin(vUv.y*16.-time*7.+vSeed+x*2.);
      float ground=smoothstep(-height*.025,height*.06,vHeight);
      float alpha=sides*ends*vLife*ground*strength*mix(.23,.85,sparks)*mix(wisps,1.,sparks);
-     vec3 color=mix(edgeColor,coreColor,exp(-x*x*12.)*.75+sparks*.25);
+     float lane=step(.5,fract(vSeed*.754877666))*dualPalette;
+     vec3 edge=mix(edgeColor,secondEdgeColor,lane),core=mix(coreColor,secondCoreColor,lane);
+     vec3 color=mix(edge,core,exp(-x*x*12.)*.75+sparks*.25);
      gl_FragColor=vec4(color,alpha);
      #include <colorspace_fragment>
     }`});
   const mesh=new THREE.Mesh(geometry,material);mesh.name=sparks?'SuperAura.UpwardSparks':'SuperAura.SoftRisingStreams';mesh.frustumCulled=false;return mesh;
  }
- sample(elapsed,active){
+ setConfiguration(configuration='none'){
+  const next=configuration==='true'?'true':'none';if(next===this.configuration)return;
+  this.configuration=next;
+  this.uniforms.edgeColor.value.set(next==='true'?TRUE_SUPER_AURA_COLORS[0]:0xd6ed43);
+  this.uniforms.coreColor.value.set(next==='true'?0xffed9a:0xfff6b1);
+  this.uniforms.secondEdgeColor.value.set(next==='true'?TRUE_SUPER_AURA_COLORS[1]:0xd6ed43);
+  this.uniforms.secondCoreColor.value.set(next==='true'?0x8fd0ff:0xfff6b1);
+  this.uniforms.dualPalette.value=next==='true'?1:0;
+ }
+ sample(elapsed,active,configuration='none'){
+  this.setConfiguration(active?configuration:'none');
   this.root.visible=Boolean(active);if(!active)return;
   this.uniforms.time.value=Math.max(0,elapsed);
   const t=THREE.MathUtils.clamp(elapsed/.28,0,1);this.uniforms.strength.value=.55+.45*t*t*(3-2*t);

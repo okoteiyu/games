@@ -2,7 +2,7 @@ import {AURA_STYLES as auraStyles} from './aura-styles.js';
 import {TECHNIQUES} from './technique-rules.js';
 import {AttackEffects} from './attack-effects.js';
 import {SuperAwakeningStage} from './super-awakening-stage.js';
-import {SuperRisingAura} from './super-rising-aura.js';
+import {SuperRisingAura,TRUE_SUPER_AURA_COLORS} from './super-rising-aura.js';
 import {FATIGUE_DURATION,FATIGUE_MAX_FRAME_SECONDS,fatigueMotion,FatigueEffects} from './fatigue-motion.js';
 import {HitParticles} from './hit-particles.js';
 import {BattleSupportView} from './support-view.js';
@@ -290,7 +290,7 @@ export class BattleView{
    // helper effects are added. Camera fitting must never depend on live meshes.
    record.cameraBounds=this.trainingActorBounds(record).clone();
    record.appearance={};for(const [name,names]of Object.entries(definition.appearance||{}))record.appearance[name]=(Array.isArray(names)?names:[]).map(name=>findNode(record.model,name)).filter(Boolean);
-   if(id==='okoteiyu'){this.prepareAuraMaterials(record);record.glow=this.makeGlow(height);hitRoot.add(record.glow);}
+   if(id==='okoteiyu'){this.prepareAuraMaterials(record);this.prepareSuperAuraMaterials(record);record.glow=this.makeGlow(height);hitRoot.add(record.glow);}
    record.model.traverse(node=>{if(node.isMesh){node.frustumCulled=true;node.castShadow=false;node.receiveShadow=false;if(definition.softAlpha){for(const material of Array.isArray(node.material)?node.material:[node.material])if(material.transparent){material.depthWrite=false;material.side=THREE.DoubleSide;}}}});
    this.actorCache.set(key,record);return record;
   })();this.actorPromises.set(key,promise);try{return await promise;}finally{this.actorPromises.delete(key);}
@@ -298,6 +298,25 @@ export class BattleView{
  prepareAuraMaterials(record){
   const clones=new Map();record.auraMaterials=[];
   for(const root of record.appearance.whiteAuraNodes||[])root.traverse(node=>{if(!node.isMesh)return;const copy=original=>{if(!clones.has(original)){const material=original.clone(),entry={original,material,color:original.color?.clone(),emissive:original.emissive?.clone(),emissiveIntensity:original.emissiveIntensity};clones.set(original,entry);record.auraMaterials.push(entry);}return clones.get(original).material;};node.material=Array.isArray(node.material)?node.material.map(copy):copy(node.material);});
+ }
+ prepareSuperAuraMaterials(record){
+  const clones=new Map();record.superAuraMaterials=[];record.superAuraConfiguration='none';
+  // superNodes also contains the gold body, face and eyes. Recolor only the
+  // soft aura plumes, with independent materials for battle and cut-in actors.
+  for(const root of record.appearance.superNodes||[]){if(!root.name.replace(/[._]/g,'').startsWith('AuraSuper'))continue;
+   root.traverse(node=>{if(!node.isMesh)return;const copy=original=>{if(!clones.has(original)){const material=original.clone(),entry={material,color:original.color?.clone(),emissive:original.emissive?.clone(),emissiveIntensity:original.emissiveIntensity,lane:Math.floor(record.superAuraMaterials.length/2)%2};clones.set(original,entry);record.superAuraMaterials.push(entry);}return clones.get(original).material;};node.material=Array.isArray(node.material)?node.material.map(copy):copy(node.material);});
+  }
+ }
+ applySuperAuraColor(record,configuration='none'){
+  const next=configuration==='true'?'true':'none';if(next===record.superAuraConfiguration)return;
+  record.superAuraConfiguration=next;
+  for(const entry of record.superAuraMaterials||[]){
+   if(next==='true'){
+    const color=new THREE.Color(TRUE_SUPER_AURA_COLORS[entry.lane]);
+    if(entry.color)entry.material.color.copy(entry.color);
+    if(entry.emissive)entry.material.emissive.copy(color);
+   }else{if(entry.color)entry.material.color.copy(entry.color);if(entry.emissive)entry.material.emissive.copy(entry.emissive);}
+  }
  }
  applyAuraColor(record,auraId){
   const id=auraStyles[auraId]?auraId:'okoteiyu';if(record.auraId===id)return;
@@ -443,13 +462,15 @@ export class BattleView{
   const appearance=record.appearance;
   if(role==='player'){
    this.applyAuraColor(record,state.auraId);
+   const superConfiguration=superActive?(this.snapshot?.super?.configuration??this.snapshot?.techniques?.superDetails?.configuration??this.snapshot?.techniques?.superConfiguration??'none'):'none';
+   this.applySuperAuraColor(record,superConfiguration);
    for(const node of appearance.whiteAuraNodes||[])node.visible=auraActive;
    for(const node of appearance.superNodes||[])node.visible=superActive;
    for(const node of appearance.rayNodes||[])node.visible=motion==='energy_ray'&&effectKind!=='okoteiyu_beam';
    if(superActive&&!record.risingAura){record.risingAura=new SuperRisingAura(record.height);record.anchor.add(record.risingAura.root);}
    const superElapsed=current?.technique==='super_awaken'?attackElapsed:Math.max(0,this.time-(Number.isFinite(record.superAt)?record.superAt:0));
-   record.risingAura?.sample(superElapsed,superActive);
-   if(record.glow){const style=auraStyles[record.auraId]||auraStyles.okoteiyu;record.glow.visible=auraActive||superActive;record.glow.material.color.set(style.palette?0xffffff:superActive&&(!auraActive||record.auraId==='okoteiyu')?0xd5ef59:record.auraColor);record.glow.material.opacity=superActive?.95:style.emphasis?.95:style.palette?.72:.52;record.glow.scale.set(record.height*(superActive?2.05:style.emphasis?1.85:1.48),record.height*(superActive?2.12:style.emphasis?1.95:1.55),1);}
+   record.risingAura?.sample(superElapsed,superActive,superConfiguration);
+   if(record.glow){const style=auraStyles[record.auraId]||auraStyles.okoteiyu,trueGlow=superActive&&superConfiguration==='true'&&(!auraActive||record.auraId==='okoteiyu');record.glow.visible=auraActive||superActive;const map=trueGlow?this.paletteAuraTexture('super:true',TRUE_SUPER_AURA_COLORS):style.palette?this.paletteAuraTexture(record.auraId,style.palette):record.glow.userData.baseMap||record.glow.material.map;if(record.glow.material.map!==map){record.glow.material.map=map;record.glow.material.needsUpdate=true;}record.glow.material.color.set(trueGlow||style.palette?0xffffff:superActive&&(!auraActive||record.auraId==='okoteiyu')?0xd5ef59:record.auraColor);record.glow.material.opacity=superActive?.95:style.emphasis?.95:style.palette?.72:.52;record.glow.scale.set(record.height*(superActive?2.05:style.emphasis?1.85:1.48),record.height*(superActive?2.12:style.emphasis?1.95:1.55),1);}
   }
  }
  updatePose(){
