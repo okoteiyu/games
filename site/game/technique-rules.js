@@ -1,6 +1,6 @@
 export const TECHNIQUES=Object.freeze({
  fake_moai_beam:Object.freeze({id:'fake_moai_beam',name:'偽モアイビーム',description:'怪しい見た目のビーム',maxLevel:10,duration:3,motion:'common_attack',effect:'fake_moai_beam',power:'気 × 3 ＋ 技レベル × 20'}),
- tackle:Object.freeze({id:'tackle',maxLevel:30,name:'タックル',duration:1,motion:'tackle',effect:'tackle_impact',description:'自身の体を相手にぶつけて攻撃する。',power:'攻撃力 × 1.5 ＋ 技レベル × 10'}),
+ tackle:Object.freeze({id:'tackle',maxLevel:30,name:'タックル',duration:1,motion:'tackle',effect:'tackle_impact',description:'自身の体を相手にぶつけて攻撃する。',power:'攻撃力 × 1.2 ＋ 技レベル × 10'}),
  charged_punch:Object.freeze({id:'charged_punch',maxLevel:30,name:'溜めパンチ',duration:1.5,motion:'punch',description:'力を溜め、全身を使って放つ重いストレート。',power:'攻撃力 × 2.5 ＋ 技レベル'}),
  charged_energy_ray:Object.freeze({id:'charged_energy_ray',maxLevel:30,name:'溜めエネルギーレイ',duration:2,motion:'energy_ray',description:'気を溜め、頭の前から強い光線を放つ。',power:'気 × 3 ＋ 技レベル'}),
  energy_punch:Object.freeze({id:'energy_punch',maxLevel:30,name:'エネルギーパンチ',duration:1,motion:'punch',description:'全身の力と気を合わせて放つストレート。',power:'（攻撃力 ＋ 気） ＋ 技レベル'}),
@@ -17,7 +17,7 @@ export const TECHNIQUES=Object.freeze({
  * calculations do not use these values. */
 export const TECHNIQUE_RANKS=Object.freeze({
  punch:4,normal_attack:4,energy_ray:3,charged_punch:8,charged_energy_ray:7,
- energy_punch:7,tackle:9,okoteiyu_beam:10,cannon_shell:9,fake_moai_beam:7,
+ energy_punch:7,tackle:8,okoteiyu_beam:10,cannon_shell:9,fake_moai_beam:7,
  void_wave:5,cosmos_wave:5,chaos_wave:6
 });
 export const TECHNIQUE_MOTION_LIMITS=Object.freeze({min:.5,max:10});
@@ -43,7 +43,7 @@ export function syncLevelTechniques(player){
 export function techniquePower(id,stats,level){
  level=clampTechniqueLevel(id,level);
  if(id==='fake_moai_beam')return stats.ki*3+level*20;
- if(id==='tackle')return stats.attack*1.5+level*10;
+ if(id==='tackle')return stats.attack*1.2+level*10;
  if(id==='charged_punch')return stats.attack*2.5+level;
  if(id==='charged_energy_ray')return stats.ki*3+level;
  if(id==='energy_punch')return stats.attack+stats.ki+level;
