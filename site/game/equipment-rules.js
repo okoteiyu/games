@@ -3,7 +3,7 @@ export const SUPPORT_SLOT_LIMIT=4;
 export const SUPPORT_TAG_LABELS=Object.freeze({support:'サポート',helper:'助っ人'});
 const supportItem=definition=>Object.freeze({initialLevel:1,maxLevel:1,initiallyOwned:true,initiallyEquipped:false,...definition,tagLabel:SUPPORT_TAG_LABELS[definition.tag],displayInBattle:definition.tag==='helper'});
 export const SUPPORT_ITEMS=Object.freeze({
- moai_kun:supportItem({id:'moai_kun',tag:'helper',initiallyEquipped:true,name:'モアイくん',description:'おこていゆについてくる、身長20cmのモアイのおもちゃ。特別な思い入れがあります。受けるダメージが0.9倍、与えるダメージが1.1倍になります。戦闘では最初に受けるダメージを1回だけ、前に出て黄色い光をまとって吸収。1秒後に相手へ向かい、被ダメージ軽減前の30%の威力で反撃します。その後はおこていゆの後ろで見守ります。',multipliers:Object.freeze({damageReceived:.9,damageDealt:1.1})}),
+ moai_kun:supportItem({id:'moai_kun',tag:'helper',initiallyEquipped:true,name:'モアイくん',description:'おこていゆについてくる、身長20cmのモアイのおもちゃ。特別な思い入れがあります。戦闘では最初に受けるダメージを1回だけ、前に出て黄色い光をまとって吸収。1秒後に相手へ向かい、被ダメージ軽減前の30%の威力で反撃します。その後はおこていゆの後ろで見守ります。',multipliers:Object.freeze({})}),
  hard_glove:supportItem({id:'hard_glove',tag:'support',name:'かたいグローブ',description:'小さく丸い手がすっぽり収まる、かたいグローブ。与えるダメージが1.25倍になります。',multipliers:Object.freeze({damageDealt:1.25})}),
  stored_ki:supportItem({id:'stored_ki',tag:'support',name:'溜めた気',description:'ぼんやりと白く光る、溜めた気の塊。HP・攻撃力・気・速さが1.1倍になります。',multipliers:Object.freeze({hp:1.1,attack:1.1,ki:1.1,speed:1.1})}),
  green_moai:supportItem({id:'green_moai',tag:'helper',initiallyEquipped:true,name:'回復モアイさん',description:'薄い緑色の、モアイくんと同じ形の助っ人。戦闘ではおこていゆの後ろで待機し、HPが半分以下になると、1戦闘に1回だけ最大HPの30%を回復します。HPが0になった場合は回復しません。その後も後ろで見守ります。',multipliers:Object.freeze({})})
