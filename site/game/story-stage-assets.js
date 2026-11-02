@@ -87,9 +87,22 @@ export function createRoadSet(){
  return {root,actorPosition:[-.30,0,.0],cameraWide:{position:[.75,.90,2.7],target:[-.20,.14,-.20],fov:40}};
 }
 export function createStoryBook(){
- const root=new THREE.Group(),cover=mat('#b59a6e'),pages=mat('#f5efdc');
- for(const side of[-1,1]){const half=new THREE.Group();half.rotation.z=side*.10;root.add(half);box(half,.103,.009,.14,side*.052,0,0,cover);box(half,.095,.010,.132,side*.052,.010,0,pages);for(let i=0;i<4;i++)box(half,.064,.001,.002,side*.052,.016,-.04+i*.022,mat('#c0b69d'));}
- root.rotation.x=Math.PI*.22;return root;
+ // Local +Y is the printed side, +Z the top of the pages, and Z the spine.
+ // The holder supplies the reading tilt; keeping this frame unrotated avoids
+ // reversing the book when a different character or camera uses the prop.
+ const root=new THREE.Group(),cover=mat('#b59a6e'),pages=mat('#f5efdc'),ink=mat('#c0b69d');root.name='Story.RecordBook';
+ root.userData.readingFrame={pageNormal:[0,1,0],spineAxis:[0,0,1],pageTop:[0,0,1]};
+ for(const side of[-1,1]){
+  const half=new THREE.Group();half.name=side<0?'Story.Book.Left':'Story.Book.Right';half.rotation.z=side*.10;root.add(half);
+  box(half,.103,.009,.14,side*.052,0,0,cover,'Story.Book.Cover.'+(side<0?'L':'R'));
+  box(half,.095,.010,.132,side*.052,.010,0,pages,'Story.Book.Pages.'+(side<0?'L':'R'));
+  // An asymmetric heading and descending rules make the reading direction
+  // visible without putting new story text on the pages.
+  box(half,.057,.001,.003,side*.052,.016,.044,ink);
+  for(let i=0;i<4;i++)box(half,i===3?.047:.068,.001,.0018,side*.052,.016,.024-i*.019,ink);
+ }
+ box(root,.006,.011,.142,0,-.002,0,cover,'Story.Book.Spine');
+ return root;
 }
 export function createStoryShadow(radius=.22){
  const texture=storyCanvasTexture((ctx,s)=>{const g=ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s*.47);g.addColorStop(0,'#403d3166');g.addColorStop(.55,'#403d3122');g.addColorStop(1,'#403d3100');ctx.fillStyle=g;ctx.fillRect(0,0,s,s);},128);

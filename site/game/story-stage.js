@@ -61,7 +61,10 @@ export class StoryStage {
    if(this.destroyed){bitmap.close?.();throw new Error('物語の表示を終了しました。');}const texture=new THREE.CanvasTexture(bitmap);texture.flipY=false;texture.colorSpace=THREE.SRGBColorSpace;actor.faces[name]=texture;
   }
   actor.faces.surprise=this.makeSurpriseFace(actor.faces.neutral.image);actor.faces.determined=this.makeDeterminedFace(actor.faces.neutral.image);
-  actor.book=createStoryBook();actor.book.scale.setScalar(.85);actor.book.position.set(0,.20,.16);actor.book.rotation.x=1.12;actor.book.visible=false;anchor.add(actor.book);actor.shadow=createStoryShadow(.18);anchor.add(actor.shadow);
+  actor.book=createStoryBook();actor.book.scale.setScalar(.85);actor.book.position.set(0,.205,.205);actor.book.rotation.x=-.65;actor.book.visible=false;anchor.add(actor.book);
+  // Author the prop in the actor's Y-up frame, then keep it attached to the
+  // same rigid root as both hands while nodding, walking and looking around.
+  actor.root.attach(actor.book);actor.shadow=createStoryShadow(.18);anchor.add(actor.shadow);
   this.scene.add(anchor);this.actor=actor;
   const moaiTemplate=await this.template('support3d/moai_kun.glb');if(this.destroyed)throw new Error('物語の表示を終了しました。');const moai=new THREE.Group();moai.name='Story.MoaiKun';moai.add(moaiTemplate.scene.clone(true));this.scene.add(moai);this.moai=moai;this.moaiShadow=createStoryShadow(.105);this.scene.add(this.moaiShadow);
   const punimTemplate=await this.template('battle3d/punim.glb',manifest.models.punim.sha256);if(this.destroyed)throw new Error('物語の表示を終了しました。');const punim=new THREE.Group(),punimModel=punimTemplate.scene.clone(true);punim.add(punimModel);punim.name='Story.Punim';
@@ -70,14 +73,14 @@ export class StoryStage {
  }
  makeSurpriseFace(image){
   const texture=storyCanvasTexture((ctx,s)=>{
-   ctx.drawImage(image,0,0,s,s);ctx.scale(s/1024,s/1024);ctx.fillStyle='#ffe2cd';ctx.fillRect(401,310,220,99);ctx.fillRect(407,344,76,101);ctx.fillRect(541,344,78,101);
+   ctx.drawImage(image,0,0,s,s);ctx.scale(s/1024,s/1024);ctx.fillStyle='#ffe2cd';ctx.fillRect(388,240,248,108);ctx.fillRect(401,310,220,99);ctx.fillRect(407,344,76,101);ctx.fillRect(541,344,78,101);
    ctx.strokeStyle='#554b4a';ctx.lineCap='round';ctx.lineWidth=4;
    for(const x of[445,579]){ctx.beginPath();ctx.moveTo(x-24,333);ctx.quadraticCurveTo(x,319,x+24,331);ctx.stroke();ctx.fillStyle='#fffaf4';ctx.beginPath();ctx.ellipse(x,389,28,43,0,0,Math.PI*2);ctx.fill();ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#574c4a';ctx.beginPath();ctx.ellipse(x,390,18,30,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fffdf9';ctx.beginPath();ctx.ellipse(x-6,377,4,7,0,0,Math.PI*2);ctx.fill();}
    ctx.fillStyle='#ffe2cd';ctx.fillRect(491,473,42,34);ctx.fillStyle='#5b4c47';ctx.beginPath();ctx.ellipse(512,488,9,11,0,0,Math.PI*2);ctx.fill();
   },1024);texture.flipY=false;return texture;
  }
  makeDeterminedFace(image){
-  const texture=storyCanvasTexture((ctx,s)=>{ctx.drawImage(image,0,0,s,s);ctx.scale(s/1024,s/1024);ctx.fillStyle='#ffe2cd';ctx.fillRect(390,281,244,66);ctx.strokeStyle='#554b4a';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(407,317);ctx.quadraticCurveTo(438,323,471,312);ctx.moveTo(553,312);ctx.quadraticCurveTo(585,323,615,317);ctx.stroke();},1024);texture.flipY=false;return texture;
+  const texture=storyCanvasTexture((ctx,s)=>{ctx.drawImage(image,0,0,s,s);ctx.scale(s/1024,s/1024);ctx.fillStyle='#ffe2cd';ctx.fillRect(388,240,248,108);ctx.strokeStyle='#554b4a';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(407,317);ctx.quadraticCurveTo(438,323,471,312);ctx.moveTo(553,312);ctx.quadraticCurveTo(585,323,615,317);ctx.stroke();},1024);texture.flipY=false;return texture;
  }
  async environment(stage){
   if(this.environments.has(stage)){const cached=this.environments.get(stage);this.environments.delete(stage);this.environments.set(stage,cached);return cached;}
@@ -174,7 +177,10 @@ export class StoryStage {
    const seat=smooth((t-1.1)/1.3);if(moving&&settle<1)actor.anchor.position.y+=.07*Math.sin(settle*Math.PI);
    actor.root.position.y-=.025*seat;actor.root.rotateZ(.065*seat);actor.feet.forEach(foot=>{foot.position.x+=.050*seat;foot.position.y+=.035*seat;});
   }
-  if(actor.book.visible)actor.hands.forEach((hand,index)=>{hand.position.x+=.025;hand.position.y+=.030;hand.position.z+=(index?1:-1)*.020;});
+  if(actor.book.visible)actor.hands.forEach((hand,index)=>{
+   resetPose(actor.poses.find(pose=>pose?.node===hand));
+   hand.position.x+=.09;hand.position.y+=.030;hand.position.z+=(index?1:-1)*.050;
+  });
   if(animation==='door'&&this.environmentSet.door){
    const open=smooth((t-.3)/1.6);this.environmentSet.door.position.x=this.environmentSet.doorClosed+this.environmentSet.doorTravel*open;
    actor.hands.forEach(hand=>{hand.position.x+=.012*Math.sin(open*Math.PI);hand.position.y+=.016*Math.sin(open*Math.PI);});
