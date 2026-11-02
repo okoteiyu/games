@@ -105,6 +105,21 @@ export const STORY_CHAPTERS=Object.freeze([
      scene('ch1-01-04','computer-room','今度は、もっとすごい研究を持ってこよう。ベーコン以外の。',{shot:'close',animation:'thinking',expression:'happy',prop:'book',category:'innerThought'}),
      scene('ch1-01-05','computer-room','知らないことを、一緒に考えてくれる人がいる。今日の最初の発見は、珍生物のことではなかった。',{animation:'nod',expression:'happy',prop:'book'})
     ]
+   },
+   {
+    id:'ch1-02',title:'大きな冷蔵庫、小さな発見',description:'倉庫の正面に並ぶ、大きな冷蔵庫。近づいて見ると、気づくことがある。',readingMinutes:1,
+    scenes:[
+     scene('ch1-02-01','house','挨拶を終えたおこていゆは、研究ノートを開いた。珍生物のことだけでなく、施設のことも知っておきたいらしい。余白には、まだ小さな疑問が残っている。',{animation:'thinking',prop:'book'}),
+     manager('ch1-02-02','house','b','次は倉庫を見てみる？　正面に並んだ大きな冷蔵庫も、暮らしを支える設備のひとつだよ。気になったものは、近くでじっくり観察してみよう。',{prop:'book'}),
+     scene('ch1-02-03','house','冷蔵庫、と聞いて、おこていゆの目が少しだけ開いた。研究者としての好奇心なのか、おなかの好奇心なのか。まずは、実物を見に行こう。',{animation:'nod',expression:'happy',prop:'book'}),
+     {
+      id:'ch1-02-inspect',type:'objective',
+      objective:{kind:'inspect_object',roomId:'warehouse',floorId:'outdoor',areaId:'warehouse',targetId:'warehouse_fridge',title:'冷蔵庫を詳しく観察',description:'倉庫の3Dビューで、正面に並ぶ大型冷蔵庫をひとつタップし、詳細観測してみよう。',roomLabel:'屋外 · 倉庫',targetLabel:'正面の大型冷蔵庫'},
+      inspectionMessage:'近づくと、厚い扉と丈夫な取っ手がよく分かった。ここで働く人や、招かれた珍生物の食事を支える、大きな備え。おこていゆは、しばらく真剣に見つめていた。'
+     },
+     scene('ch1-02-04','house','大きい。ベーコンも、たくさん入る。……すごく大事な設備だ。',{shot:'close',animation:'thinking',expression:'happy',prop:'book',category:'innerThought'}),
+     scene('ch1-02-05','house','部屋へ戻ると、おこていゆは「よく見てみる」とノートに書いた。遠くからでは分からないことが、近づくと見えてくる。研究の第一歩を、またひとつ見つけたようだ。',{animation:'nod',expression:'happy',prop:'book'})
+    ]
    }
   ]
  }

@@ -210,7 +210,7 @@ export class GameRuntime {
   if(this.clearingMessage){this.sync();return;}
   if(this.messageLocked){this.sync();return;}
   if(this.scene==='story'&&this.story?.active){this.activeRuntimeMessage=null;this.story.onMessageClosed();this.sync();return;}
-  if(this.story?.isExploring){this.activeRuntimeMessage=null;this.sync();return;}
+  if(this.story?.isExploring){const previous=this.activeRuntimeMessage;this.activeRuntimeMessage=null;this.story.onInspectionMessageClosed?.(previous);this.sync();return;}
   const previous=this.activeRuntimeMessage;this.activeRuntimeMessage=null;
   if(previous?.superUnlockId)this.session.acknowledgeSuperUnlock?.(previous.superUnlockId);
   this.showNextMessage();this.sync();

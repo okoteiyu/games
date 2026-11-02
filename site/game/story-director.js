@@ -28,8 +28,10 @@ export class StoryDirector {
  get objective(){return this.scene?.type==='objective'?this.scene.objective:null;}
  get isExploring(){return Boolean(this.active&&this.mode==='objective'&&this.objective);}
  get objectiveTalking(){return Boolean(this.objectiveConversation?.active);}
- get objectiveRoomReached(){return Boolean(this.objectiveState?.mapVisited&&this.runtime.scene===this.objective?.roomId);}
- get canExplore(){return this.isExploring&&!this.paused&&!this.loading&&!this.error&&!this.objectiveTalking;}
+ get objectiveInspected(){return Boolean(this.objectiveState?.inspectionConfirmed);}
+ get inspectionReading(){return Boolean(this.objectiveState?.inspectionReading);}
+ get objectiveRoomReached(){return Boolean(this.runtime.scene===this.objective?.roomId&&(this.objective?.kind==='inspect_object'||this.objectiveState?.mapVisited));}
+ get canExplore(){return this.isExploring&&!this.paused&&!this.loading&&!this.error&&!this.objectiveTalking&&!this.inspectionReading;}
  get canCheckpoint(){return this.primarySession.state.location==='home'&&!this.primarySession.state.battle;}
  get contextLost(){return Boolean(this.stage.contextLost);}
  findEpisode(id){for(const chapter of STORY_CHAPTERS){const episode=chapter.episodes.find(entry=>entry.id===id);if(episode)return {chapter,episode};}return null;}
@@ -54,8 +56,9 @@ export class StoryDirector {
  /** Objectives use the real map and room view, never an authored next button. */
  enterObjective(scene){
   const r=this.runtime,objective=scene.objective;
-  if(!objective||objective.kind!=='talk_staff'||typeof objective.staffId!=='string'||typeof objective.roomId!=='string'||!Array.isArray(scene.lines)||!scene.lines.length)throw new Error('物語の訪問先を準備できませんでした。');
-  this.closeObjectiveConversation();this.objectiveState={sceneId:scene.id,mapVisited:false,conversationId:null};
+  const talk=objective?.kind==='talk_staff',inspect=objective?.kind==='inspect_object';
+  if(!objective||typeof objective.roomId!=='string'||(!talk&&!inspect)||(talk&&(typeof objective.staffId!=='string'||!Array.isArray(scene.lines)||!scene.lines.length))||(inspect&&typeof objective.targetId!=='string'))throw new Error('物語の訪問先を準備できませんでした。');
+  this.closeObjectiveConversation();this.objectiveState={sceneId:scene.id,mapVisited:false,conversationId:null,inspectionConfirmed:false,inspectionReading:false,inspectionMessageId:null};
   this.stage.destroy();r.trainingHall?.deactivate();r.deactivateRoomVisits();r.house.leaveHouse();r.scene='house';r.messageLocked=false;r.clearMessage();r.messages=[];
   r.setLocation('おこていゆハウス');r.house.arriveFromOutside?.({afterBattle:false,emit:false});this.view.setHouse();this.loading=false;this.paint('objective');r.sync();return true;
  }
@@ -66,7 +69,7 @@ export class StoryDirector {
   this.paint('objective');return reached;
  }
  talkToStaff(staff,opener,conversation){
-  if(!this.canExplore||this.runtime.isPaused()||this.runtime.isModalPaused()||document.hidden||this.runtime.scene!==this.objective.roomId||staff?.id!==this.objective.staffId||!this.objectiveState?.mapVisited||!conversation?.play)return false;
+  if(!this.canExplore||this.objective.kind!=='talk_staff'||this.runtime.isPaused()||this.runtime.isModalPaused()||document.hidden||this.runtime.scene!==this.objective.roomId||staff?.id!==this.objective.staffId||!this.objectiveState?.mapVisited||!conversation?.play)return false;
   this.objectiveAttempt=(this.objectiveAttempt||0)+1;
   const id='story-objective:'+this.episode.id+':'+this.scene.id+':'+this.serial+':'+this.objectiveAttempt;
   this.objectiveConversation=conversation;this.objectiveState.conversationId=id;
@@ -75,12 +78,36 @@ export class StoryDirector {
   this.paint('objective');this.runtime.sync();return true;
  }
  onConversationComplete(previous){
-  if(!this.isExploring||previous?.id!==this.objectiveState?.conversationId)return false;
+  if(!this.isExploring||this.objective.kind!=='talk_staff'||previous?.id!==this.objectiveState?.conversationId)return false;
   this.objectiveConversation=null;this.objectiveState.conversationId=null;
   const complete=Array.isArray(previous.lines)&&previous.lines.length>0&&previous.index>=previous.lines.length;
   if(!complete||this.paused||this.loading||this.runtime.scene!==this.objective.roomId||previous.sceneId!==this.objective.roomId||!this.objectiveState.mapVisited){this.paint('objective');return false;}
   // The checkpoint changes only after the last line is read. Interrupted or
   // cancelled visits resume at this objective and do not silently complete it.
+  this.objectiveState=null;this.index++;this.present();return true;
+ }
+ /** Only a completed camera move from a genuine 3D tap can fulfil inspection.
+  * The live controller token prevents late events after exit/load/recovery. */
+ onObjectInspection(event,controller){
+  const r=this.runtime,objective=this.objective;
+  if(!this.canExplore||objective.kind!=='inspect_object'||this.objectiveInspected||r.isPaused()||r.isModalPaused()||document.hidden||r.scene!==objective.roomId)return false;
+  const room=r.roomVisits?.[objective.roomId],inspection=controller?.getInspectionState?.();
+  if(!room?.active||!room.ready||room.controller!==controller||controller.roomDefinition?.id!==objective.roomId||controller.cameraMode!=='inspection'||controller.inspectionTransition||!inspection?.settled||inspection.source!=='tap'||inspection.roomId!==objective.roomId)return false;
+  if(event?.entered!==true||event.source!=='tap'||event.roomId!==objective.roomId||event.targetId!==objective.targetId||(inspection.targetId??inspection.id)!==objective.targetId)return false;
+  if(typeof inspection.token!=='string'||!inspection.token||!Number.isSafeInteger(inspection.generation)||typeof inspection.objectId!=='string'||!inspection.objectId||event.token!==inspection.token||event.generation!==inspection.generation||event.objectId!==inspection.objectId)return false;
+  this.objectiveAttempt=(this.objectiveAttempt||0)+1;
+  const id='story-inspection:'+this.episode.id+':'+this.scene.id+':'+this.serial+':'+this.objectiveAttempt;
+  this.objectiveState.inspectionConfirmed=true;this.objectiveState.inspectionReading=true;this.objectiveState.inspectionMessageId=id;
+  // Fulfilment is saved now, not after reading the close-view narration. On a
+  // reload the following authored scene resumes without asking for another tap.
+  this.checkpoint(this.index+1);
+  const message=this.scene.inspectionMessage;
+  const payload=typeof message==='string'?{text:message}:message;
+  r.say({speaker:'ナレーション',kind:'narration',category:'narration',text:'冷蔵庫を、近くでじっくり観察した。',...payload,storyInspectionId:id},{record:false});
+  this.paint('objective');r.sync();return true;
+ }
+ onInspectionMessageClosed(previous){
+  if(!this.isExploring||!this.inspectionReading||!this.objectiveInspected||previous?.storyInspectionId!==this.objectiveState.inspectionMessageId||this.paused||this.loading)return false;
   this.objectiveState=null;this.index++;this.present();return true;
  }
  closeObjectiveConversation(){
@@ -102,7 +129,7 @@ export class StoryDirector {
   this.index=index;this.checkpoint();this.paint();await this.present();r.sync();return true;
  }
  paint(mode=this.mode||'read',extra={}){
-  this.mode=mode;this.ui.setPlayback({active:this.active,chapterId:this.chapter?.id,episodeId:this.episode?.id,sceneIndex:this.index,sceneCount:this.episode?.scenes.length||1,mode,paused:this.paused,replay:this.replay,choices:[],prompt:'',nextEpisodeId:null,objective:this.objective,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,...extra});
+  this.mode=mode;this.ui.setPlayback({active:this.active,chapterId:this.chapter?.id,episodeId:this.episode?.id,sceneIndex:this.index,sceneCount:this.episode?.scenes.length||1,mode,paused:this.paused,replay:this.replay,choices:[],prompt:'',nextEpisodeId:null,objective:this.objective,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,objectiveInspected:this.objectiveInspected,inspectionReading:this.inspectionReading,...extra});
   this.refresh();
  }
  setPortrait(scene){
@@ -227,6 +254,6 @@ export class StoryDirector {
   if(!this.active||this.runtime.scene!=='story')return true;
   const ready=await this.stage.recoverAfterInterruption();if(ready===false)return false;return true;
  }
- getDiagnostics(){return {active:this.active,replay:this.replay,paused:this.paused,loading:this.loading,error:this.error,episodeId:this.episode?.id,sceneIndex:this.index,sceneId:this.scene?.id,mode:this.mode,autoElapsed:this.elapsed,battlePending:this.battlePending,objective:this.objective?clone(this.objective):null,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,progress:clone(this.progress),stage:this.stage.getDiagnostics?.()||{ready:this.stage.ready}};}
+ getDiagnostics(){return {active:this.active,replay:this.replay,paused:this.paused,loading:this.loading,error:this.error,episodeId:this.episode?.id,sceneIndex:this.index,sceneId:this.scene?.id,mode:this.mode,autoElapsed:this.elapsed,battlePending:this.battlePending,objective:this.objective?clone(this.objective):null,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,objectiveInspected:this.objectiveInspected,inspectionReading:this.inspectionReading,progress:clone(this.progress),stage:this.stage.getDiagnostics?.()||{ready:this.stage.ready}};}
  destroy(){this.serial++;this.closeObjectiveConversation();this.objectiveState=null;this.active=false;this.runtime.session=this.primarySession;this.stage.destroy();this.ui.destroy();this.portrait.remove();}
 }

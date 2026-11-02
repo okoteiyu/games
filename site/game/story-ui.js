@@ -44,7 +44,7 @@ export class StoryUI {
   this.panel.addEventListener('click',event=>{
    const button=event.target.closest('button');if(!button||button.disabled||isModalBlocked()||!this.playback.active)return;
    if(button.hasAttribute('data-story-choice')){this.onChoice(Number(button.dataset.storyChoice));return;}
-   if(button.hasAttribute('data-story-map')){if(!this.playback.paused&&!this.playback.objectiveTalking)this.onOpenMap(button);return;}
+   if(button.hasAttribute('data-story-map')){if(!this.playback.paused&&!this.playback.objectiveTalking&&!this.playback.inspectionReading)this.onOpenMap(button);return;}
    if(button.hasAttribute('data-story-next')){(this.onNextEpisode||((id)=>this.onEpisode(id,{replay:false})))(button.dataset.storyNext);return;}
    if(button.hasAttribute('data-story-finish')){(this.onFinish||this.onExit)();return;}
    if(button.hasAttribute('data-story-resume'))this.onPause(false);
@@ -127,13 +127,15 @@ export class StoryUI {
   this.renderActions();
  }
  renderActions(){
-  const p=this.playback,key=JSON.stringify([p.mode,p.paused,p.replay,p.prompt,p.choices,p.nextEpisodeId,p.episodeId,p.objective,p.objectiveRoomReached,p.objectiveTalking]);if(key===this.lastPanelKey)return;this.lastPanelKey=key;
+  const p=this.playback,key=JSON.stringify([p.mode,p.paused,p.replay,p.prompt,p.choices,p.nextEpisodeId,p.episodeId,p.objective,p.objectiveRoomReached,p.objectiveTalking,p.objectiveInspected,p.inspectionReading]);if(key===this.lastPanelKey)return;this.lastPanelKey=key;
   this.panel.dataset.storyActionMode=p.mode||'read';
   const heading=(eyebrow,title)=>'<header class="story-actions__heading"><span>'+esc(eyebrow)+'</span><h2>'+esc(title)+'</h2></header>';
   if(p.paused){this.panel.innerHTML=heading('ここまで、しおりを挟んで','ひとやすみ')+'<div class="story-actions__body"><p>お好きなときに、続きをどうぞ。</p><button type="button" class="story-action-button" data-story-resume>'+icon('play')+'<span>続きを読む</span></button></div>';return;}
   if(p.mode==='objective'||p.mode==='explore'){
-   const objective=p.objective||{},reached=Boolean(p.objectiveRoomReached),talking=Boolean(p.objectiveTalking),room=objective.roomLabel||'指定の部屋',person=objective.staffLabel||'指定の人';
-   this.panel.innerHTML=heading('物語の目的',objective.title||'ご挨拶に行こう')+'<div class="story-objective" aria-label="今回の行き先"><dl class="story-objective__destination"><div><dt>行き先</dt><dd>'+esc(room)+'</dd></div><div><dt>話す人</dt><dd>'+esc(person)+'</dd></div></dl><ol class="story-objective__steps" aria-label="挨拶までの手順"><li'+(reached?' class="is-complete"':' class="is-current"')+'><span aria-hidden="true">'+(reached?'✓':'1')+'</span>地図で部屋へ移動</li><li'+(reached?' class="is-current"':'')+'><span aria-hidden="true">2</span>左の会員ボタンから挨拶</li></ol><p class="story-objective__hint" role="status">'+(talking?'お話を聞いています。':reached?'左の会員ボタンから、話しかけてみよう。':'2Dマップを開いて、行き先を選ぼう。')+'</p><button type="button" class="story-action-button story-objective__map" data-story-map aria-label="2Dマップを開く"'+(talking?' disabled':'')+'>'+icon('map')+'<span><span class="story-objective__map-label">2Dマップを開く</span><span class="story-objective__map-short" aria-hidden="true">地図を開く</span></span>'+icon('next')+'</button></div>';return;
+   const objective=p.objective||{},inspect=objective.kind==='inspect_object',reached=Boolean(p.objectiveRoomReached),talking=Boolean(p.objectiveTalking),inspected=Boolean(p.objectiveInspected),reading=Boolean(p.inspectionReading),busy=talking||reading,room=objective.roomLabel||'指定の部屋',target=inspect?objective.targetLabel||'指定のもの':objective.staffLabel||'指定の人';
+   const targetLabel=inspect?'見るもの':'話す人',stepLabel=inspect?'3Dビューでタップして観察':'左の会員ボタンから挨拶';
+   const hint=inspect?(reading?'近くで観察しています。ビューをタップして続きを読もう。':inspected?'詳しく観察できました。':reached?target+'をタップして、詳細観測してみよう。':'2Dマップを開いて、行き先を選ぼう。'):(talking?'お話を聞いています。':reached?'左の会員ボタンから、話しかけてみよう。':'2Dマップを開いて、行き先を選ぼう。');
+   this.panel.innerHTML=heading('物語の目的',objective.title||(inspect?'詳しく観察してみよう':'ご挨拶に行こう'))+'<div class="story-objective" aria-label="今回の行き先"><dl class="story-objective__destination"><div><dt>行き先</dt><dd>'+esc(room)+'</dd></div><div><dt>'+targetLabel+'</dt><dd>'+esc(target)+'</dd></div></dl><ol class="story-objective__steps" aria-label="'+(inspect?'観察までの手順':'挨拶までの手順')+'"><li'+(reached?' class="is-complete"':' class="is-current"')+'><span aria-hidden="true">'+(reached?'✓':'1')+'</span>地図で部屋へ移動</li><li'+(inspect&&inspected?' class="is-complete"':reached?' class="is-current"':'')+'><span aria-hidden="true">'+(inspect&&inspected?'✓':'2')+'</span>'+stepLabel+'</li></ol><p class="story-objective__hint" role="status">'+esc(hint)+'</p><button type="button" class="story-action-button story-objective__map" data-story-map aria-label="2Dマップを開く"'+(busy?' disabled':'')+'>'+icon('map')+'<span><span class="story-objective__map-label">2Dマップを開く</span><span class="story-objective__map-short" aria-hidden="true">地図を開く</span></span>'+icon('next')+'</button></div>';return;
   }
   if(p.mode==='choice'){
    const choices=Array.isArray(p.choices)?p.choices:[];this.panel.innerHTML=heading('あなたから',p.prompt||'どう伝える？')+'<nav class="story-choice-list" aria-label="あなたの言葉">'+choices.map((choice,index)=>'<button type="button" class="story-choice" data-story-choice="'+index+'"><span>'+esc(typeof choice==='string'?choice:choice.label)+'</span>'+icon('next')+'</button>').join('')+'</nav>';return;
