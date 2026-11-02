@@ -8,7 +8,7 @@ export function superUnlockMessage(unlock){
 export function battleResultMessages(battle,{superUnlocks=battle?.rewards?.superUnlocks||[]}={}){
  const rewards=battle?.rewards||{},items=rewards.auras||[rewards.aura].filter(Boolean),counts=new Map(),auraGrowth=new Map();
  const result=[message('narration',battle?.result==='win'?'相手は疲れた。':'おこていゆは疲れた。')];
- if(rewards.experience>0)result.push(message('experience','経験値を獲得しました。'));
+ if(rewards.experience>0)result.push(message('experience','経験値を'+(Math.floor(rewards.experience*10)/10)+'獲得しました。'));
  if(rewards.levelsGained>0)result.push(message('experience','おこていゆのレベルが'+rewards.level+'になった！'));
  for(const change of rewards.techniqueChanges||[]){
   result.push(message(change.newlyLearned?'item':'experience',change.newlyLearned?change.name+'を取得した！ コレクションの「技」から設定できます。':change.name+'のレベルが'+change.level+'に上がった！'));
