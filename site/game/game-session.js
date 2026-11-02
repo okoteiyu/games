@@ -1,7 +1,8 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
 import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
-import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES,INITIAL_STORY_CHAPTER} from './initial-state.js';
+import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
+import {createStoryProgress,normalizeStoryProgress,hasStoryBattleReward,markStoryBattleReward} from './story-progress.js';
 import {createFacilityStaff,normalizeFacilityStaff,advanceFacilityStaffShift,setFacilityStaffPlacements,clearFacilityStaffPlacements} from './facility-staff.js';
 import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superConfigurationAcquisition,superConfigurationLevel,superConfigurationMaxLevel,superPrefixDamageMultipliers} from './super-prefix-rules.js';
 import {currentTimeOfDay} from './world-time.js';
@@ -185,11 +186,10 @@ function restorePlayer(saved){
  return player;
 }
 
-function restoreStory(saved){
- // Legacy saves start at chapter one; this never executes chapter-completion events.
- if(saved===undefined)return {currentChapter:INITIAL_STORY_CHAPTER};
- if(!saved||typeof saved!=='object'||Array.isArray(saved))throw new TypeError('Invalid story progress.');
- return {currentChapter:integer(saved.currentChapter,'story chapter',1)};
+function legacyInitialStorySeed(saved){
+ // A named or played save retains its old chapter-one entry point. No progress
+ // is reset merely because the new story system did not exist when it was saved.
+ return normalizeVisitorName(saved.visitorName)===null&&saved.player?.level===INITIAL_PLAYER_LEVEL&&saved.player?.xp===0&&saved.player?.battlesWon===0&&saved.player?.battlesLost===0&&saved.patrolCount===0&&saved.angerEvents===0&&Object.values(saved.player?.journal??{}).every(entry=>entry?.encounters===0&&entry?.defeats===0);
 }
 
 /** Validate and normalize the persistent home-only save payload without side effects. */
@@ -201,14 +201,47 @@ export function validateSessionState(saved){
  const interferenceUsedSinceBattle=saved.interferenceUsedSinceBattle===undefined?false:saved.interferenceUsedSinceBattle;
  if(typeof interferenceUsedSinceBattle!=='boolean')throw new TypeError('Interference lock must be boolean.');
  const patrolUsedSinceRecovery=saved.patrolUsedSinceRecovery??false;if(typeof patrolUsedSinceRecovery!=='boolean')throw new TypeError('Patrol cooldown must be boolean.');
- return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),story:restoreStory(saved.story),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount,facilityStaff:normalizeFacilityStaff(saved.facilityStaff)});
+ return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),story:normalizeStoryProgress(saved.story,{legacyInitial:legacyInitialStorySeed(saved)}),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount,facilityStaff:normalizeFacilityStaff(saved.facilityStaff)});
+}
+
+/** Settle a preset story encounter into the real profile exactly once. A replay
+ * stays in its own session; no extra aura RNG draw occurs during this transfer. */
+export function applyStoryBattleRewards(primarySession,battle,{battleId}={}){
+ if(!primarySession?.state?.story||typeof primarySession.exportState!=='function')throw new TypeError('A primary game session is required.');
+ if(hasStoryBattleReward(primarySession.state.story,battleId))return {applied:false,reason:'already-settled'};
+ if(battle?.kind!=='story'||battle.phase!=='ended'||battle.result!=='win'||!Array.isArray(battle.enemies)||battle.enemies.length<1||battle.enemies.length>3||!battle.rewards)throw new TypeError('A completed story victory is required.');
+ const opponents=battle.enemies.map(enemy=>{
+  checkedCreature(enemy.speciesId);integer(enemy.level,'story opponent level',1,106);
+  if(enemy.hp!==0)throw new TypeError('The story opponent is not fatigued.');
+  return {speciesId:enemy.speciesId,name:CREATURES[enemy.speciesId].name,level:enemy.level,experience:defeatedEnemyExperience(enemy.speciesId,enemy.level)};
+ });
+ const experience=opponents.reduce((total,enemy)=>total+enemy.experience,0);
+ if(battle.rewards.experience!==experience||!Array.isArray(battle.rewards.auras))throw new TypeError('Invalid story battle rewards.');
+ // Validate drops against the actual fought species before touching the profile.
+ const allowed=opponents.map(enemy=>enemy.speciesId),dropSpecies=battle.rewards.auras.map(drop=>{
+  const at=allowed.indexOf(drop?.speciesId);if(at<0)throw new TypeError('Invalid story aura reward.');return allowed.splice(at,1)[0];
+ });
+ const working=new GameSession({state:primarySession.exportState({allowPending:true})}),beforeBeam=working.player.unlockedTechniques.includes('okoteiyu_beam')?playerTechniqueLevel(working.player,'okoteiyu_beam'):0;
+ working.player.battlesWon++;
+ for(const enemy of opponents)recordJournalEncounter(working.player,enemy).defeats++;
+ const auras=dropSpecies.map(speciesId=>working.acquireAura(speciesId)),unassignedAuras=[...auras],levelsGained=working.addExperience(experience),afterBeam=working.player.unlockedTechniques.includes('okoteiyu_beam')?playerTechniqueLevel(working.player,'okoteiyu_beam'):0;
+ const opponentRewards=opponents.map((enemy,index)=>{
+  const original=battle.rewards.opponents?.[index]||{},at=original.aura?unassignedAuras.findIndex(drop=>drop.speciesId===enemy.speciesId):-1;
+  return {...clone(original),...enemy,aura:at>=0?unassignedAuras.splice(at,1)[0]:null};
+ });
+ const rewards={...clone(battle.rewards),experience,levelsGained,level:working.player.level,xp:working.player.xp,aura:auras[0]||null,auras,opponents:opponentRewards,techniqueChanges:afterBeam>beforeBeam?[{id:'okoteiyu_beam',name:TECHNIQUES.okoteiyu_beam.name,newlyLearned:beforeBeam===0,level:afterBeam,previousLevel:beforeBeam}]:[],superUnlocks:syncSuperConfigurationUnlocks(working.player)};
+ // All fallible work precedes this synchronous commit. The host checkpoints
+ // the profile and reward ledger together before advancing the story scene.
+ primarySession.state.player=working.player;
+ markStoryBattleReward(primarySession.state.story,battleId);
+ return {applied:true,rewards};
 }
 
 export class GameSession{
  constructor({rng=Math.random,staffRng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
   if(typeof rng!=='function'||typeof staffRng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
   this.rng=rng;this.staffRng=staffRng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
-  this.state={schemaVersion:1,visitorName:null,location:'home',story:{currentChapter:INITIAL_STORY_CHAPTER},player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined};
+  this.state={schemaVersion:1,visitorName:null,location:'home',story:createStoryProgress(),player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined};
   if(state!==null)this.importState(state);
  }
  emit(type,detail={}){const event={type,...detail};this.eventLog.push(clone(event));if(this.eventLog.length>120)this.eventLog.shift();this.onEvent(event);return event;}
@@ -273,7 +306,7 @@ export class GameSession{
  setFacilityStaffPlacements(placements){this.state.facilityStaff=setFacilityStaffPlacements(this.state.facilityStaff,placements);this.emit('facility-staff-placement');return this.state.facilityStaff;}
  clearFacilityStaffPlacements(ids=null){this.state.facilityStaff=clearFacilityStaffPlacements(this.state.facilityStaff,ids);this.emit('facility-staff-placement');return this.state.facilityStaff;}
  startBattle(encounter,{kind=this.state.location==='training'?'training':'patrol'}={}){
-  if(!['patrol','training'].includes(kind))throw new RangeError('Unsupported battle kind.');
+  if(!['patrol','training','story'].includes(kind))throw new RangeError('Unsupported battle kind.');
   if(this.state.location==='battle')throw new Error('A battle is already open.');if(this.state.pendingAngerEvent)throw new Error('Finish the anger event first.');
   const members=Array.isArray(encounter)?encounter:encounter?.members||[encounter];integer(members.length,'opponent count',1,3);
   const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0,nextAttackDamageMultiplier:1});
@@ -469,7 +502,7 @@ export class GameSession{
   // Aura draws occur only on a full win, once for every opponent.
   if(result==='win'){
    this.player.battlesWon++;let experience=0;const drops=[],opponents=[];
-   for(const enemy of b.enemies){if(b.kind==='training')recordJournalEncounter(this.player,enemy);this.player.journal[enemy.speciesId].defeats++;if(b.kind==='patrol')this.player.journal[enemy.speciesId].patrolDefeats=(this.player.journal[enemy.speciesId].patrolDefeats||0)+1;const xp=defeatedEnemyExperience(enemy.speciesId,enemy.level),dropPercent=auraDropPercent(enemy.level),draw=this.random(),aura=draw<dropPercent/100?this.acquireAura(enemy.speciesId):null;experience+=xp;if(aura)drops.push(aura);opponents.push({speciesId:enemy.speciesId,level:enemy.level,experience:xp,dropPercent,dropDraw:draw,aura});}
+   for(const enemy of b.enemies){if(b.kind==='training'||b.kind==='story')recordJournalEncounter(this.player,enemy);this.player.journal[enemy.speciesId].defeats++;if(b.kind==='patrol')this.player.journal[enemy.speciesId].patrolDefeats=(this.player.journal[enemy.speciesId].patrolDefeats||0)+1;const xp=defeatedEnemyExperience(enemy.speciesId,enemy.level),dropPercent=auraDropPercent(enemy.level),draw=this.random(),aura=draw<dropPercent/100?this.acquireAura(enemy.speciesId):null;experience+=xp;if(aura)drops.push(aura);opponents.push({speciesId:enemy.speciesId,level:enemy.level,experience:xp,dropPercent,dropDraw:draw,aura});}
    const levels=this.addExperience(experience);b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:drops[0]||null,auras:drops,opponents,dropPercent:opponents[0].dropPercent,dropDraw:opponents[0].dropDraw};
   }else{this.player.battlesLost++;const opponents=b.enemies.filter(enemy=>enemy.hp<=0).map(enemy=>({speciesId:enemy.speciesId,level:enemy.level,experience:defeatedEnemyExperience(enemy.speciesId,enemy.level)})),experience=opponents.reduce((sum,enemy)=>sum+enemy.experience,0),levels=experience>0?this.addExperience(experience):0;b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:null,auras:[],opponents};}
   const currentBeamLevel=this.player.unlockedTechniques.includes('okoteiyu_beam')?playerTechniqueLevel(this.player,'okoteiyu_beam'):0;

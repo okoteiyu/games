@@ -32,6 +32,7 @@ export class GameRuntime {
  }
  recoveryContext(){
   if(this.destroyed)return null;
+  if(this.scene==='story'&&this.story?.active)return {key:'story:'+this.story.serial,scene:'story',title:'物語に復帰します',message:'しおりを挟んだ場面から、続きを再開します。'};
   if(this.scene==='battle'&&this.session.snapshotBattle())return {key:'battle:'+this.battlePresentationSerial,scene:'battle',title:'戦闘に復帰します',message:'戦闘の状態を保って、続きを再開します。'};
   if(this.scene==='scene-cutin')return {key:'scene:'+this.battlePresentationSerial+':'+this.sceneCutin.kind,scene:'scene-cutin',title:'ゲームに復帰します',message:['win','loss'].includes(this.sceneCutin.kind)?'戦闘の結果表示から再開します。':'出発の場面から再開します。'};
   if(this.scene==='analysis-room')return {key:'analysis:'+this.analysisVisitSerial,scene:'analysis-room',title:'ゲームに復帰します',message:'コンピュータ室の表示を再開します。'};
@@ -46,17 +47,18 @@ export class GameRuntime {
   if(context.scene==='analysis-room')return this.analysisRoom.recoverAfterInterruption();
   if(context.scene==='interior-room')return this.roomVisits[context.roomId]?.recoverAfterInterruption()??false;
   if(context.scene==='cutin')return this.angerPlayer.recoverAfterInterruption();
+  if(context.scene==='story')return this.story?.recoverAfterInterruption()??true;
   return true;
  }
  serviceRecovery(){
-  const lost=this.scene==='battle'?this.battleUI.controller?.contextLost:this.scene==='scene-cutin'?this.sceneCutin.contextLost:isInteriorScene(this.scene)?this.roomVisits[this.scene]?.controller?.contextLost:false;
+  const lost=this.scene==='story'?this.story?.contextLost:this.scene==='battle'?this.battleUI.controller?.contextLost:this.scene==='scene-cutin'?this.sceneCutin.contextLost:isInteriorScene(this.scene)?this.roomVisits[this.scene]?.controller?.contextLost:false;
   if(lost&&!this.recovery?.blocked)this.recovery?.request('context-lost');
   this.recovery?.pump();
  }
  restartFrameLoop(){
   if(this.destroyed)return;cancelAnimationFrame(this.raf);const epoch=++this.frameEpoch;this.previousFrameAt=performance.now();
   const schedule=()=>{if(this.destroyed||epoch!==this.frameEpoch)return;this.raf=requestAnimationFrame(now=>{
-   if(this.destroyed||epoch!==this.frameEpoch)return;this.raf=0;const dt=Math.min(.1,Math.max(0,(now-this.previousFrameAt)/1000));this.previousFrameAt=now;
+   if(this.destroyed||epoch!==this.frameEpoch)return;this.raf=0;const dt=Math.min(this.scene==='story'?.25:.1,Math.max(0,(now-this.previousFrameAt)/1000));this.previousFrameAt=now;
    try{this.serviceRecovery();if(!this.manualClock)this.tick(dt);}
    catch(error){this.lastFrameError=error?.message||String(error);try{this.recovery?.request('frame-error');}catch{}}
    finally{schedule();}
@@ -111,9 +113,10 @@ export class GameRuntime {
   }
   if(isInteriorScene(this.scene)){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   if(this.scene==='training-hall'&&!this.trainingHall?.ready){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
+  if(this.story?.active){for(const key of ['patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   return commands;
  }
- snapshot(){return {...this.session.snapshot(),...(isBuildingVisitScene(this.scene)?{location:this.scene}:{}),scene:this.scene,canVisitTrainingHall:(this.scene==='house'||isInteriorScene(this.scene))&&this.isHouseReady()&&Boolean(this.session.state.visitorName)&&!this.session.state.pendingAngerEvent&&!this.pendingCutin,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
+ snapshot(){return {...this.session.snapshot(),...(isBuildingVisitScene(this.scene)||this.scene==='story'?{location:this.scene}:{}),scene:this.scene,canVisitTrainingHall:(this.scene==='house'||isInteriorScene(this.scene))&&this.isHouseReady()&&Boolean(this.session.state.visitorName)&&!this.session.state.pendingAngerEvent&&!this.pendingCutin,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
  canExecuteHouseAction(kind){const key={meal:'meal',fridge_meal:'food',computer:'research',bed:'bed',chair:'chair'}[kind];return this.scene==='house'&&Boolean(this.homeCommands()[key]);}
  onHouseEvent(){this.sync();}
  sync(){
@@ -188,7 +191,7 @@ export class GameRuntime {
    this.say({type:'anger',text:(event.reason==='relax-interference'?'少しむっとしたようだ。何か、おいしいものでも用意しようか。':'まだ、ひと息つきたかったようだ。しばらく、そっとしておこう。')+bonusNote});
   }else if((event.type==='training-start'||event.type==='patrol-start')&&!event.calmCostCommitted)this.house.spendCalmPoints(event.calmPointsCost);
   else if(event.type==='anger-ready')this.pendingCutin=true;
-  else if(event.type==='battle-end')this.resultDelay=.5;
+  else if(event.type==='battle-end'){this.story?.onBattleSettled();this.resultDelay=.5;}
   else if(event.type==='damage'){const allied=event.actor==='player'||event.actor==='support';this.log(allied?'action':'enemy',(event.actorName||(allied?'おこていゆ':'珍生物'))+'の攻撃。'+Number(event.amount.toFixed(2))+'のダメージ。');}
   else if(event.type==='super-start')this.log('growth',(event.name||'スーパーおこていゆ状態')+'！ 攻撃力・気・行動速度が'+event.multiplier+'倍。');
   else if(event.type==='battle-call')this.log('action',event.technique==='auto'?'かけごえをやめて、そっと見守る。':(TECHNIQUES[event.technique]?.name||'技')+'のかけごえを送った。');
@@ -199,6 +202,7 @@ export class GameRuntime {
  onMessageClosed(){
   if(this.clearingMessage){this.sync();return;}
   if(this.messageLocked){this.sync();return;}
+  if(this.scene==='story'&&this.story?.active){this.activeRuntimeMessage=null;this.story.onMessageClosed();this.sync();return;}
   const previous=this.activeRuntimeMessage;this.activeRuntimeMessage=null;
   if(previous?.superUnlockId)this.session.acknowledgeSuperUnlock?.(previous.superUnlockId);
   this.showNextMessage();this.sync();
@@ -207,6 +211,7 @@ export class GameRuntime {
   this.serviceRecovery();
   if(this.scene==='scene-cutin'&&['win','loss'].includes(this.sceneCutin.kind))this.battleUI.showReturn({cutin:true});
   if(this.recovery?.blocked){this.recovery.pump();return false;}
+  if(this.scene==='story'&&this.story?.active){this.story.tick(dt);this.sync();return true;}
   if(this.scene==='scene-cutin'){if(!this.isModalPaused()&&!document.hidden)this.sceneCutin.advance(dt);this.sync();return true;}
   this.sync();if(this.scene==='battle')this.battleUI.updateControls();if(this.scene==='battle')this.battleUI.controller?.setTimeOfDay(currentTimeOfDay());this.enqueuePendingSuperUnlocks();if(this.isPaused()||document.hidden)return false;
   if(this.showNextMessage())return true;
@@ -241,7 +246,7 @@ export class GameRuntime {
  }
  startBattle(enemy,stage={}){
   this.patrol.suspendForBattle();this.scene='battle';this.setLocation(stage.encounterType==='training'?(TRAINING_COURSES[stage.trainingTier]?.label||'訓練（易）'):'戦闘');
-  this.resultCutinComplete=false;this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;const snapshot=this.session.startBattle(enemy,{kind:stage.encounterType==='training'?'training':'patrol'});this.resultDelay=null;this.battleUI.start(snapshot,{...stage,presentationId:'battle-'+(++this.battlePresentationSerial)});this.sync();return snapshot;
+  this.resultCutinComplete=false;this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;const snapshot=this.session.startBattle(enemy,{kind:stage.encounterType==='story'?'story':stage.encounterType==='training'?'training':'patrol'});this.resultDelay=null;this.battleUI.start(snapshot,{...stage,presentationId:'battle-'+(++this.battlePresentationSerial)});this.sync();return snapshot;
  }
  requestBattleAction(id){if(this.scene!=='battle'||this.isPaused()||document.hidden||!this.battleUI.ready)return {ok:false,reason:'paused'};const result=this.session.requestBattleAction(id);this.battleUI.setSnapshot(this.session.snapshotBattle());return result;}
  requestBattleTarget(id){
@@ -278,19 +283,23 @@ export class GameRuntime {
   const battle=this.session.snapshotBattle()||this.session.state.lastBattle;if(!battle)return false;
   const unlocks=this.session.pendingSuperUnlockNotifications?.()||battle.rewards?.superUnlocks||[],ids=new Set(unlocks.map(unlock=>unlock.acquisitionId||'super-configuration:'+unlock.id));
   this.messages=this.messages.filter(payload=>!ids.has(payload.acquisitionId));
-  this.resultMessages=battleResultMessages(battle,{superUnlocks:unlocks});this.resultMessageActive=true;this.resultMessagesComplete=false;
+  const replay=Boolean(this.story?.battlePending&&this.story.replay);
+  this.resultMessages=battleResultMessages(replay?{...battle,rewards:{experience:0}}:battle,{superUnlocks:replay?[]:unlocks});
+  if(replay)this.resultMessages.push({category:'narration',speaker:'ナレーション',kind:'narration',text:'物語の読み返しのため、成長や持ち物の記録は変わりません。'});
+  this.resultMessageActive=true;this.resultMessagesComplete=false;
   this.say(this.resultMessages.shift());return true;
  }
  canReturnHomeAfterBattle(){
   return Boolean(this.scene==='scene-cutin'&&['win','loss'].includes(this.sceneCutin.kind)&&this.resultCutinComplete&&this.resultMessagesComplete&&!this.resultMessageActive&&!this.isMessageVisible()&&this.sceneCutin.completed&&this.sceneCutin.ready&&this.sceneCutin.active&&!this.sceneCutin.contextLost&&!this.isModalPaused()&&!document.hidden&&this.session.state.battle?.phase==='ended');
  }
  returnHomeAfterBattle(){
+  if(this.story?.battlePending)return this.story.returnFromBattle();
   if(!this.canReturnHomeAfterBattle())return false;
   if(!this.session.returnHomeAfterBattle())return false;
   this.sceneCutin.stop();this.resultCutinComplete=false;this.messageLocked=false;this.battleUI.deactivate();this.setLocation('おこていゆハウス');this.scene='house';this.house.arriveFromOutside({afterBattle:true});this.view.setHouse();this.sync();
   this.messages=[];this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;this.clearMessage();return true;
  }
- cancelPatrol(){if(isInteriorScene(this.scene))return this.returnFromInteriorRoom();if(this.scene==='training-hall')return this.returnFromTrainingHall();if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol({rotateStaff:true});this.patrol.returnHome();this.scene='house';}this.sync();return true;}
+ cancelPatrol(){if(this.story?.active)return false;if(isInteriorScene(this.scene))return this.returnFromInteriorRoom();if(this.scene==='training-hall')return this.returnFromTrainingHall();if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol({rotateStaff:true});this.patrol.returnHome();this.scene='house';}this.sync();return true;}
  startCutin(){
   this.pendingCutin=false;this.scene='cutin';this.messageLocked=true;this.clearMessage();this.homeElement.hidden=true;this.house.leaveHouse();this.angerPlayer.play();this.sync();
  }
@@ -309,8 +318,8 @@ export class GameRuntime {
   }
   this.enqueueMessages({type:outcome?.changed?'growth':'anger',category,text});this.sync();
  }
- exportProgress({browser=false}={}){if(this.scene!=='house'&&!(browser&&isBuildingVisitScene(this.scene)))throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
- importProgress(progress){if(this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');validateVisitorProgress(progress?.session,progress?.relaxStreak);this.session.importState(progress.session);this.messages=[];this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;this.clearMessage();this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);this.session.state.interferenceUsedSinceBattle=false;this.sync();}
+ exportProgress({browser=false}={}){if(browser&&this.story?.active)return this.story.exportProgress();if(this.scene!=='house'&&!(browser&&isBuildingVisitScene(this.scene)))throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
+ importProgress(progress){if(this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');validateVisitorProgress(progress?.session,progress?.relaxStreak);this.session.importState(progress.session);if(this.story){this.story.autoSuppressed=false;this.story.hadRewardBattle=false;}this.messages=[];this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;this.clearMessage();this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);this.session.state.interferenceUsedSinceBattle=false;this.sync();}
  assignTechnique(slot,id){if(this.scene!=='house')return false;const accepted=this.session.assignTechnique(slot,id);this.sync();return accepted;}
  setSuperConfiguration(id){if(this.scene!=='house')return false;const accepted=this.session.setSuperConfiguration(id);this.sync();return accepted;}
  equipItem(kind,id){if(this.scene!=='house')return false;const accepted=this.session.equipItem(kind,id);this.house.updateLifeStatus();this.sync();return accepted;}
@@ -319,5 +328,5 @@ export class GameRuntime {
   if(!Number.isFinite(seconds)||seconds<0||seconds>300||this.isPaused()||document.hidden)return false;
   for(let remaining=seconds;remaining>1e-8;remaining-=.1){const dt=Math.min(.1,remaining);if(this.isPaused()||document.hidden)break;if(this.scene==='house')this.house.controller?.advanceForPreview(dt);else if(this.scene==='patrol'&&this.patrol.active)this.patrol.tick(dt);this.tick(dt);}return this.snapshot();
  }
- destroy(){if(this.destroyed)return;this.destroyed=true;this.frameEpoch++;cancelAnimationFrame(this.raf);this.recovery?.destroy();this.trainingHall?.destroy();for(const room of new Set(Object.values(this.roomVisits)))room?.destroy();this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
+ destroy(){if(this.destroyed)return;this.destroyed=true;this.frameEpoch++;cancelAnimationFrame(this.raf);this.story?.destroy();this.recovery?.destroy();this.trainingHall?.destroy();for(const room of new Set(Object.values(this.roomVisits)))room?.destroy();this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
 }

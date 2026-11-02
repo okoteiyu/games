@@ -2,5 +2,5 @@
 export const INITIAL_PLAYER_LEVEL=5;
 export const INITIAL_CALM_POINTS=10;
 export const INITIAL_JOURNAL_SPECIES=Object.freeze(['punim']);
-// This release begins in chapter one without playing a prologue.
-export const INITIAL_STORY_CHAPTER=1;
+// New games begin with the three-episode prologue before reaching chapter one.
+export const INITIAL_STORY_CHAPTER=0;

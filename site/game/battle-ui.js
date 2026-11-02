@@ -98,7 +98,7 @@ export class BattleUI{
  showReturn({cutin=this.resultCutinVisible}={}){
   this.resultCutinVisible=Boolean(cutin);this.panel.dataset.mode='result';this.panel.hidden=!this.active;this.returnView.hidden=false;
   if(this.resultCutinVisible)this.hud.hidden=true;
-  this.returnButton.disabled=!this.active||!this.canReturn();this.returnButton.title=this.returnButton.disabled?'演出と結果メッセージを確認すると帰れます。':'ホーム画面へ戻ります。';
+  this.returnButton.disabled=!this.active||!this.canReturn();this.returnButton.title=this.returnButton.disabled?'演出と結果メッセージを確認すると進めます。':this.stage?.encounterType==='story'?'物語の続きを読みます。':'ホーム画面へ戻ります。';
  }
  updateControls(){
   const snapshot=this.snapshot;if(!snapshot)return;

@@ -21,6 +21,7 @@ import { BuildingMapDialog } from './building-map.js';
 import {FacilityStaffUI,staffGreeting} from './facility-staff-ui.js';
 import {SceneConversation} from './scene-conversation.js';
 import {categorizeMessage} from './message-category.js';
+import {StoryDirector} from './story-director.js';
 import { GameEvents } from './game-events.js';
 export class SquareSceneView {
  constructor(element) {
@@ -40,7 +41,7 @@ export class SquareSceneView {
 
 installPasswordViewportGuard();
 installBonusButtonLayout(document.querySelector('[data-home-choice="interfere"]'));
-let patrolUI=null,houseUI=null,trainingHallUI=null,analysisRoomUI=null,interiorUI=null,gameRuntime=null,sceneConversation=null,facilityStaffUI=null;
+let patrolUI=null,houseUI=null,trainingHallUI=null,analysisRoomUI=null,interiorUI=null,gameRuntime=null,sceneConversation=null,facilityStaffUI=null,storyDirector=null;
 const needsVisitorName=()=>!gameRuntime?.session.state.visitorName;
 const view=new SquareSceneView(document.querySelector('#mainView'));
 const readStaff=()=>gameRuntime?.session.state.facilityStaff;
@@ -72,7 +73,7 @@ function showEvent(payload=samples[0],{record=true}={}) {
  presentMessage(payload);return null;
 }
 function replayMessage(){
- if(!lastMessage||eventVisible||isModalBlocked()||gameRuntime?.messageLocked)return false;
+ if(!lastMessage||eventVisible||isModalBlocked()||gameRuntime?.messageLocked||storyDirector?.active)return false;
  presentMessage(lastMessage);message.next.focus({preventScroll:true});return true;
 }
 replayButton.addEventListener('click',replayMessage);
@@ -93,7 +94,7 @@ for(const type of ['pointerdown','pointerup','pointermove','click','dblclick','w
  view.element.addEventListener(type,event=>{
   if(!eventVisible)return;
   const target=event.target instanceof Element?event.target:null;
-  if(target?.closest('.anger-cutin-recovery'))return;
+  if(target?.closest('.anger-cutin-recovery,.story-toolbar'))return;
   if(type==='click'){
    event.preventDefault();event.stopImmediatePropagation();
    if(!isModalBlocked()&&!gameRuntime?.messageLocked)message.advance();
@@ -120,6 +121,7 @@ function ensureVisitorName(){
  if(!startupNoticeShown)return;
  if(startupRestoreError){if(popup.open({type:'error',title:'保存データを復元できませんでした',message:startupRestoreError}))startupRestoreError=null;return;}
  if(needsVisitorName())visitorNamePopup.open();
+ else storyDirector?.maybeStart();
 }
 // Native dialog close listeners release the shared modal owner first.
 document.addEventListener('close',()=>setTimeout(ensureVisitorName,0),true);
@@ -140,11 +142,11 @@ const optionsUI=new OptionsDialog({
  onEquipAura:id=>gameRuntime?.equipAura(id)??false,
  onEquipItem:(kind,id)=>gameRuntime?.equipItem(kind,id)??false,
  onSelectMap:(id,tier='easy')=>{if(id==='training-hall')return gameRuntime?.visitTrainingHall()??false;if(id==='training')return gameRuntime?.requestTraining(tier)??false;if(id==='patrol')return gameRuntime?.requestPatrol()??false;if(id==='house'){if(!gameRuntime?.cancelPatrol())return false;view.setHouse();setLocation('おこていゆハウス');hideEvent();return true;}return false;},
- readState:({browser=false}={})=>({rank:document.querySelector('#rankValue').textContent,location:browser&&isBuildingVisitScene(gameRuntime?.scene)?'おこていゆハウス':document.querySelector('#locationName').textContent,gauges:{experience:Number(document.querySelector('#experienceGauge').getAttribute('aria-valuenow'))/100},rankPoints:rankHint.getPoints(),...(gameRuntime?{prototype:gameRuntime.exportProgress({browser})}: {})}),
+ readState:({browser=false}={})=>({rank:document.querySelector('#rankValue').textContent,location:browser&&(isBuildingVisitScene(gameRuntime?.scene)||storyDirector?.active)?'おこていゆハウス':document.querySelector('#locationName').textContent,gauges:{experience:Number(document.querySelector('#experienceGauge').getAttribute('aria-valuenow'))/100},rankPoints:rankHint.getPoints(),...(gameRuntime?{prototype:gameRuntime.exportProgress({browser})}: {})}),
  applyState:state=>{validatePatrolTransfer(state);gameRuntime?.importProgress(state.prototype);if(state.rankPoints!=null)setRankPoints(state.rankPoints);else setRank(state.rank);setLocation('おこていゆハウス');view.setHouse();gameRuntime?.sync();if(window.mainViewPreview?.browserSave?.initialized)window.mainViewPreview.browserSave.resetFailure();if(needsVisitorName()&&optionsUI.dialog.open)optionsUI.dialog.close();}
 
 });
-function setLocation(label){setPaintedText(document.querySelector('#locationName'),label,{background:'bronze',align:'center',lines:2});document.querySelector('#homeChoices').hidden=label!=='おこていゆハウス';}
+function setLocation(label){setPaintedText(document.querySelector('#locationName'),label,{background:'bronze',align:'center',lines:2});document.querySelector('#homeChoices').hidden=label!=='おこていゆハウス'||Boolean(storyDirector?.active);}
 function setRankLabel(rank){const value=document.querySelector('#rankValue');setPaintedText(value,String(rank),{background:'rank',align:'center'});value.style.setProperty('--rank-characters',String(String(rank).length));value.classList.toggle('is-long',String(rank).length>1);value.closest('.hero-rank').setAttribute('aria-label','ヒーローランク '+rank+'の説明');}
 function setRank(rank){setRankLabel(rank);rankHint.clearPoints();}
 function setRankPoints(points){const progress=getRankProgress(points);setRankLabel(progress.rank);rankHint.setPoints(progress.points);}
@@ -227,10 +229,13 @@ gameRuntime.onTrainingHallEntered=()=>areaMap.showTraining();
 gameRuntime.onAnalysisRoomEntered=()=>areaMap.showAnalysis();
 gameRuntime.onInteriorEntered=id=>areaMap.showInterior(id);
 gameRuntime.onBattleEvent=event=>areaMap.handleBattleEvent(event);
-const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>(gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene))&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready),onError:(text,error)=>{toast(text);if(browserSave.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
+const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>Boolean(storyDirector?.active&&storyDirector.canCheckpoint)||((gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene))&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready)),onError:(text,error)=>{toast(text);if(browserSave.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
+storyDirector=new StoryDirector({runtime:gameRuntime,view,game:document.querySelector('#game'),homeElement:document.querySelector('#homeChoices'),contextElement:areaMap.element,onCheckpoint:()=>browserSave.saveNow()});
+window.mainViewPreview.story=storyDirector;window.mainViewPreview.storyUI=storyDirector.ui;
 let previousStaffState='';
 gameRuntime.onProgressChange=()=>{
  message.next.disabled=Boolean(gameRuntime.messageLocked);
+ storyDirector?.refresh();if(storyDirector?.active)replayButton.hidden=true;
  if(sceneConversation.active&&sceneConversation.current.sceneId!==gameRuntime.scene)sceneConversation.close({notify:false,restoreFocus:false});
  facilityStaffUI.refresh();const staffState=JSON.stringify(readStaff());
  if(staffState!==previousStaffState){previousStaffState=staffState;areaMap.refreshStaff();buildingMap.refreshStaff();}
