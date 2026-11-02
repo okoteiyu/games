@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="720" viewBox="0 0 384 720" role="img" aria-label="従業員の暫定シルエット立ち絵">
+ <defs><linearGradient id="coat" x1="0" x2=".7" y1="0" y2="1"><stop stop-color="#63716b"/><stop offset="1" stop-color="#263c37"/></linearGradient><linearGradient id="edge" x1="0" x2="1"><stop stop-color="#f4f4df"/><stop offset="1" stop-color="#b3c6b2"/></linearGradient></defs>
+ <path d="M157 152c-19-13-29-38-29-67 0-45 25-68 64-68s64 23 64 68c0 29-10 54-29 67v23c14 9 34 14 52 22 22 10 30 30 37 57l29 147c4 20 1 35-13 39-14 4-24-5-29-26l-24-103 6 148-13 203c-1 22-7 32-25 32h-29l-16-210-16 210h-29c-18 0-24-10-25-32l-13-203 6-148-24 103c-5 21-15 30-29 26-14-4-17-19-13-39l29-147c7-27 15-47 37-57 18-8 38-13 52-22Z" fill="url(#coat)" stroke="url(#edge)" stroke-width="5" stroke-linejoin="round"/>
+ <path d="m159 179 33 24 33-24M192 203v186m-63 16h126" fill="none" stroke="#9cad9b" stroke-opacity=".32" stroke-width="3"/>
+ <path d="M204 220h27v31h-27z" fill="#e4e9d2" fill-opacity=".28"/><circle cx="217.5" cy="231" r="4.5" fill="#e5edce" fill-opacity=".5"/><path d="M211 241h13" stroke="#e5edce" stroke-opacity=".5" stroke-width="2"/>
+</svg>

@@ -256,7 +256,7 @@ export class GameRuntime {
   this.sceneCutin.stop();this.resultCutinComplete=false;this.messageLocked=false;this.battleUI.deactivate();this.setLocation('おこていゆハウス');this.scene='house';this.house.arriveFromOutside({afterBattle:true});this.view.setHouse();this.sync();
   this.messages=[];this.hideMessage();return true;
  }
- cancelPatrol(){if(isInteriorScene(this.scene))return this.returnFromInteriorRoom();if(this.scene==='training-hall')return this.returnFromTrainingHall();if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol();this.patrol.returnHome();this.scene='house';}this.sync();return true;}
+ cancelPatrol(){if(isInteriorScene(this.scene))return this.returnFromInteriorRoom();if(this.scene==='training-hall')return this.returnFromTrainingHall();if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol({rotateStaff:true});this.patrol.returnHome();this.scene='house';}this.sync();return true;}
  startCutin(){
   this.pendingCutin=false;this.scene='cutin';this.messageLocked=true;this.hideMessage();this.homeElement.hidden=true;this.house.leaveHouse();this.angerPlayer.play();this.sync();
  }

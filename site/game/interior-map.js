@@ -99,15 +99,33 @@ function aperture(id,entry,options){
  const half=entry.width/2,side=entry.side,alongX=side==='north'||side==='south',a=[...entry.center],b=[...entry.center];a[alongX?0:2]-=half;b[alongX?0:2]+=half;const p=interiorMapPoint(id,a,options),q=interiorMapPoint(id,b,options);
  return `<path data-interior-door="${side}" data-world-width="${entry.width}" d="M${n(p.x)} ${n(p.y)}L${n(q.x)} ${n(q.y)}" stroke="#f7f2df" stroke-width="5"/><path d="M${n(p.x)} ${n(p.y)}L${n(q.x)} ${n(q.y)}" stroke="#8dad9d" stroke-width="1.4"/>`;
 }
+/** A shared room-occupancy badge. Values only: worker names stay in the scene UI. */
+export function staffCountDrawing(roomId,count,{x=0,y=0,scale=1}={}){
+ const total=Math.max(0,Math.min(20,Math.trunc(count)));if(!total)return'';
+ return `<g data-map-staff-count="${total}" data-staff-room="${escape(roomId)}" transform="translate(${n(x)} ${n(y)}) scale(${n(scale)})" pointer-events="none"><title>従業員${total}人</title><rect width="80" height="34" rx="15" fill="#fffaf0" stroke="#8c9c7b" stroke-width="1.5"/><g fill="#6f7d5b"><circle cx="17" cy="10" r="4"/><path d="M10 24v-6a7 7 0 0 1 14 0v6h-4v6h-6v-6Z"/></g><text x="50" y="25" fill="#596749" font-family="system-ui,sans-serif" font-size="24" font-weight="700" text-anchor="middle">${total}</text></g>`;
+}
 function managementEntryDrawing(layout,options){
  const security=layout.securityEntrance;if(!security)return'';
- const part=(name,footprint,color)=>{const [x,z,w,d]=footprint,p=interiorMapPoint(layout.id,[x,0,z],options),q=interiorMapPoint(layout.id,[x+w,0,z+d],options);return{p,q,w:q.x-p.x,d:q.y-p.y,svg:`<g data-security-part="${name}" data-world-footprint="${escape(JSON.stringify(footprint))}">`+rect(p.x,p.y,q.x-p.x,q.y-p.y,color,'stroke="#667e78" stroke-width=".7"')+'</g>'};};
- let body=`<g data-interior-security="management-entry" data-door-state="${escape(security.doorState)}" data-model-node="${escape(security.node)}"><title>補強枠と認証端末のある入口</title>`;
- for(const [i,footprint]of security.jambFootprints.entries())body+=part('jamb-'+i,footprint,'#91a6a0').svg;
- const door=part('parked-door',security.parkedDoor.footprint,'#a9b7ae'),reader=part('reader',security.reader.footprint,'#6d857d');
- body+=door.svg+[.25,.5,.75].map(at=>`<path d="M${n(door.p.x+.5)} ${n(door.p.y+door.d*at)}H${n(door.q.x-.5)}" stroke="#6c817b" stroke-width=".8"/>`).join('')+reader.svg+rect(reader.p.x+reader.w*.22,reader.p.y+reader.d*.24,reader.w*.56,reader.d*.38,'#b6d1b8');
+ const part=(name,footprint,color)=>{const [x,z,w,d]=footprint,p=interiorMapPoint(layout.id,[x,0,z],options),q=interiorMapPoint(layout.id,[x+w,0,z+d],options);return{p,q,w:q.x-p.x,d:q.y-p.y,svg:`<g data-security-part="${name}" data-world-footprint="${escape(JSON.stringify(footprint))}">`+rect(p.x,p.y,q.x-p.x,q.y-p.y,color,'stroke="#556b67" stroke-width=".9"')+'</g>'};};
+ const layers=security.doors?.length?security.doors:[{id:'inner',frame:{jambFootprints:security.jambFootprints},parkedDoor:security.parkedDoor}];
+ let body=`<g data-interior-security="management-entry" data-door-count="${layers.length}" data-door-state="${escape(security.doorState)}" data-model-node="${escape(security.node)}"><title>${layers.length>1?'二重の補強扉':'補強枠'}と認証端末のある入口</title>`;
+ if(security.vestibule?.worldBounds){
+  const b=security.vestibule.worldBounds,a=interiorMapPoint(layout.id,b.min,options),z=interiorMapPoint(layout.id,b.max,options),top=interiorMapPoint(layout.id,[b.min[0],0,security.portal.centre[2]-security.portal.clearWidth/2],options),bottom=interiorMapPoint(layout.id,[b.min[0],0,security.portal.centre[2]+security.portal.clearWidth/2],options);
+  body+='<g data-security-part="vestibule">'+rect(a.x,a.y,z.x-a.x,z.y-a.y,'#d6e1d9','fill-opacity=".65"')+
+   rect(a.x,a.y,z.x-a.x,top.y-a.y,'#849b94','stroke="#556b67" stroke-width=".6"')+rect(a.x,bottom.y,z.x-a.x,z.y-bottom.y,'#849b94','stroke="#556b67" stroke-width=".6"')+'</g>';
+ }
+ for(const [index,layer]of layers.entries()){
+  body+=`<g data-security-layer="${escape(layer.id||String(index))}">`;
+  for(const [i,footprint]of (layer.frame?.jambFootprints||layer.jambFootprints||[]).entries())body+=part('jamb-'+i,footprint,index?'#788e89':'#91a6a0').svg;
+  const door=part('parked-door',layer.parkedDoor.footprint,index?'#879d98':'#a9b7ae');
+  body+=door.svg+[.18,.50,.82].map(at=>`<path d="M${n(door.p.x+.5)} ${n(door.p.y+door.d*at)}H${n(door.q.x-.5)}" stroke="#4b635e" stroke-width="1.2"/>`).join('');
+  body+=`<path d="M${n(door.p.x+door.w*.5)} ${n(door.p.y+1)}V${n(door.q.y-1)}" stroke="#d7e0d9" stroke-width=".65"/>`;
+  body+='</g>';
+ }
+ const reader=part('reader',security.reader.footprint,'#526d65');body+=reader.svg+rect(reader.p.x+reader.w*.22,reader.p.y+reader.d*.24,reader.w*.56,reader.d*.38,'#b6d1b8');
  return body+'</g>';
 }
+
 export function interiorMapDrawing(id,{livingOnly=false,width,height,current=false,selected=false}={}){
  const l=INTERIOR_LAYOUTS[id];if(!l)return'';const dimensions=livingOnly?l.living.map:l.map,W=width||dimensions.width,H=height||dimensions.height,o={livingOnly,width:W,height:H};
  let content=rect(0,0,W,H,id==='production-room'?'#edf0df':'#f3eedf','data-interior-floor="true"');

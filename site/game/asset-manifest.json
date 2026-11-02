@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちものと共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 158,
-  "totalBytes": 153204278,
+  "fileCount": 159,
+  "totalBytes": 153367746,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -1253,20 +1253,28 @@
       "sha256": "aae685bf8e2bf0e2ec3a244cbc85ca6de2c011e522dc635eee6dd5c5e655cda1"
     },
     {
-      "url": "assets/management-room/room.glb?v=071b0c81e5a1b958896e4e4b2cd61ae1a31a08071b46302164fcf29fd560784e",
+      "url": "assets/management-room/room.glb?v=28dce1bfb46908bfb230902c8be7f41c4e0fe270734b61da7dc9cfff271b3d69",
       "label": "管理室",
       "type": "binary",
-      "bytes": 5192588,
+      "bytes": 5349628,
       "priority": 2,
-      "sha256": "071b0c81e5a1b958896e4e4b2cd61ae1a31a08071b46302164fcf29fd560784e"
+      "sha256": "28dce1bfb46908bfb230902c8be7f41c4e0fe270734b61da7dc9cfff271b3d69"
     },
     {
       "url": "assets/management-room/metadata.json",
       "label": "管理室の設定",
       "type": "json",
-      "bytes": 18566,
+      "bytes": 23796,
       "priority": 2,
-      "sha256": "936d32e4a3e0109035a833b7f502a05761f5e55207f9df2d855c2e0034796627"
+      "sha256": "86d84a52acc374dd078dfd859785434fb0b2e0982a01128e4baf96c97736bcc6"
+    },
+    {
+      "url": "assets/facility/staff-silhouette.svg",
+      "label": "従業員のシルエット",
+      "type": "image",
+      "bytes": 1198,
+      "priority": 2,
+      "sha256": "f0580c60fc8d571a980eaba3bf544191ce11a731ff3cb64620a908652424582c"
     }
   ]
 }

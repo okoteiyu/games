@@ -18,6 +18,8 @@ import { RankHint } from './rank-hint.js';
 import { getRankProgress } from './rank-progress.js';
 import { AreaMap } from './area-map.js';
 import { BuildingMapDialog } from './building-map.js';
+import {FacilityStaffUI,staffGreeting} from './facility-staff-ui.js';
+import {SceneConversation} from './scene-conversation.js';
 import { GameEvents } from './game-events.js';
 export class SquareSceneView {
  constructor(element) {
@@ -37,12 +39,13 @@ export class SquareSceneView {
 
 installPasswordViewportGuard();
 installBonusButtonLayout(document.querySelector('[data-home-choice="interfere"]'));
-let patrolUI=null,houseUI=null,trainingHallUI=null,analysisRoomUI=null,interiorUI=null,gameRuntime=null;
+let patrolUI=null,houseUI=null,trainingHallUI=null,analysisRoomUI=null,interiorUI=null,gameRuntime=null,sceneConversation=null,facilityStaffUI=null;
 const needsVisitorName=()=>!gameRuntime?.session.state.visitorName;
 const view=new SquareSceneView(document.querySelector('#mainView'));
-const areaMap=new AreaMap(document.querySelector('#areaMap'),{onOpenHouse:button=>buildingMap.open(button),onHouseUpdate:svg=>buildingMap.updateRoomMarkers(svg)});
+const readStaff=()=>gameRuntime?.session.state.facilityStaff;
+const areaMap=new AreaMap(document.querySelector('#areaMap'),{readStaff,onOpenHouse:button=>buildingMap.open(button),onHouseUpdate:svg=>buildingMap.updateRoomMarkers(svg)});
 const canTravelBuilding=()=>Boolean(gameRuntime&&(gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene))&&gameRuntime.isHouseReady()&&!needsVisitorName()&&!eventVisible&&!gameRuntime.session.state.pendingAngerEvent&&!gameRuntime.pendingCutin&&gameRuntime.session.state.location==='home');
-const buildingMap=new BuildingMapDialog({canOpen:canTravelBuilding,getRoomSvg:()=>areaMap.houseSvg,getCurrentArea:()=>{const room=INTERIOR_ROOMS[gameRuntime?.scene];return room?{floorId:room.floorId,areaId:room.areaId}:gameRuntime?.scene==='training-hall'?{floorId:'b2',areaId:'training'}:{floorId:'1f',areaId:'home'};},canTravel:destination=>canTravelBuilding()&&(Boolean(interiorForDestination(destination))||['1f:home','b2:training'].includes(destination.floorId+':'+destination.areaId)),onTravel:destination=>{const room=interiorForDestination(destination);if(room)return gameRuntime.visitInterior(room);if(destination.floorId==='b2'&&destination.areaId==='training')return gameRuntime.visitTrainingHall();return isInteriorScene(gameRuntime.scene)?gameRuntime.returnFromInteriorRoom():gameRuntime.returnFromTrainingHall();}});areaMap.showHouse();
+const buildingMap=new BuildingMapDialog({readStaff,canOpen:canTravelBuilding,getRoomSvg:()=>areaMap.houseSvg,getCurrentArea:()=>{const room=INTERIOR_ROOMS[gameRuntime?.scene];return room?{floorId:room.floorId,areaId:room.areaId}:gameRuntime?.scene==='training-hall'?{floorId:'b2',areaId:'training'}:{floorId:'1f',areaId:'home'};},canTravel:destination=>canTravelBuilding()&&(Boolean(interiorForDestination(destination))||['1f:home','b2:training'].includes(destination.floorId+':'+destination.areaId)),onTravel:destination=>{const room=interiorForDestination(destination);if(room)return gameRuntime.visitInterior(room);if(destination.floorId==='b2'&&destination.areaId==='training')return gameRuntime.visitTrainingHall();return isInteriorScene(gameRuntime.scene)?gameRuntime.returnFromInteriorRoom():gameRuntime.returnFromTrainingHall();}});areaMap.showHouse();
 const events=new GameEvents({onMessage:payload=>presentMessage(payload)});
 const samples=[
  {speaker:'ナレーション',kind:'narration',text:'おこていゆは、焼いたベーコンをじっと見つめている。どうやら、研究の手が止まってしまったようだ。'},
@@ -52,13 +55,15 @@ const overlay=document.querySelector('#messageOverlay');
 const shield=document.querySelector('#viewInputShield');
 const replayButton=document.querySelector('#messageReplay');
 let eventVisible=false,lastMessage=null;
-const message=new OkoteiyuMessage(document.querySelector('#message'),{onAdvance:()=>{if(!gameRuntime?.messageLocked)hideEvent();}});
+const message=new OkoteiyuMessage(document.querySelector('#message'),{onAdvance:()=>{if(!gameRuntime?.messageLocked){if(sceneConversation?.active)sceneConversation.advance();else hideEvent();}}});
 function presentMessage(payload) {
+ if(sceneConversation?.active&&!sceneConversation.presenting)sceneConversation.close({notify:false,restoreFocus:false});
  lastMessage={speaker:payload.speaker??'ナレーション',text:payload.text??'',kind:payload.kind??'narration'};
  replayButton.hidden=true;replayButton.disabled=false;
  eventVisible=true;overlay.hidden=false;shield.hidden=false;view.surface.inert=true;
  view.element.dataset.messageVisible='true';view.surface.setAttribute('aria-disabled','true');
  message.set(lastMessage);message.next.disabled=Boolean(gameRuntime?.messageLocked);houseUI?.updateControls();
+ facilityStaffUI?.refresh();
 }
 function showEvent(payload=samples[0],{record=true}={}) {
  if(record)return events.dispatch(payload,{showMessage:true});
@@ -70,12 +75,14 @@ function replayMessage(){
 }
 replayButton.addEventListener('click',replayMessage);
 function hideEvent() {
+ sceneConversation?.close({notify:false,restoreFocus:false});
  const restoreFocus=overlay.contains(document.activeElement);
  eventVisible=false;overlay.hidden=true;shield.hidden=true;view.surface.inert=false;
  view.element.dataset.messageVisible='false';view.surface.removeAttribute('aria-disabled');
  replayButton.hidden=false;replayButton.disabled=!lastMessage||Boolean(gameRuntime?.messageLocked);houseUI?.updateControls();
  if(restoreFocus&&!isModalBlocked())replayButton.focus({preventScroll:true});
  gameRuntime?.onMessageClosed();
+ facilityStaffUI?.refresh();
 
 }
 // Capture a single click anywhere in the view before it reaches scene controls.
@@ -100,6 +107,7 @@ for(const type of ['pointerdown','pointerup','pointermove','click','dblclick','w
  },{capture:true,passive:false});
 }
 hideEvent();
+sceneConversation=new SceneConversation({view,showMessage:presentMessage,onComplete:()=>hideEvent(),canStart:()=>Boolean(gameRuntime&&!needsVisitorName()&&!eventVisible&&!isModalBlocked()&&!gameRuntime.messageLocked&&!gameRuntime.pendingCutin&&!gameRuntime.session.state.pendingAngerEvent&&isInteriorScene(gameRuntime.scene))});
 // This design page starts by demonstrating an event; real event conditions are not defined here.
 if(new URLSearchParams(location.search).get('event')==='demo')showEvent(samples[0],{record:false});
 const input=document.querySelector('#mediaFile');
@@ -209,12 +217,23 @@ gameRuntime=new GameRuntime({view,house:houseUI,patrol:patrolUI,trainingHall:tra
  isPaused:()=>needsVisitorName()||eventVisible||isModalBlocked(),isModalPaused:()=>needsVisitorName()||isModalBlocked(),isMessageVisible:()=>eventVisible,
  showMessage:(payload,{record=true,showMessage=true}={})=>showMessage?showEvent(payload,{record}):events.dispatch(payload,{showMessage:false}),hideMessage:hideEvent,setLocation,setGauges,toast,readMessagePage:()=>({page:message.page,pages:message.pages.length}),advanceMessagePage:()=>message.advance()});
 window.mainViewPreview.game=gameRuntime;
+const staffSceneReady=()=>{const id=gameRuntime?.scene;const room=id==='analysis-room'?analysisRoomUI:interiorUI;return isInteriorScene(id)&&room?.active&&room.roomDefinition?.id===id&&room.ready&&!room.loading&&!room.failed&&!room.controller?.contextLost&&!gameRuntime.recovery?.blocked;};
+facilityStaffUI=new FacilityStaffUI({view,readStaff,readScene:()=>gameRuntime.scene,canTalk:()=>staffSceneReady()&&!needsVisitorName()&&!eventVisible&&!isModalBlocked()&&!sceneConversation.active&&!gameRuntime.pendingCutin&&!gameRuntime.session.state.pendingAngerEvent,onTalk:(staff,opener)=>sceneConversation.play({id:'staff:'+staff.id,sceneId:gameRuntime.scene,lines:staffGreeting(staff),opener})});
+window.mainViewPreview.facilityStaff=facilityStaffUI;
+window.mainViewPreview.conversation=sceneConversation;
 gameRuntime.onTrainingHallEntered=()=>areaMap.showTraining();
 gameRuntime.onAnalysisRoomEntered=()=>areaMap.showAnalysis();
 gameRuntime.onInteriorEntered=id=>areaMap.showInterior(id);
 gameRuntime.onBattleEvent=event=>areaMap.handleBattleEvent(event);
 const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>(gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene))&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready),onError:(text,error)=>{toast(text);if(browserSave.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
-gameRuntime.onProgressChange=()=>{browserSave.saveNow();optionsUI.refreshGameView();};
+let previousStaffState='';
+gameRuntime.onProgressChange=()=>{
+ if(sceneConversation.active&&sceneConversation.current.sceneId!==gameRuntime.scene)sceneConversation.close({notify:false,restoreFocus:false});
+ facilityStaffUI.refresh();const staffState=JSON.stringify(readStaff());
+ if(staffState!==previousStaffState){previousStaffState=staffState;areaMap.refreshStaff();buildingMap.refreshStaff();}
+ browserSave.saveNow();optionsUI.refreshGameView();
+};
+facilityStaffUI.refresh();areaMap.refreshStaff();
 window.addEventListener('pagehide',()=>browserSave.saveNow());document.addEventListener('visibilitychange',()=>{if(document.hidden)browserSave.saveNow();});
 window.mainViewPreview.browserSave=browserSave;
 

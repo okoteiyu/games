@@ -41,3 +41,6 @@
 .area-map__house-trigger:hover{background:#fff9ea55;}
 @media(max-width:560px){.building-map__header{padding:7px 12px}.building-map__body{padding:10px}.building-map__description{padding:9px 10px}}
 @media(max-height:480px){.building-map__header{padding:4px 12px}.building-map__floors{padding:5px 12px}.building-map__floors button{min-block-size:34px}.building-map__body{padding:8px 10px;gap:8px}.building-map__drawing{max-block-size:48dvh}}
+
+.building-map-staff-counts{pointer-events:none;}
+.building-map-staff-counts text{font-variant-numeric:tabular-nums;}

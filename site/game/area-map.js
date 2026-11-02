@@ -1,7 +1,8 @@
 import {trainingMapSvg} from './training-map.js';
 import {analysisMapSvg} from './analysis-map.js';
 import {BattleLog} from './battle-log.js';
-import {interiorMapSvg} from './interior-map.js';
+import {interiorMapSvg,staffCountDrawing} from './interior-map.js';
+import {getFacilityStaffCounts} from './facility-staff.js';
 import {INTERIOR_ROOMS} from './interior-rules.js';
 
 // Decorative cue stays outside the map SVGs copied into the dialogs.
@@ -15,8 +16,8 @@ export function roomMapPoint(position,bounds=DEFAULT_BOUNDS){
  return {x:10+(x-bounds.min[0])/(bounds.max[0]-bounds.min[0])*220,y:10+(z-bounds.min[2])/(bounds.max[2]-bounds.min[2])*240};
 }
 export class AreaMap {
- constructor(element,{onOpenHouse=()=>{},onHouseUpdate=()=>{}}={}){
-  this.onHouseUpdate=onHouseUpdate;this.contentClick=event=>{if(['house','training','analysis','interior'].includes(this.mode)){const button=event.target.closest('[data-house-map-open]');if(button)onOpenHouse(button);}};element.addEventListener('click',this.contentClick);
+ constructor(element,{onOpenHouse=()=>{},onHouseUpdate=()=>{},readStaff=()=>null}={}){
+  this.onHouseUpdate=onHouseUpdate;this.readStaff=readStaff;this.interiorId=null;this.contentClick=event=>{if(['house','training','analysis','interior'].includes(this.mode)){const button=event.target.closest('[data-house-map-open]');if(button)onOpenHouse(button);}};element.addEventListener('click',this.contentClick);
   this.element=element;this.content=element.querySelector('#areaMapContent');this.title=element.querySelector('#areaMapTitle');this.hint=element.querySelector('#areaMapHint');this.mode=null;this.markerKey=null;
  }
  showHouse(life,metadata){
@@ -27,6 +28,7 @@ export class AreaMap {
   }
   const actor=life?.actor?.position?.toArray()||metadata?.life?.landmarks?.entrance?.position||[0,0,-.45];
   const companion=life?.companion?.position?.toArray()||[-.28,0,-.3];
+  this.refreshStaff();
   const key=[...actor,...companion].map(v=>v.toFixed(3)).join('|');if(key===this.markerKey)return;this.markerKey=key;
   for(const [id,position]of [['roomMapOkoteiyu',actor],['roomMapMoai',companion]]){
    const p=roomMapPoint(position,this.bounds);this.content.querySelector('#'+id).setAttribute('transform',`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})`);
@@ -40,16 +42,34 @@ export class AreaMap {
  showTraining(){
   this.clearBattleLog();
   this.mode='training';this.element.dataset.area='training';this.title.textContent='訓練所';this.hint.textContent='';
-  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="訓練所の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+trainingMapSvg()+MAP_TAP_CUE+'</button>';
+  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="訓練所の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+trainingMapSvg()+MAP_TAP_CUE+'</button>';this.refreshStaff();
  }
  showAnalysis(){
   this.clearBattleLog();
   this.mode='analysis';this.element.dataset.area='analysis';this.title.textContent='コンピュータ室';this.hint.textContent='';
-  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="コンピュータ室の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+analysisMapSvg({compact:true,current:true})+MAP_TAP_CUE+'</button>';
+  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="コンピュータ室の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+analysisMapSvg({compact:true,current:true})+MAP_TAP_CUE+'</button>';this.refreshStaff();
  }
  showInterior(id){
-  const room=INTERIOR_ROOMS[id];if(!room||id==='analysis-room')return false;this.clearBattleLog();this.mode='interior';this.element.dataset.area='interior';this.title.textContent=room.title;this.hint.textContent='';
-  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="'+room.title+'の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+interiorMapSvg(id)+MAP_TAP_CUE+'</button>';return true;
+  const room=INTERIOR_ROOMS[id];if(!room||id==='analysis-room')return false;this.clearBattleLog();this.mode='interior';this.interiorId=id;this.element.dataset.area='interior';this.title.textContent=room.title;this.hint.textContent='';
+  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="'+room.title+'の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+interiorMapSvg(id)+MAP_TAP_CUE+'</button>';this.refreshStaff();return true;
+ }
+ refreshStaff(){
+  const button=this.content.querySelector('[data-house-map-open]');if(!button)return false;
+  const state=this.readStaff(),counts=state?getFacilityStaffCounts(state):{},key=JSON.stringify([this.mode,this.interiorId,counts]);
+  if(this.staffKey===key&&this.staffButton===button)return false;this.staffKey=key;this.staffButton=button;
+  button.querySelector(':scope > .area-map__staff-count')?.remove();
+  const svg=button.querySelector(':scope > svg');svg?.querySelector('[data-mini-staff-counts]')?.remove();
+  const scene=this.mode==='analysis'?'analysis-room':this.mode==='interior'?this.interiorId:null,count=counts[scene]||0;
+  const base=button.getAttribute('data-label-without-staff')||button.getAttribute('aria-label');button.setAttribute('data-label-without-staff',base);button.setAttribute('aria-label',base+(count?'。従業員'+count+'人がいます':''));
+  if(count){
+   const badge=document.createElement('span');badge.className='area-map__staff-count';badge.dataset.staffRoom=scene;badge.dataset.staffCount=String(count);badge.setAttribute('aria-hidden','true');
+   badge.innerHTML='<svg viewBox="0 0 80 34" focusable="false">'+staffCountDrawing(scene,count)+'</svg>';button.append(badge);
+  }
+  if(this.mode==='training'&&svg){
+   const badges=[['guest-lounge',70,550,535,145],['management-room',650,550,250,145]].filter(([id])=>counts[id]).map(([id,x,y,w,h])=>staffCountDrawing(id,counts[id],{x:x+w-142,y:y+h-64,scale:1.65})).join('');
+   if(badges)svg.insertAdjacentHTML('beforeend','<g data-mini-staff-counts="true" pointer-events="none">'+badges+'</g>');
+  }
+  return true;
  }
  handleBattleEvent(event){
   if(event?.type==='battle-start'){

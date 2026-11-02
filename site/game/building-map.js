@@ -2,7 +2,9 @@ import {tryOpenModal,releaseModal,isModalBlocked} from './modal-layer.js';
 import {trainingMapDrawing,BASEMENT_MAP_VIEWBOX,basementFloorDrawing,basementUpperToiletDrawing,basementWashroomDrawing,basementCoreDrawing,basementFreightDrawing} from './training-map.js';
 import {outdoorMapDrawing,OUTDOOR_MAP_VIEWBOX} from './outdoor-map.js';
 import {analysisMapDrawing} from './analysis-map.js';
-import {interiorMapDrawing} from './interior-map.js';
+import {interiorMapDrawing,staffCountDrawing} from './interior-map.js';
+import {getFacilityStaffCounts} from './facility-staff.js';
+import {INTERIOR_ROOMS} from './interior-rules.js';
 import {INTERIOR_LAYOUTS} from './interior-layouts.js';
 
 export const BUILDING_FLOORS=Object.freeze([
@@ -124,8 +126,8 @@ export function buildingFloorSvg(floorId,selected){
 }
 
 export class BuildingMapDialog{
- constructor({canOpen=()=>true,getRoomSvg=()=>null,getCurrentArea=()=>({floorId:'1f',areaId:'home'}),canTravel=()=>false,onTravel=()=>false}={}){
-  Object.assign(this,{canOpen,getRoomSvg,getCurrentArea,canTravel,onTravel});this.floorId='1f';this.areaId='home';this.opener=null;
+ constructor({canOpen=()=>true,getRoomSvg=()=>null,getCurrentArea=()=>({floorId:'1f',areaId:'home'}),canTravel=()=>false,onTravel=()=>false,readStaff=()=>null}={}){
+  Object.assign(this,{canOpen,getRoomSvg,getCurrentArea,canTravel,onTravel,readStaff});this.floorId='1f';this.areaId='home';this.opener=null;
   const dialog=this.dialog=document.createElement('dialog');dialog.id='buildingMapDialog';dialog.className='building-map-dialog';dialog.setAttribute('aria-labelledby','buildingMapTitle');dialog.setAttribute('aria-modal','true');
   dialog.innerHTML=`<header class="building-map__header"><h2 id="buildingMapTitle">建物マップ</h2><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階・屋外" style="--building-floor-count:${BUILDING_FLOORS.length}">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><figure class="building-map__figure"><div class="building-map__drawing"></div></figure><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div>`;
   document.body.append(dialog);
@@ -212,7 +214,7 @@ export class BuildingMapDialog{
   const description=this.dialog.querySelector('.building-map__description'),current=this.getCurrentArea(),here=current.floorId===this.floorId&&current.areaId===id,available=!area.mapOnly&&this.canTravel({floorId:this.floorId,areaId:id});description.replaceChildren();
   const heading=document.createElement('h3'),name=document.createElement('span'),status=document.createElement('small');name.textContent=area.name;status.textContent=here?'現在地':area.mapOnly?'マップのみ':available?'移動できます':'準備中';status.dataset.state=here?'current':available?'available':'unavailable';heading.append(name,status);description.append(heading);
   if(area.text?.trim()){const copy=document.createElement('p');copy.textContent=area.text;description.append(copy);}
-  this.mountRoomMap();this.decorateMap();return true;
+  this.mountRoomMap();this.decorateMap();this.refreshStaff();return true;
  }
  decorateMap(){
   const svg=this.dialog.querySelector('.building-plan'),floor=BUILDING_FLOORS.find(f=>f.id===this.floorId),current=this.getCurrentArea(),unit=this.floorId.startsWith('b')?2:1;
@@ -238,6 +240,27 @@ export class BuildingMapDialog{
    }
    overlay.append(target);
   }
+ }
+ refreshStaff(){
+  const svg=this.dialog.querySelector('.building-plan');if(!svg)return false;
+  const state=this.readStaff(),counts=state?getFacilityStaffCounts(state):{};
+  const key=JSON.stringify([this.floorId,counts]);if(this.staffKey===key&&this.staffSvg===svg)return false;
+  // Update only the occupancy decorations, keeping the floor, focus and scroll intact.
+  svg.querySelector('[data-building-staff-counts]')?.remove();
+  const overlay=svgNode('g',{'data-building-staff-counts':'true','class':'building-map-staff-counts','pointer-events':'none'});
+  for(const room of Object.values(INTERIOR_ROOMS)){
+   if(room.floorId!==this.floorId)continue;
+   const count=counts[room.id]||0,zone=svg.querySelector('[data-building-zone="'+room.areaId+'"]');
+   if(!zone)continue;
+   const target=svg.querySelector('[data-building-map-area="'+room.areaId+'"]');
+   if(target){
+    const base=target.getAttribute('data-label-without-staff')||target.getAttribute('aria-label');target.setAttribute('data-label-without-staff',base);target.setAttribute('aria-label',base+(count?'。従業員'+count+'人がいます':''));
+   }
+   if(!count)continue;
+   const [x,y,w,h]=['x','y','width','height'].map(name=>Number(zone.getAttribute(name))),scale=this.floorId.startsWith('b')?1.65:1.4;
+   overlay.insertAdjacentHTML('beforeend',staffCountDrawing(room.id,count,{x:x+w-80*scale-10,y:y+h-34*scale-8,scale}));
+  }
+  svg.append(overlay);this.staffKey=key;this.staffSvg=svg;return true;
  }
  mountRoomMap(){
   const target=this.dialog.querySelector('.building-live-room'),source=this.getRoomSvg();if(!target||!source)return;

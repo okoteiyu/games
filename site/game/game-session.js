@@ -2,6 +2,7 @@ import {ADDED_CREATURES} from './creature-expansion.js';
 import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
+import {createFacilityStaff,normalizeFacilityStaff,advanceFacilityStaffShift,setFacilityStaffPlacements,clearFacilityStaffPlacements} from './facility-staff.js';
 import {currentTimeOfDay} from './world-time.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,validateSupportSelection,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 export {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,supportSelectionChange,validateSupportSelection,SUPPORT_SLOT_LIMIT,SUPPORT_TAG_LABELS,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
@@ -191,14 +192,14 @@ export function validateSessionState(saved){
  const interferenceUsedSinceBattle=saved.interferenceUsedSinceBattle===undefined?false:saved.interferenceUsedSinceBattle;
  if(typeof interferenceUsedSinceBattle!=='boolean')throw new TypeError('Interference lock must be boolean.');
  const patrolUsedSinceRecovery=saved.patrolUsedSinceRecovery??false;if(typeof patrolUsedSinceRecovery!=='boolean')throw new TypeError('Patrol cooldown must be boolean.');
- return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount});
+ return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount,facilityStaff:normalizeFacilityStaff(saved.facilityStaff)});
 }
 
 export class GameSession{
- constructor({rng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
-  if(typeof rng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
-  this.rng=rng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
-  this.state={schemaVersion:1,visitorName:null,location:'home',player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null};
+ constructor({rng=Math.random,staffRng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
+  if(typeof rng!=='function'||typeof staffRng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
+  this.rng=rng;this.staffRng=staffRng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
+  this.state={schemaVersion:1,visitorName:null,location:'home',player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined};
   if(state!==null)this.importState(state);
  }
  emit(type,detail={}){const event={type,...detail};this.eventLog.push(clone(event));if(this.eventLog.length>120)this.eventLog.shift();this.onEvent(event);return event;}
@@ -255,7 +256,10 @@ export class GameSession{
  }
 
  makePatrolEnemies(map,{timeOfDay=currentTimeOfDay(this.now())}={}){return createPatrolEnemies({map,player:this.player,rng:()=>this.random(),patrolId:this.state.patrolCount,timeOfDay});}
- cancelPatrol(){if(this.state.location!=='patrol')return false;this.state.location='home';this.state.interferenceUsedSinceBattle=false;this.emit('home-return',{afterBattle:false});return true;}
+ cancelPatrol({rotateStaff=false}={}){if(this.state.location!=='patrol')return false;this.state.location='home';this.state.interferenceUsedSinceBattle=false;if(rotateStaff)this.advanceFacilityStaff();this.emit('home-return',{afterBattle:false});return true;}
+ advanceFacilityStaff(){this.state.facilityStaff=advanceFacilityStaffShift(this.state.facilityStaff,{rng:this.staffRng});this.emit('facility-staff-shift',{shiftIndex:this.state.facilityStaff.shiftIndex});return this.state.facilityStaff;}
+ setFacilityStaffPlacements(placements){this.state.facilityStaff=setFacilityStaffPlacements(this.state.facilityStaff,placements);this.emit('facility-staff-placement');return this.state.facilityStaff;}
+ clearFacilityStaffPlacements(ids=null){this.state.facilityStaff=clearFacilityStaffPlacements(this.state.facilityStaff,ids);this.emit('facility-staff-placement');return this.state.facilityStaff;}
  startBattle(encounter,{kind=this.state.location==='training'?'training':'patrol'}={}){
   if(!['patrol','training'].includes(kind))throw new RangeError('Unsupported battle kind.');
   if(this.state.location==='battle')throw new Error('A battle is already open.');if(this.state.pendingAngerEvent)throw new Error('Finish the anger event first.');
@@ -480,7 +484,7 @@ export class GameSession{
   this.player.equipment.defense=id;this.emit('item-equipped',{kind,id});return true;
  }
  returnHomeAfterBattle(){
-  const b=this.state.battle;if(!b||b.phase!=='ended')return false;this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};this.state.battle=null;this.state.location='home';this.state.commandsLocked=false;this.state.interferenceUsedSinceBattle=false;this.state.interferenceBonusAvailable=true;this.state.patrolUsedSinceRecovery=false;this.emit('home-return',{afterBattle:true,resetRelaxStreak:false});return true;
+  const b=this.state.battle;if(!b||b.phase!=='ended')return false;this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};this.state.battle=null;this.state.location='home';this.state.commandsLocked=false;this.state.interferenceUsedSinceBattle=false;this.state.interferenceBonusAvailable=true;this.state.patrolUsedSinceRecovery=false;if(b.kind==='patrol')this.advanceFacilityStaff();this.emit('home-return',{afterBattle:true,resetRelaxStreak:false});return true;
  }
  snapshotBattle(){
   const b=this.state.battle;if(!b)return null;
@@ -494,7 +498,7 @@ export class GameSession{
   // before the cut-in. Loading this checkpoint resumes at home, not on a route.
   const departing=allowDepartureCheckpoint&&['patrol','training'].includes(this.state.location);
   if((this.state.location!=='home'&&!departing)||this.state.battle||this.state.pendingAngerEvent&&!allowPending)throw new Error('Save only at home, outside patrol, battle, and the anger cut-in.');
-  return clone({schemaVersion:1,visitorName:this.state.visitorName,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount});
+  return clone({schemaVersion:1,visitorName:this.state.visitorName,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount,facilityStaff:this.state.facilityStaff});
  }
  importState(saved){
   if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)throw new Error('Load only at home, outside an event.');

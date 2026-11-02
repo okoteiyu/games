@@ -33,3 +33,8 @@
 .battle-log__entry p{margin:3px 0 0;color:#5d5142;font-size:12px;line-height:1.5;overflow-wrap:anywhere;}
 @media(max-height:540px){.area-map__tap-cue{inline-size:clamp(18px,14%,25px);inset-inline-end:3px;inset-block-end:3px;}.area-map__header{padding:4px;}.area-map__header h2{overflow:hidden;text-overflow:ellipsis;font-size:7.5px;}.area-map__header span{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;font-size:5.5px;}.area-map__content{padding:3px;}}
 @media(max-height:340px){.area-map__tap-cue{inline-size:18px;inset-inline-end:2px;inset-block-end:2px;}.area-map__header{padding:2px 3px;}.area-map__header h2{overflow:hidden;text-overflow:ellipsis;font-size:6.5px;}.area-map__header span{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;display:none;}.area-map__content{padding:2px;}}
+
+/* Employee occupancy is separate from the lower-right tap cue. */
+.area-map__staff-count{position:absolute;inset-block-start:5px;inset-inline-start:5px;inline-size:clamp(48px,35%,64px);aspect-ratio:80/34;pointer-events:none;}
+.area-map__staff-count>svg{display:block;inline-size:100%;block-size:100%;overflow:visible;}
+@media(max-height:540px){.area-map__staff-count{inline-size:48px;inset-block-start:3px;inset-inline-start:3px;}}
