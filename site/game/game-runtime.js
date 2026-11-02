@@ -315,13 +315,12 @@ export class GameRuntime {
   this.messageLocked=false;this.clearMessage();this.scene='house';this.view.setHouse();this.setLocation('おこていゆハウス');
   this.lastAngerResult=this.session.resolveAngerEvent();const outcome=this.lastAngerResult;
   if(!result.utteranceSent)this.enqueueMessages({type:'anger',speaker:'おこていゆ',kind:'speech',category:'conversation',text:'ｵｺﾃｲﾕ'});
-  this.enqueueMessages({type:'anger',category:'narration',text:'おこていゆイベントが起きた。'});
   if(outcome?.id==='super_state_level_up'&&outcome.changed){
    const name=outcome.superName||'スーパーおこていゆ状態',level=outcome.superConfigurationLevel??outcome.superLevel;
-   this.enqueueMessages({type:'growth',category:'experience',text:name+'のレベルが'+level+'に上がった！'});
+   this.enqueueMessages({type:'growth',category:'experience',text:'おこていゆイベントで、'+name+'のレベルが'+level+'に上がった！'});
   }else if(outcome?.techniqueId&&(outcome.newlyLearned||outcome.changed)){
    const name=outcome.techniqueName||TECHNIQUES[outcome.techniqueId]?.name||'技',category=outcome.newlyLearned?'item':'experience';
-   this.enqueueMessages({type:'growth',category,text:outcome.newlyLearned?name+'を取得した！ コレクションの「技」から設定できます。':name+'が少し上達した！'});
+   this.enqueueMessages({type:'growth',category,text:'おこていゆイベントで、'+(outcome.newlyLearned?name+'を取得した！ コレクションの「技」から設定できます。':name+'が少し上達した！')});
   }
   this.sync();
  }
