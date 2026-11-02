@@ -205,7 +205,7 @@ export class OptionsDialog {
  }
  renderCollectionCategory(kind){
   if(!Object.hasOwn(COLLECTION_KINDS,kind))return;
-  const snapshot=this.readGame(),player=this.collectionPlayer(),canEquip=snapshot?.location==='home'&&!snapshot.pendingAngerEvent;
+  const snapshot=this.readGame(),player=this.collectionPlayer(),canEquip=snapshot?.location==='home'&&!snapshot.pendingAngerEvent&&!snapshot.storyActive;
   const entries=kind==='aura'?Object.entries(player.auras||{}).map(([id,value])=>({id,...value})):((player.ownedItems?.[kind])||[]).map(id=>(kind==='defense'?DEFENSE_ITEMS:SUPPORT_ITEMS)[id]).filter(Boolean);
   const equipped=kind==='aura'?player.equippedAura:player.equipment?.[kind],equippedIds=kind==='support'?equippedSupportIds(player.equipment):[equipped].filter(Boolean);
   let selected=this.selectedCollection[kind];if(!entries.some(e=>e.id===selected))selected=entries.find(e=>equippedIds.includes(e.id))?.id||entries[0]?.id;this.selectedCollection[kind]=selected;
@@ -225,7 +225,7 @@ export class OptionsDialog {
   const rows=[['あなたの名前',snapshot?.visitorName||'未登録'],['撃退数',defeats.toLocaleString('ja-JP')+'体'],['勝利した戦闘',count(player.battlesWon)+'回'],['敗北した戦闘',count(player.battlesLost)+'回'],['パトロール',count(snapshot?.patrolCount)+'回'],['おこていゆイベント',count(snapshot?.angerEvents)+'回'],['キャラレベル',player.level||1],...Object.entries(stats).map(([key,value])=>[({hp:'HP',attack:'攻撃力',ki:'気',speed:'速さ'})[key],Number(value).toLocaleString('ja-JP',{maximumFractionDigits:1})])];
   this.body.innerHTML='<p class="option-section-intro">これまでの活動を記録しています。Web版では記録の確認ができ、ヒーロー会のサービスはiOS版で解放されます。</p><section class="membership-card"><span class="membership-card__overline">珍生物ヒーロー会 · 活動記録</span><div class="membership-card__name">おこていゆ</div><div class="membership-card__rank"><span>HERO RANK</span><strong>'+escapeHtml(rank)+'</strong></div></section><dl class="option-data">'+rows.map(([label,value])=>'<div><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(value)+'</dd></div>').join('')+'</dl>';
  }
- renderTechniques(){const pickerState=this.superPrefixPicker.snapshot(),snapshot=this.readGame();this.body.innerHTML=techniquePageMarkup(this.collectionPlayer(),{slot:this.activeTechniqueSlot,selected:this.selectedTechnique,canEdit:snapshot?.location==='home'&&!snapshot.pendingAngerEvent,attackMultiplier:snapshot?.battle?.super?.active?snapshot.battle.super.multiplier:1});this.superPrefixPicker.restore(pickerState);}
+ renderTechniques(){const pickerState=this.superPrefixPicker.snapshot(),snapshot=this.readGame();this.body.innerHTML=techniquePageMarkup(this.collectionPlayer(),{slot:this.activeTechniqueSlot,selected:this.selectedTechnique,canEdit:snapshot?.location==='home'&&!snapshot.pendingAngerEvent&&!snapshot.storyActive,attackMultiplier:snapshot?.battle?.super?.active?snapshot.battle.super.multiplier:1});this.superPrefixPicker.restore(pickerState);}
  renderJournal(){
   const player=this.collectionPlayer(),journal=player.journal||{},entries=Object.entries(CREATURES).filter(([id,creature])=>id==='okoteiyu'||Object.hasOwn(CREATURE_CATEGORIES,creature.category)&&hasJournalRecord(journal[id])).map(([id,creature])=>({...journal[id],id,name:creature.name,creature,self:id==='okoteiyu'}));
   if(!entries.some(e=>e.id===this.selectedJournal))this.selectedJournal=entries[0].id;const selected=entries.find(e=>e.id===this.selectedJournal);

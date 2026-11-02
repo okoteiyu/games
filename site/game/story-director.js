@@ -13,18 +13,23 @@ const stageNames={'headquarters':'ヒーロー会 本拠点',road:'引っ越し�
  * Story battles use the ordinary combat engine; each scene chooses a preset
  * or the current profile. Only its first victory transfers persistent rewards. */
 export class StoryDirector {
- constructor({runtime,view,game,homeElement,contextElement,onCheckpoint=()=>{}}){
-  Object.assign(this,{runtime,view,onCheckpoint});this.primarySession=runtime.session;
+ constructor({runtime,view,game,homeElement,contextElement,onCheckpoint=()=>{},onOpenMap=()=>false}){
+  Object.assign(this,{runtime,view,onCheckpoint,onOpenMap});this.primarySession=runtime.session;
   this.active=false;this.replay=false;this.paused=false;this.loading=false;this.error=null;this.serial=0;this.autoSuppressed=false;this.battlePending=false;
   this.stage=this.createStage();
   this.ui=new StoryUI({view,game,homeElement,contextElement,chapters:STORY_CHAPTERS,readProgress:()=>this.progress,
-   onEpisode:(id,options)=>this.start(id,options),onNextEpisode:id=>this.start(id),onExit:()=>this.exit(),onFinish:()=>this.exit(),onPause:paused=>this.setPaused(paused),onChoice:index=>this.choose(index),onError:error=>this.fail(error)});
+   onEpisode:(id,options)=>this.start(id,options),onNextEpisode:id=>this.start(id),onExit:()=>this.exit(),onFinish:()=>this.exit(),onPause:paused=>this.setPaused(paused),onChoice:index=>this.choose(index),onOpenMap:opener=>this.canExplore&&this.onOpenMap(opener),onError:error=>this.fail(error)});
   this.portrait=document.createElement('div');this.portrait.className='scene-conversation story-portrait';this.portrait.hidden=true;
   this.portrait.innerHTML='<img class="scene-conversation__portrait" alt=""><span class="scene-conversation__name"></span>';view.element.append(this.portrait);
   runtime.story=this;
  }
  get progress(){return this.primarySession.state.story;}
  get scene(){return this.episode?.scenes[this.index];}
+ get objective(){return this.scene?.type==='objective'?this.scene.objective:null;}
+ get isExploring(){return Boolean(this.active&&this.mode==='objective'&&this.objective);}
+ get objectiveTalking(){return Boolean(this.objectiveConversation?.active);}
+ get objectiveRoomReached(){return Boolean(this.objectiveState?.mapVisited&&this.runtime.scene===this.objective?.roomId);}
+ get canExplore(){return this.isExploring&&!this.paused&&!this.loading&&!this.error&&!this.objectiveTalking;}
  get canCheckpoint(){return this.primarySession.state.location==='home'&&!this.primarySession.state.battle;}
  get contextLost(){return Boolean(this.stage.contextLost);}
  findEpisode(id){for(const chapter of STORY_CHAPTERS){const episode=chapter.episodes.find(entry=>entry.id===id);if(episode)return {chapter,episode};}return null;}
@@ -46,10 +51,46 @@ export class StoryDirector {
   checkpointStoryScene(this.progress,{episodeId:this.episode.id,sceneIndex:bounded,sceneId:scene.id},STORY_CHAPTERS);
   this.onCheckpoint();
  }
+ /** Objectives use the real map and room view, never an authored next button. */
+ enterObjective(scene){
+  const r=this.runtime,objective=scene.objective;
+  if(!objective||objective.kind!=='talk_staff'||typeof objective.staffId!=='string'||typeof objective.roomId!=='string'||!Array.isArray(scene.lines)||!scene.lines.length)throw new Error('物語の訪問先を準備できませんでした。');
+  this.closeObjectiveConversation();this.objectiveState={sceneId:scene.id,mapVisited:false,conversationId:null};
+  this.stage.destroy();r.trainingHall?.deactivate();r.deactivateRoomVisits();r.house.leaveHouse();r.scene='house';r.messageLocked=false;r.clearMessage();r.messages=[];
+  r.setLocation('おこていゆハウス');r.house.arriveFromOutside?.({afterBattle:false,emit:false});this.view.setHouse();this.loading=false;this.paint('objective');r.sync();return true;
+ }
+ onMapTravel(destination){
+  if(!this.canExplore||!destination)return false;
+  const reached=this.runtime.scene===this.objective.roomId&&destination.floorId===this.objective.floorId&&destination.areaId===this.objective.areaId;
+  if(reached)this.objectiveState.mapVisited=true;
+  this.paint('objective');return reached;
+ }
+ talkToStaff(staff,opener,conversation){
+  if(!this.canExplore||this.runtime.isPaused()||this.runtime.isModalPaused()||document.hidden||this.runtime.scene!==this.objective.roomId||staff?.id!==this.objective.staffId||!this.objectiveState?.mapVisited||!conversation?.play)return false;
+  this.objectiveAttempt=(this.objectiveAttempt||0)+1;
+  const id='story-objective:'+this.episode.id+':'+this.scene.id+':'+this.serial+':'+this.objectiveAttempt;
+  this.objectiveConversation=conversation;this.objectiveState.conversationId=id;
+  const started=conversation.play({id,sceneId:this.objective.roomId,lines:this.scene.lines,opener});
+  if(!started){this.objectiveConversation=null;this.objectiveState.conversationId=null;return false;}
+  this.paint('objective');this.runtime.sync();return true;
+ }
+ onConversationComplete(previous){
+  if(!this.isExploring||previous?.id!==this.objectiveState?.conversationId)return false;
+  this.objectiveConversation=null;this.objectiveState.conversationId=null;
+  const complete=Array.isArray(previous.lines)&&previous.lines.length>0&&previous.index>=previous.lines.length;
+  if(!complete||this.paused||this.loading||this.runtime.scene!==this.objective.roomId||previous.sceneId!==this.objective.roomId||!this.objectiveState.mapVisited){this.paint('objective');return false;}
+  // The checkpoint changes only after the last line is read. Interrupted or
+  // cancelled visits resume at this objective and do not silently complete it.
+  this.objectiveState=null;this.index++;this.present();return true;
+ }
+ closeObjectiveConversation(){
+  this.objectiveConversation?.close?.({notify:false,restoreFocus:false});this.objectiveConversation=null;
+  if(this.objectiveState)this.objectiveState.conversationId=null;
+ }
  async start(id,{replay=false}={}){
   const r=this.runtime,found=this.findEpisode(id);
   if(!found||r.isModalPaused()||document.hidden||this.battlePending||!this.primarySession.state.visitorName||!['house','story'].includes(r.scene)||!isStoryEpisodeAvailable(this.progress,id,STORY_CHAPTERS))return false;
-  this.ensureStage();
+  this.closeObjectiveConversation();this.objectiveState=null;this.ensureStage();
   const wasActive=this.active,saved=this.progress.activeEpisode;
   this.replay=Boolean(replay||this.progress.completedEpisodes.includes(id));this.active=true;this.paused=false;this.error=null;this.episode=found.episode;this.chapter=found.chapter;
   let index=0;
@@ -61,7 +102,7 @@ export class StoryDirector {
   this.index=index;this.checkpoint();this.paint();await this.present();r.sync();return true;
  }
  paint(mode=this.mode||'read',extra={}){
-  this.mode=mode;this.ui.setPlayback({active:this.active,chapterId:this.chapter?.id,episodeId:this.episode?.id,sceneIndex:this.index,sceneCount:this.episode?.scenes.length||1,mode,paused:this.paused,replay:this.replay,choices:[],prompt:'',nextEpisodeId:null,...extra});
+  this.mode=mode;this.ui.setPlayback({active:this.active,chapterId:this.chapter?.id,episodeId:this.episode?.id,sceneIndex:this.index,sceneCount:this.episode?.scenes.length||1,mode,paused:this.paused,replay:this.replay,choices:[],prompt:'',nextEpisodeId:null,objective:this.objective,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,...extra});
   this.refresh();
  }
  setPortrait(scene){
@@ -77,6 +118,12 @@ export class StoryDirector {
    if(!this.replay&&hasStoryBattleReward(this.progress,scene.id)){this.index++;return this.present();}
    try{this.beginBattle(scene);}catch(error){r.session=this.primarySession;r.scene='story';this.battlePending=false;this.ensureStage();this.view.clear();this.view.surface.append(this.stage.container);this.fail(error);}return true;
   }
+  if(scene.type==='objective'){
+   try{return this.enterObjective(scene);}catch(error){this.fail(error);return false;}
+  }
+  this.closeObjectiveConversation();this.objectiveState=null;
+  if(r.scene!=='story'){r.trainingHall?.deactivate();r.deactivateRoomVisits();r.house.leaveHouse();r.scene='story';}
+  this.ensureStage();
   const visual=scene.type==='choice'?{...(this.lastVisual||this.episode.scenes.slice(0,this.index).findLast(entry=>entry.type==='scene')||{stage:'house',shot:'medium',animation:'idle',expression:'neutral'})}:scene;this.lastVisual=visual;
   this.paint(scene.type==='choice'?'choice':scene.auto?'auto':'read',scene.type==='choice'?{choices:scene.options,prompt:scene.prompt}:{});
   r.setLocation(stageNames[visual.stage]||'物語');
@@ -97,8 +144,9 @@ export class StoryDirector {
   this.index++;this.present();return true;
  }
  choose(index){
-  if(!this.active||this.runtime.scene!=='story'||this.paused||this.loading)return false;
+  if(!this.active||this.paused||this.loading)return false;
   if(this.error){if(index===0){this.error=null;this.present();}else this.exit();return true;}
+  if(this.runtime.scene!=='story')return false;
   const scene=this.scene;if(scene?.type!=='choice'||this.response)return false;
   const option=scene.options[index];if(!option)return false;
   this.response=true;this.portrait.hidden=true;this.paint('read');
@@ -112,6 +160,11 @@ export class StoryDirector {
  }
  tick(dt){
   if(!this.active)return;
+  if(this.isExploring){
+   if(this.runtime.isPaused()||this.runtime.isModalPaused()||document.hidden||this.paused||this.loading||this.error)return;
+   // Visit renderers animate idle poses/cameras only, never the home economy.
+   this.runtime.roomVisits[this.runtime.scene]?.advance(dt);return;
+  }
   if(this.runtime.scene!=='story')return;
   if(this.runtime.isModalPaused()||document.hidden||this.paused||this.loading||this.error)return;
   this.stage.update(dt);
@@ -148,7 +201,7 @@ export class StoryDirector {
   this.ensureStage();this.view.clear();this.view.surface.append(this.stage.container);this.present();r.sync();return true;
  }
  finishEpisode(){
-  const r=this.runtime;r.messageLocked=false;r.clearMessage();this.loading=false;this.portrait.hidden=true;
+  const r=this.runtime;this.closeObjectiveConversation();this.objectiveState=null;r.messageLocked=false;r.clearMessage();this.loading=false;this.portrait.hidden=true;
   if(!this.replay)completeStoryEpisode(this.progress,this.episode.id,STORY_CHAPTERS);
   const episodes=STORY_CHAPTERS.flatMap(chapter=>chapter.episodes),next=episodes[episodes.findIndex(episode=>episode.id===this.episode.id)+1];
   this.paint('complete',{nextEpisodeId:next&&isStoryEpisodeAvailable(this.progress,next.id,STORY_CHAPTERS)?next.id:null});this.onCheckpoint();r.sync();
@@ -156,8 +209,9 @@ export class StoryDirector {
  exportProgress(){return {session:this.primarySession.exportState({allowPending:true}),relaxStreak:this.runtime.house.getConsecutiveRelaxActions()};}
  exit(){
   if(!this.active||this.battlePending)return false;
+  this.closeObjectiveConversation();this.objectiveState=null;
   this.autoSuppressed=true;this.active=false;this.serial++;this.paused=false;this.error=null;this.loading=false;this.portrait.hidden=true;
-  const r=this.runtime;r.messageLocked=false;r.clearMessage();r.session=this.primarySession;r.scene='house';this.ui.setPlayback({active:false});this.stage.destroy();r.setLocation('おこていゆハウス');r.house.arriveFromOutside({afterBattle:Boolean(this.hadRewardBattle)});this.hadRewardBattle=false;this.view.setHouse();this.setReturnLabel(false);this.refresh();this.onCheckpoint();r.sync();return true;
+  const r=this.runtime;r.messageLocked=false;r.clearMessage();r.trainingHall?.deactivate();r.deactivateRoomVisits();r.session=this.primarySession;r.scene='house';this.ui.setPlayback({active:false});this.stage.destroy();r.setLocation('おこていゆハウス');r.house.arriveFromOutside({afterBattle:Boolean(this.hadRewardBattle)});this.hadRewardBattle=false;this.view.setHouse();this.setReturnLabel(false);this.refresh();this.onCheckpoint();r.sync();return true;
  }
  createStage(){return new StoryStage({view:this.view,onError:error=>this.fail(error),onReady:()=>{if(this.active&&this.error&&!this.loading)this.present();}});}
  ensureStage(){if(this.stage.destroyed)this.stage=this.createStage();}
@@ -173,6 +227,6 @@ export class StoryDirector {
   if(!this.active||this.runtime.scene!=='story')return true;
   const ready=await this.stage.recoverAfterInterruption();if(ready===false)return false;return true;
  }
- getDiagnostics(){return {active:this.active,replay:this.replay,paused:this.paused,loading:this.loading,error:this.error,episodeId:this.episode?.id,sceneIndex:this.index,sceneId:this.scene?.id,mode:this.mode,autoElapsed:this.elapsed,battlePending:this.battlePending,progress:clone(this.progress),stage:this.stage.getDiagnostics?.()||{ready:this.stage.ready}};}
- destroy(){this.serial++;this.active=false;this.runtime.session=this.primarySession;this.stage.destroy();this.ui.destroy();this.portrait.remove();}
+ getDiagnostics(){return {active:this.active,replay:this.replay,paused:this.paused,loading:this.loading,error:this.error,episodeId:this.episode?.id,sceneIndex:this.index,sceneId:this.scene?.id,mode:this.mode,autoElapsed:this.elapsed,battlePending:this.battlePending,objective:this.objective?clone(this.objective):null,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,progress:clone(this.progress),stage:this.stage.getDiagnostics?.()||{ready:this.stage.ready}};}
+ destroy(){this.serial++;this.closeObjectiveConversation();this.objectiveState=null;this.active=false;this.runtime.session=this.primarySession;this.stage.destroy();this.ui.destroy();this.portrait.remove();}
 }

@@ -8,3 +8,6 @@
 .main-view[data-conversation-active="true"] .analysis-room-badge{visibility:hidden;}
 .facility-staff[hidden],.scene-conversation[hidden]{display:none!important;}
 @media(max-height:540px){.facility-staff{top:34px;left:9px;gap:3px;max-block-size:calc(100% - 63px)}.facility-staff__person{min-block-size:25px;padding:3px 6px;font-size:11px}.facility-staff__person svg{inline-size:14px;block-size:14px}.scene-conversation__name{font-size:11px;bottom:20%;}}
+
+.facility-staff__person[data-story-target="true"]{border-color:#b49a5e;background:linear-gradient(120deg,#fffae8,#f1e3bd);box-shadow:0 0 0 1px #f9efd5,0 2px 7px #67512b25;color:#67512e;flex-wrap:wrap;}
+.facility-staff__story-cue{font:inherit;font-size:10px;white-space:nowrap;color:#8a6b35;border-inline-start:1px solid #cbb485;padding-inline-start:5px;}

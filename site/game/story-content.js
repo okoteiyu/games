@@ -81,5 +81,31 @@ export const STORY_CHAPTERS=Object.freeze([
     ]
    }
   ]
+ },
+ {
+  id:'chapter-1',number:1,nextChapter:1,title:'知ること、強くなること',
+  description:'研究も、訓練も、ひとりきりではない。いつもの場所から、新しい発見へ。',
+  episodes:[
+   {
+    id:'ch1-01',title:'研究の前に、ごあいさつ',description:'地下のコンピュータ室へ。研究を支える人と、最初のご挨拶。',readingMinutes:1,
+    staffPlacements:{worker_008:'analysis-room'},
+    scenes:[
+     scene('ch1-01-01','house','暮らしが少し落ち着いた朝。おこていゆの研究ノートから、建物の案内がはらりと落ちた。地下には、まだ挨拶していない人たちがいる。',{animation:'thinking',prop:'book'}),
+     manager('ch1-01-02','house','a','研究を支えてくれる人にも、ご挨拶を。地下1階のコンピュータ室で、会員No.008がお待ちです。',{prop:'book'}),
+     scene('ch1-01-03','house','おこていゆは案内を確かめ、こくりとうなずいた。モアイくんも一度跳ねる。まずは建物の地図で、行き先を確かめよう。',{animation:'nod',expression:'determined',prop:'book'}),
+     {
+      id:'ch1-01-greet',type:'objective',
+      objective:{kind:'talk_staff',staffId:'worker_008',roomId:'analysis-room',floorId:'b1',areaId:'analysis',title:'会員No.008にご挨拶',description:'2DマップでB1のコンピュータ室へ向かい、会員No.008に話しかけよう。',roomLabel:'B1 · コンピュータ室',staffLabel:'会員No.008'},
+      lines:[
+       {speaker:'会員No.008',kind:'speech',category:'conversation',text:'はじめまして、会員No.008です。珍生物の記録を整理しています。お持ちのノート、少し見せてもらっても？'},
+       {speaker:'会員No.008',kind:'speech',category:'conversation',text:'なるほど、この空白を、これから埋めていくんですね。おや、と思ったことを教えてください。記録を残すのは、ここで手伝います。'},
+       {speaker:'会員No.008',kind:'speech',category:'conversation',text:'……「ベーコンが一番おいしく焼ける時間」。これも研究ですね。世界を護る研究者も、おなかは空きますから。'}
+      ]
+     },
+     scene('ch1-01-04','computer-room','今度は、もっとすごい研究を持ってこよう。ベーコン以外の。',{shot:'close',animation:'thinking',expression:'happy',prop:'book',category:'innerThought'}),
+     scene('ch1-01-05','computer-room','知らないことを、一緒に考えてくれる人がいる。今日の最初の発見は、珍生物のことではなかった。',{animation:'nod',expression:'happy',prop:'book'})
+    ]
+   }
+  ]
  }
 ]);

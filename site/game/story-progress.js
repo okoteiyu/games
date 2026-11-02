@@ -3,7 +3,8 @@ import {INITIAL_STORY_CHAPTER} from './initial-state.js';
 export const STORY_PROGRESS_VERSION=1;
 export const PROLOGUE_EPISODE_IDS=Object.freeze(['ch0-01','ch0-02','ch0-03']);
 export const DEFAULT_STORY_CATALOG=Object.freeze([
- Object.freeze({number:0,nextChapter:1,episodeIds:PROLOGUE_EPISODE_IDS})
+ Object.freeze({number:0,nextChapter:1,episodeIds:PROLOGUE_EPISODE_IDS}),
+ Object.freeze({number:1,nextChapter:1,episodeIds:Object.freeze(['ch1-01'])})
 ]);
 const own=(value,key)=>Object.hasOwn(value??{},key);
 const record=value=>Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&[Object.prototype,null].includes(Object.getPrototypeOf(value)));

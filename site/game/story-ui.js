@@ -13,6 +13,7 @@ const paths={
  check:'<path d="m5 12 5 5L20 7"/>',
  lock:'<rect x="6" y="10" width="12" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
  home:'<path d="m3 11 9-8 9 8M5 9v12h14V9M10 21v-7h4v7"/>',
+ map:'<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2ZM9 3v16M15 5v16"/>',
  clock:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>'
 };
 const icon=name=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+paths[name]+'</svg>';
@@ -21,9 +22,9 @@ const allEpisodes=chapters=>chapters.flatMap(chapter=>(chapter.episodes||[]).map
 
 /** The library owns only presentation. The director validates and applies progress. */
 export class StoryUI {
- constructor({view,game,homeElement,contextElement=null,chapters=[],readProgress=()=>({}),onEpisode=()=>{},onExit=()=>{},onPause=()=>{},onChoice=()=>{},onNextEpisode=null,onFinish=null,onError=()=>{}}={}){
+ constructor({view,game,homeElement,contextElement=null,chapters=[],readProgress=()=>({}),onEpisode=()=>{},onExit=()=>{},onPause=()=>{},onChoice=()=>{},onOpenMap=()=>{},onNextEpisode=null,onFinish=null,onError=()=>{}}={}){
   if(!view?.element||!game||!homeElement)throw new TypeError('物語の表示先がありません。');
-  Object.assign(this,{view,game,homeElement,contextElement,chapters,readProgress,onEpisode,onExit,onPause,onChoice,onNextEpisode,onFinish,onError});
+  Object.assign(this,{view,game,homeElement,contextElement,chapters,readProgress,onEpisode,onExit,onPause,onChoice,onOpenMap,onNextEpisode,onFinish,onError});
   this.playback={active:false};this.available=false;this.selectedChapterId=chapters[0]?.id||null;this.closeAction=null;this.lastPanelKey='';this.libraryKey=null;
   this.trigger=document.createElement('button');this.trigger.type='button';this.trigger.id='storyTrigger';this.trigger.className='story-trigger';this.trigger.hidden=true;
   this.trigger.setAttribute('aria-haspopup','dialog');this.trigger.setAttribute('aria-controls','storyDialog');this.trigger.setAttribute('aria-expanded','false');this.trigger.innerHTML=icon('book')+'<span>物語</span><i class="story-trigger__bookmark" aria-hidden="true"></i>';view.element.append(this.trigger);
@@ -43,6 +44,7 @@ export class StoryUI {
   this.panel.addEventListener('click',event=>{
    const button=event.target.closest('button');if(!button||button.disabled||isModalBlocked()||!this.playback.active)return;
    if(button.hasAttribute('data-story-choice')){this.onChoice(Number(button.dataset.storyChoice));return;}
+   if(button.hasAttribute('data-story-map')){if(!this.playback.paused&&!this.playback.objectiveTalking)this.onOpenMap(button);return;}
    if(button.hasAttribute('data-story-next')){(this.onNextEpisode||((id)=>this.onEpisode(id,{replay:false})))(button.dataset.storyNext);return;}
    if(button.hasAttribute('data-story-finish')){(this.onFinish||this.onExit)();return;}
    if(button.hasAttribute('data-story-resume'))this.onPause(false);
@@ -75,9 +77,11 @@ export class StoryUI {
  }
  open(opener=this.trigger){
   if(!this.available||this.playback.active||isModalBlocked())return false;
+  const progress=this.readProgress(),active=episodeId(progress),resumeChapter=allEpisodes(this.chapters).find(({episode})=>episode.id===active)?.chapter,currentChapter=this.chapters.find(chapter=>chapter.number===progress?.currentChapter);
+  this.selectedChapterId=(resumeChapter||currentChapter)?.id||this.selectedChapterId;
   this.opener=opener?.focus?opener:this.trigger;this.renderLibrary();this.status.textContent='';
   if(!tryOpenModal(this.dialog))return false;this.trigger.setAttribute('aria-expanded','true');
-  const progress=this.readProgress(),active=episodeId(progress),resume=active&&this.body.querySelector('[data-story-episode="'+CSS.escape(active)+'"]');
+  const resume=active&&this.body.querySelector('[data-story-episode="'+CSS.escape(active)+'"]');
   (resume||this.dialog.querySelector('#storyDialogTitle')).focus({preventScroll:true});return true;
  }
  close(){if(this.dialog.open)this.dialog.close();}
@@ -102,8 +106,9 @@ export class StoryUI {
   if(active&&!previous){this.homeWasHidden=this.homeElement.hidden;if(this.contextElement)this.contextWasHidden=this.contextElement.hidden;}
   if(active)this.homeElement.hidden=true;
   if(!active&&previous){this.homeElement.hidden=Boolean(this.homeWasHidden);if(this.contextElement)this.contextElement.hidden=Boolean(this.contextWasHidden);}
-  const battle=p.mode==='battle';this.toolbar.hidden=!active||battle;this.panel.hidden=!active||battle;this.trigger.hidden=!this.available||active;
-  if(this.context){this.context.hidden=!active||battle;this.contextElement.hidden=active&&!battle?true:Boolean(this.contextWasHidden);}
+  const battle=p.mode==='battle',exploring=active&&(p.mode==='objective'||p.mode==='explore');this.toolbar.hidden=!active||battle;this.panel.hidden=!active||battle;this.trigger.hidden=!this.available||active;
+  if(exploring)this.game.dataset.storyExploring='true';else delete this.game.dataset.storyExploring;
+  if(this.context){this.context.hidden=!active||battle||exploring;this.contextElement.hidden=exploring?false:active&&!battle?true:Boolean(this.contextWasHidden);}
   this.view.element.dataset.storyActive=String(active);this.view.element.dataset.storyMode=active?p.mode||'read':'';
   if(!active){releasePaintedLabels(this.toolbar);this.lastPanelKey='';this.panel.replaceChildren();return;}
   const found=allEpisodes(this.chapters).find(({episode})=>episode.id===p.episodeId),chapter=found?.chapter||this.chapters.find(c=>c.id===p.chapterId),episode=found?.episode;
@@ -122,9 +127,14 @@ export class StoryUI {
   this.renderActions();
  }
  renderActions(){
-  const p=this.playback,key=JSON.stringify([p.mode,p.paused,p.replay,p.prompt,p.choices,p.nextEpisodeId,p.episodeId]);if(key===this.lastPanelKey)return;this.lastPanelKey=key;
+  const p=this.playback,key=JSON.stringify([p.mode,p.paused,p.replay,p.prompt,p.choices,p.nextEpisodeId,p.episodeId,p.objective,p.objectiveRoomReached,p.objectiveTalking]);if(key===this.lastPanelKey)return;this.lastPanelKey=key;
+  this.panel.dataset.storyActionMode=p.mode||'read';
   const heading=(eyebrow,title)=>'<header class="story-actions__heading"><span>'+esc(eyebrow)+'</span><h2>'+esc(title)+'</h2></header>';
   if(p.paused){this.panel.innerHTML=heading('ここまで、しおりを挟んで','ひとやすみ')+'<div class="story-actions__body"><p>お好きなときに、続きをどうぞ。</p><button type="button" class="story-action-button" data-story-resume>'+icon('play')+'<span>続きを読む</span></button></div>';return;}
+  if(p.mode==='objective'||p.mode==='explore'){
+   const objective=p.objective||{},reached=Boolean(p.objectiveRoomReached),talking=Boolean(p.objectiveTalking),room=objective.roomLabel||'指定の部屋',person=objective.staffLabel||'指定の人';
+   this.panel.innerHTML=heading('物語の目的',objective.title||'ご挨拶に行こう')+'<div class="story-objective" aria-label="今回の行き先"><dl class="story-objective__destination"><div><dt>行き先</dt><dd>'+esc(room)+'</dd></div><div><dt>話す人</dt><dd>'+esc(person)+'</dd></div></dl><ol class="story-objective__steps" aria-label="挨拶までの手順"><li'+(reached?' class="is-complete"':' class="is-current"')+'><span aria-hidden="true">'+(reached?'✓':'1')+'</span>地図で部屋へ移動</li><li'+(reached?' class="is-current"':'')+'><span aria-hidden="true">2</span>左の会員ボタンから挨拶</li></ol><p class="story-objective__hint" role="status">'+(talking?'お話を聞いています。':reached?'左の会員ボタンから、話しかけてみよう。':'2Dマップを開いて、行き先を選ぼう。')+'</p><button type="button" class="story-action-button story-objective__map" data-story-map aria-label="2Dマップを開く"'+(talking?' disabled':'')+'>'+icon('map')+'<span><span class="story-objective__map-label">2Dマップを開く</span><span class="story-objective__map-short" aria-hidden="true">地図を開く</span></span>'+icon('next')+'</button></div>';return;
+  }
   if(p.mode==='choice'){
    const choices=Array.isArray(p.choices)?p.choices:[];this.panel.innerHTML=heading('あなたから',p.prompt||'どう伝える？')+'<nav class="story-choice-list" aria-label="あなたの言葉">'+choices.map((choice,index)=>'<button type="button" class="story-choice" data-story-choice="'+index+'"><span>'+esc(typeof choice==='string'?choice:choice.label)+'</span>'+icon('next')+'</button>').join('')+'</nav>';return;
   }
@@ -135,6 +145,6 @@ export class StoryUI {
  }
  destroy(){
   if(this.dialog.open)this.dialog.close();releaseModal(this.dialog);this.resizeObserver.disconnect();releasePaintedLabels(this.toolbar);releasePaintedLabels(this.context);this.trigger.remove();this.toolbar.remove();this.panel.remove();this.context?.remove();this.dialog.remove();
-  if(this.playback.active){this.homeElement.hidden=Boolean(this.homeWasHidden);if(this.contextElement)this.contextElement.hidden=Boolean(this.contextWasHidden);}delete this.view.element.dataset.storyActive;delete this.view.element.dataset.storyMode;
+  if(this.playback.active){this.homeElement.hidden=Boolean(this.homeWasHidden);if(this.contextElement)this.contextElement.hidden=Boolean(this.contextWasHidden);}delete this.view.element.dataset.storyActive;delete this.view.element.dataset.storyMode;delete this.game.dataset.storyExploring;
  }
 }

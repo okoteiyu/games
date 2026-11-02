@@ -40,10 +40,14 @@ export function clearFacilityStaffPlacements(value,ids=null){
  if(!Array.isArray(ids)||new Set(ids).size!==ids.length)throw new TypeError('Invalid facility staff identifiers.');
  for(const id of ids){checkedStaff(id);delete state.fixedPlacements[id];}return state;
 }
-/** Managers remain resident. Off-shift workers retain overrides but do not appear. */
+/** Managers remain resident. A story placement takes priority over the shift. */
 export function getFacilityStaffInRoom(value,sceneId){
  const state=normalizeFacilityStaff(value);
- return Object.values(FACILITY_STAFF).filter(staff=>staff.role==='manager'?sceneId==='management-room':staff.shiftIndex===state.shiftIndex&&(state.fixedPlacements[staff.id]||state.assignments[staff.id])===sceneId);
+ return Object.values(FACILITY_STAFF).filter(staff=>{
+  if(staff.role==='manager')return sceneId==='management-room';
+  if(Object.hasOwn(state.fixedPlacements,staff.id))return state.fixedPlacements[staff.id]===sceneId;
+  return staff.shiftIndex===state.shiftIndex&&state.assignments[staff.id]===sceneId;
+ });
 }
 export function getFacilityStaffCounts(value){
  const state=normalizeFacilityStaff(value);return Object.fromEntries(['management-room',...WORKER_ROOM_IDS].map(sceneId=>[sceneId,getFacilityStaffInRoom(state,sceneId).length]));
