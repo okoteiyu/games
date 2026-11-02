@@ -13,7 +13,7 @@ import {ENCOUNTER_PROFILES,TRAINING_COURSES,overlapLevelBand,patrolSpeciesEligib
 export {TRAINING_COURSES} from './encounter-rules.js';
 import {selectOkoteiyuReward,eligibleOkoteiyuRewards} from './okoteiyu-events.js';
 import {createBattleSupports,applySupportHealing,MOAI_COUNTER_TIMING,SUPPORT_COUNTER_TECHNIQUE,supportNextEventTime} from './support-rules.js';
-import {TECHNIQUES,techniqueDuration,ADDED_TECHNIQUE_IDS,PLAYER_TECHNIQUE_IDS,playerTechniqueLevel,availableTechniqueIds,defaultTechniqueSlots,validateTechniqueSlots,SUPER_CONFIGURATIONS,superStateDetails,SUPER_MAX_LEVEL,clampTechniqueLevel,techniquePower,syncLevelTechniques} from './technique-rules.js';
+import {TECHNIQUES,techniqueDuration,ADDED_TECHNIQUE_IDS,PLAYER_TECHNIQUE_IDS,playerTechniqueLevel,availableTechniqueIds,defaultTechniqueSlots,validateTechniqueSlots,SUPER_CONFIGURATIONS,superStateDetails,SUPER_MAX_LEVEL,clampTechniqueLevel,techniquePower,techniqueAdditionalEffects,syncLevelTechniques} from './technique-rules.js';
 /** Pure game rules shared by the browser and native WebView. */
 const clone=value=>JSON.parse(JSON.stringify(value));
 const EPSILON=1e-10;
@@ -449,7 +449,8 @@ export class GameSession{
    const first=firstAttackParameterMultipliers(bodyEffects,b.completedAttacks[actorId]);
    const base=actorId==='player'?b.playerStatBase:actor.stats;
    const stats=applySuperStats({...base,attack:base.attack*first.attack,ki:base.ki*first.ki},actorId==='player'&&b.super.active?b.super.multiplier:1);
-   const power=techniquePower(action.technique,stats,actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique));
+   const techniqueLevel=actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique);
+   const power=techniquePower(action.technique,stats,techniqueLevel);
    const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
    const opponents=actorId==='player'?b.enemies:[b.player],allies=target.id==='player'?[b.player]:b.enemies;
    const targetBodyEffects=CREATURES[target.speciesId].additionalEffects,targetAuraEffects=target.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
@@ -463,7 +464,7 @@ export class GameSession{
    const absorbed=target.id==='player'&&this.absorbSupportAttack(actor,power*bodyDamageMultiplier*auraDamageMultiplier*nextAttackDamageMultiplier,amount);
    b.completedAttacks[actorId]++;
    if(!absorbed){const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;
-    if(target.hp>0)for(const effect of TECHNIQUES[action.technique].additionalEffects||[])if(effect.type==='next_attack_damage_multiplier')target.nextAttackDamageMultiplier*=effect.multiplier;
+    if(target.hp>0)for(const effect of techniqueAdditionalEffects(action.technique,techniqueLevel))if(effect.type==='next_attack_damage_multiplier')target.nextAttackDamageMultiplier*=effect.multiplier;
     this.emit('damage',{actor:actorId,actorName:actor.name,target:target.id,targetName:target.name,technique:action.technique,amount,hp:target.hp,maxHp:target.maxHp,time:b.time});
     if(target.id==='player'&&target.hp>0)selfLowBeforeHealing=this.resolveSupportHealing().selfLow;
     if(target.hp<=0&&this.finishFatigue(target))return;
