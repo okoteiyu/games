@@ -3,6 +3,7 @@ import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMu
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {createFacilityStaff,normalizeFacilityStaff,advanceFacilityStaffShift,setFacilityStaffPlacements,clearFacilityStaffPlacements} from './facility-staff.js';
+import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superConfigurationAcquisition,superConfigurationLevel,superConfigurationMaxLevel,superPrefixDamageMultipliers} from './super-prefix-rules.js';
 import {currentTimeOfDay} from './world-time.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,validateSupportSelection,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 export {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,supportSelectionChange,validateSupportSelection,SUPPORT_SLOT_LIMIT,SUPPORT_TAG_LABELS,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
@@ -93,7 +94,7 @@ function randomValue(rng){const value=Number(rng());if(!Number.isFinite(value))t
 function shuffle(items,rng){const result=[...items];for(let index=result.length-1;index>0;index--){const at=Math.floor(randomValue(rng)*(index+1));[result[index],result[at]]=[result[at],result[index]];}return result;}
 function initialJournal(){return Object.fromEntries(INITIAL_JOURNAL_SPECIES.map(id=>[id,{speciesId:id,name:CREATURES[id].name,registered:true,encounters:0,defeats:0,patrolDefeats:0,lastLevel:null}]));}
 export function hasJournalRecord(entry){return Boolean(entry&&(entry.registered===true||entry.encounters>0));}
-function prototypePlayer(){return {speciesId:'okoteiyu',name:'おこていゆ',level:INITIAL_PLAYER_LEVEL,xp:0,superLevel:1,punchLevel:1,energyRayLevel:1,energyRayUnlocked:false,unlockedTechniques:[],techniqueLevels:Object.fromEntries(ADDED_TECHNIQUE_IDS.map(id=>[id,1])),techniqueSlots:['punch',null,null],superConfiguration:'none',equipmentRulesVersion:2,supportLevels:Object.fromEntries(DEFAULT_OWNED_SUPPORT_IDS.map(id=>[id,SUPPORT_ITEMS[id].initialLevel])),ownedItems:{support:[...DEFAULT_OWNED_SUPPORT_IDS],defense:['acrylic_shield','iron_shield','aura_shield']},equipment:{support:[...DEFAULT_EQUIPPED_SUPPORT_IDS],defense:'acrylic_shield'},equippedAura:'okoteiyu',auras:{okoteiyu:{speciesId:'okoteiyu',name:'おこていゆのオーラ',level:1,copies:1,progress:0}},journal:initialJournal(),battlesWon:0,battlesLost:0};}
+function prototypePlayer(){return {speciesId:'okoteiyu',name:'おこていゆ',level:INITIAL_PLAYER_LEVEL,xp:0,superLevel:1,punchLevel:1,energyRayLevel:1,energyRayUnlocked:false,unlockedTechniques:[],techniqueLevels:Object.fromEntries(ADDED_TECHNIQUE_IDS.map(id=>[id,1])),techniqueSlots:['punch',null,null],superConfiguration:'none',superConfigurationLevels:{none:1},unlockedSuperConfigurations:['none'],pendingSuperUnlocks:[],equipmentRulesVersion:2,supportLevels:Object.fromEntries(DEFAULT_OWNED_SUPPORT_IDS.map(id=>[id,SUPPORT_ITEMS[id].initialLevel])),ownedItems:{support:[...DEFAULT_OWNED_SUPPORT_IDS],defense:['acrylic_shield','iron_shield','aura_shield']},equipment:{support:[...DEFAULT_EQUIPPED_SUPPORT_IDS],defense:'acrylic_shield'},equippedAura:'okoteiyu',auras:{okoteiyu:{speciesId:'okoteiyu',name:'おこていゆのオーラ',level:1,copies:1,progress:0}},journal:initialJournal(),battlesWon:0,battlesLost:0};}
 function recordJournalEncounter(player,enemy){
  const speciesId=enemy.speciesId,entry=player.journal[speciesId]||{speciesId,name:enemy.name,encounters:0,defeats:0,patrolDefeats:0,lastLevel:enemy.level};
  entry.registered=true;entry.encounters++;entry.lastLevel=enemy.level;player.journal[speciesId]=entry;return entry;
@@ -180,6 +181,7 @@ function restorePlayer(saved){
   const lastLevel=entry.lastLevel===null&&registered&&encounters===0?null:integer(entry.lastLevel,'journal level',1,106);
   player.journal[id]={speciesId:id,name:CREATURES[id].name,registered,encounters,defeats,patrolDefeats,lastLevel};
  }
+ Object.assign(player,normalizeSuperConfigurationProgress(saved,player.journal));
  return player;
 }
 
@@ -248,11 +250,14 @@ export class GameSession{
   if(!this.state.pendingAngerEvent)return null;
   this.state.pendingAngerEvent=false;this.state.angerPoints-=3;this.state.angerEvents++;
   const pool=eligibleOkoteiyuRewards(this.player),draw=pool.length?this.random():null,reward=pool.length?selectOkoteiyuReward(draw,this.player):null,id=reward?.id??null;let changed=false,reason=id?null:'all-rewards-max-level',newlyLearned=false;
-  if(id==='super_state_level_up'){this.player.superLevel=Math.min(SUPER_MAX_LEVEL,this.player.superLevel+1);changed=true;}
+  if(id==='super_state_level_up'){
+   const configuration=this.player.superConfiguration||'none',level=superConfigurationLevel(this.player,configuration),next=Math.min(superConfigurationMaxLevel(configuration),level+1);
+   this.player.superConfigurationLevels[configuration]=next;if(configuration==='none')this.player.superLevel=next;changed=next>level;
+  }
   else if(id==='unlock_energy_ray'){if(!this.player.energyRayUnlocked){this.player.energyRayUnlocked=true;this.player.energyRayLevel=1;newlyLearned=true;}else this.player.energyRayLevel=clampTechniqueLevel('energy_ray',this.player.energyRayLevel+1);changed=true;}
   else if(id==='punch_level_up'){this.player.punchLevel=clampTechniqueLevel('punch',this.player.punchLevel+1);changed=true;}
   else if(reward?.collectionLevel){const technique=reward.techniqueId;if(!this.player.unlockedTechniques.includes(technique)){this.player.unlockedTechniques.push(technique);this.player.techniqueLevels[technique]=1;newlyLearned=true;}else this.player.techniqueLevels[technique]=clampTechniqueLevel(technique,this.player.techniqueLevels[technique]+1);changed=true;}
-  const result={id,changed,reason,newlyLearned,draw,techniqueId:reward?.techniqueId??null,techniqueName:reward?.label??null,superLevel:this.player.superLevel,punchLevel:this.player.punchLevel,energyRayLevel:this.player.energyRayLevel,energyRayUnlocked:this.player.energyRayUnlocked,angerPoints:this.state.angerPoints,angerEvents:this.state.angerEvents};this.emit('anger-result',result);return clone(result);
+  const result={id,changed,reason,newlyLearned,draw,techniqueId:reward?.techniqueId??null,techniqueName:reward?.label??null,superLevel:this.player.superLevel,superConfiguration:this.player.superConfiguration,superConfigurationLevel:superConfigurationLevel(this.player),superName:superStateDetails(this.player).name,punchLevel:this.player.punchLevel,energyRayLevel:this.player.energyRayLevel,energyRayUnlocked:this.player.energyRayUnlocked,angerPoints:this.state.angerPoints,angerEvents:this.state.angerEvents};this.emit('anger-result',result);return clone(result);
  }
 
  makePatrolEnemies(map,{timeOfDay=currentTimeOfDay(this.now())}={}){return createPatrolEnemies({map,player:this.player,rng:()=>this.random(),patrolId:this.state.patrolCount,timeOfDay});}
@@ -316,8 +321,8 @@ export class GameSession{
  }
  beginSuper(){
   const battle=this.state.battle;if(!battle||battle.phase!=='active'||!battle.super.pending||battle.player.action)return false;
-  const {multiplier,duration}=superStateDetails(this.player);
-  Object.assign(battle.super,{pending:false,active:true,multiplier,duration,until:battle.time+duration});this.emit('super-start',{actor:'player',active:true,multiplier,duration,time:battle.time});this.startAction('player','super_awaken');return true;
+  const {multiplier,duration,configuration,name}=superStateDetails(this.player);
+  Object.assign(battle.super,{pending:false,active:true,multiplier,duration,configuration,name,until:battle.time+duration});this.emit('super-start',{actor:'player',active:true,multiplier,duration,configuration,name,time:battle.time});this.startAction('player','super_awaken');return true;
  }
  isSuperAwakening(){return this.state.battle?.phase==='active'&&this.state.battle.player.action?.technique==='super_awaken';}
  completeSuperAwakening(){
@@ -412,7 +417,8 @@ export class GameSession{
    const bodyDamageMultiplier=additionalDamageMultiplier(bodyEffects,offense),auraDamageMultiplier=additionalDamageMultiplier(auraEffects,offense);
    const damageMultiplier=bodyDamageMultiplier*auraDamageMultiplier*additionalDamageReceivedMultiplier(targetBodyEffects,defense)*additionalDamageReceivedMultiplier(targetAuraEffects,defense);
    const nextAttackDamageMultiplier=actor.nextAttackDamageMultiplier;
-   const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt:factors.damageReceived)*damageMultiplier*nextAttackDamageMultiplier;
+   const prefixFactors=superPrefixDamageMultipliers(this.player,{active:b.super.active,configuration:b.super.configuration??this.player.superConfiguration,actorSpeciesId:actor.speciesId,targetSpeciesId:target.speciesId});
+   const factors=equipmentMultipliers(this.player.equipment),amount=power*(actorId==='player'?factors.damageDealt*prefixFactors.damageDealt:factors.damageReceived*prefixFactors.damageReceived)*damageMultiplier*nextAttackDamageMultiplier;
    actor.nextAttackDamageMultiplier=1;
    const absorbed=target.id==='player'&&this.absorbSupportAttack(actor,power*bodyDamageMultiplier*auraDamageMultiplier*nextAttackDamageMultiplier,amount);
    b.completedAttacks[actorId]++;
@@ -452,12 +458,16 @@ export class GameSession{
  }
  endBattle(result){
   const b=this.state.battle;if(!b||b.phase!=='active')return false;if(b.support&&['waiting','counter','guarding'].includes(b.support.phase))this.returnSupport('battle-ended');b.phase=b.status='ended';b.result=result;for(const id of this.actorIds()){const a=this.combatant(id);a.action=null;a.nextActionAt=Infinity;a.nextAttackDamageMultiplier=1;}b.super.pending=false;
+  const previousBeamLevel=this.player.unlockedTechniques.includes('okoteiyu_beam')?playerTechniqueLevel(this.player,'okoteiyu_beam'):0;
   // Aura draws occur only on a full win, once for every opponent.
   if(result==='win'){
    this.player.battlesWon++;let experience=0;const drops=[],opponents=[];
    for(const enemy of b.enemies){if(b.kind==='training')recordJournalEncounter(this.player,enemy);this.player.journal[enemy.speciesId].defeats++;if(b.kind==='patrol')this.player.journal[enemy.speciesId].patrolDefeats=(this.player.journal[enemy.speciesId].patrolDefeats||0)+1;const xp=defeatedEnemyExperience(enemy.speciesId,enemy.level),dropPercent=auraDropPercent(enemy.level),draw=this.random(),aura=draw<dropPercent/100?this.acquireAura(enemy.speciesId):null;experience+=xp;if(aura)drops.push(aura);opponents.push({speciesId:enemy.speciesId,level:enemy.level,experience:xp,dropPercent,dropDraw:draw,aura});}
    const levels=this.addExperience(experience);b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:drops[0]||null,auras:drops,opponents,dropPercent:opponents[0].dropPercent,dropDraw:opponents[0].dropDraw};
   }else{this.player.battlesLost++;const opponents=b.enemies.filter(enemy=>enemy.hp<=0).map(enemy=>({speciesId:enemy.speciesId,level:enemy.level,experience:defeatedEnemyExperience(enemy.speciesId,enemy.level)})),experience=opponents.reduce((sum,enemy)=>sum+enemy.experience,0),levels=experience>0?this.addExperience(experience):0;b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:null,auras:[],opponents};}
+  const currentBeamLevel=this.player.unlockedTechniques.includes('okoteiyu_beam')?playerTechniqueLevel(this.player,'okoteiyu_beam'):0;
+  b.rewards.techniqueChanges=currentBeamLevel>previousBeamLevel?[{id:'okoteiyu_beam',name:TECHNIQUES.okoteiyu_beam.name,newlyLearned:previousBeamLevel===0,level:currentBeamLevel,previousLevel:previousBeamLevel}]:[];
+  b.rewards.superUnlocks=syncSuperConfigurationUnlocks(this.player);for(const acquisition of b.rewards.superUnlocks)this.emit('super-configuration-unlocked',acquisition);
   this.emit('battle-end',{result,time:b.time,battle:this.snapshotBattle(),rewards:clone(b.rewards)});if(result==='win'||b.rewards.experience>0)this.emit('rewards',clone(b.rewards));return true;
  }
  addExperience(amount){finite(amount,'experience reward');if(amount<0)throw new RangeError('Experience reward cannot be negative.');this.player.xp+=amount;let gained=0;while(this.player.level<100){const required=requiredLevelExperience(this.player.level);if(this.player.xp+EPSILON<required)break;this.player.xp=Math.max(0,this.player.xp-required);this.player.level++;gained++;}syncLevelTechniques(this.player);return gained;}
@@ -472,7 +482,10 @@ export class GameSession{
   const next=this.player.techniqueSlots.map((value,index)=>id!==null&&value===id&&index!==slot?null:value);next[slot]=id;if(!next.some(Boolean))return false;
   this.player.techniqueSlots=validateTechniqueSlots(next,this.player);this.emit('technique-equipped',{slot,technique:id});return true;
  }
- setSuperConfiguration(id){if(this.state.location!=='home'||this.state.pendingAngerEvent||!Object.hasOwn(SUPER_CONFIGURATIONS,id))return false;this.player.superConfiguration=id;this.emit('super-configuration',{id});return true;}
+ setSuperConfiguration(id){if(this.state.location!=='home'||this.state.pendingAngerEvent||!Object.hasOwn(SUPER_CONFIGURATIONS,id)||!this.player.unlockedSuperConfigurations.includes(id))return false;this.player.superConfiguration=id;this.emit('super-configuration',{id});return true;}
+ pendingSuperUnlockNotifications(){return this.player.pendingSuperUnlocks.map(superConfigurationAcquisition);}
+ acknowledgeSuperUnlock(id){const index=this.player.pendingSuperUnlocks.indexOf(id);if(index<0)return false;this.player.pendingSuperUnlocks.splice(index,1);this.emit('super-configuration-acquisition-read',{id});return true;}
+ takeSuperUnlockNotifications(){const notices=this.pendingSuperUnlockNotifications();for(const notice of notices)this.acknowledgeSuperUnlock(notice.id);return notices;}
  equipItem(kind,id){
   if(this.state.location!=='home'||this.state.pendingAngerEvent||!['support','defense'].includes(kind))return false;
   if(kind==='support'){
@@ -498,6 +511,7 @@ export class GameSession{
   // before the cut-in. Loading this checkpoint resumes at home, not on a route.
   const departing=allowDepartureCheckpoint&&['patrol','training'].includes(this.state.location);
   if((this.state.location!=='home'&&!departing)||this.state.battle||this.state.pendingAngerEvent&&!allowPending)throw new Error('Save only at home, outside patrol, battle, and the anger cut-in.');
+  this.player.superConfigurationLevels.none=superConfigurationLevel(this.player,'none');
   return clone({schemaVersion:1,visitorName:this.state.visitorName,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount,facilityStaff:this.state.facilityStaff});
  }
  importState(saved){

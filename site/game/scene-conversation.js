@@ -22,7 +22,7 @@ export class SceneConversation {
   this.name.textContent=line.speaker;this.portrait.hidden=false;
   this.portrait.dataset.speaker=line.speaker;this.portrait.dataset.conversationId=this.current.id;
   this.presenting=true;
-  try{this.showMessage({speaker:line.speaker,text:line.text,kind:line.kind||'speech'});}finally{this.presenting=false;}
+  try{this.showMessage({speaker:line.speaker,text:line.text,kind:line.kind||'speech',category:line.category||(line.kind==='narration'?'narration':'conversation')});}finally{this.presenting=false;}
  }
  advance(){
   if(!this.current)return false;

@@ -1,4 +1,4 @@
-import {TECHNIQUES,TECHNIQUE_RANKS,availableTechniqueIds,SUPER_CONFIGURATIONS,superStateDetails,playerTechniqueLevel,techniquePower} from './technique-rules.js';
+import {TECHNIQUES,TECHNIQUE_RANKS,availableTechniqueIds,SUPER_CONFIGURATIONS,availableSuperConfigurationIds,superStateDetails,playerTechniqueLevel,techniquePower} from './technique-rules.js';
 import {playerStats} from './game-session.js';
 import {collectionThumbnail} from './collection-data.js';
 import {additionalEffectsText} from './additional-effects.js';
@@ -12,8 +12,13 @@ function rankStarsMarkup(id){
 }
 export function profileStats(player){return player.stats||playerStats(player);}
 export function superDetailsMarkup(player,{editable=false,disabled=false}={}){
- const state=superStateDetails(player),stats=profileStats(player),boosted=playerStats(player,{superMultiplier:state.multiplier}),attack=boosted.attack,ki=boosted.ki;
- return '<section class="super-configuration"><h3>'+esc(state.name)+'</h3>'+(editable?'<label>カスタム設定<select data-super-configuration'+(disabled?' disabled':'')+'>'+Object.values(SUPER_CONFIGURATIONS).map(c=>'<option value="'+c.id+'"'+(c.id===state.configuration?' selected':'')+'>'+esc(c.label)+'</option>').join('')+'</select></label><p class="option-note">接頭辞を含む追加のカスタム設定は、今後増えていきます。</p>':'<p>カスタム設定：'+esc(state.configurationLabel)+'</p>')+'<p class="option-note">'+esc(additionalEffectsText(SUPER_CONFIGURATIONS[state.configuration].additionalEffects))+'</p><dl class="collection-facts"><div><dt>レベル</dt><dd>'+state.level+' / '+state.maxLevel+'</dd></div><div><dt>発動中の攻撃力</dt><dd>'+number(attack)+'（+'+number(attack-stats.attack)+'）</dd></div><div><dt>発動中の気</dt><dd>'+number(ki)+'（+'+number(ki-stats.ki)+'）</dd></div><div><dt>行動速度</dt><dd>'+state.multiplier.toFixed(2)+'倍</dd></div><div><dt>効果時間</dt><dd>'+state.duration.toFixed(2)+'秒</dd></div></dl><p>1戦闘に1回。自分または相手のHPが25%以下になると自動で発動します。かけごえでも発動を指示できます。効果中は攻撃技だけを使います。</p></section>';
+ const state=superStateDetails(player),stats=profileStats(player),boosted=playerStats(player,{superMultiplier:state.multiplier}),attack=boosted.attack,ki=boosted.ki,owned=availableSuperConfigurationIds(player),prefixed=state.configuration!=='none';
+ const selector=editable?'<label>接頭辞オプション<select data-super-configuration'+(disabled?' disabled':'')+'>'+owned.map(id=>SUPER_CONFIGURATIONS[id]).map(c=>'<option value="'+c.id+'"'+(c.id===state.configuration?' selected':'')+'>'+esc(c.label)+'</option>').join('')+'</select></label>':'<p>接頭辞：'+esc(state.configurationLabel)+'</p>';
+ const levels='<div><dt>'+(prefixed?'接頭辞のレベル':'接頭辞なしのレベル')+'</dt><dd data-super-configuration-level>'+state.level+' / '+state.maxLevel+'</dd></div>'+(prefixed?'<div><dt>接頭辞なしのレベル</dt><dd data-super-base-level>'+state.baseLevel+' / '+state.baseMaxLevel+'</dd></div>':'');
+ const inherited=prefixed?'<p class="option-note" data-super-base-inheritance>基本の強化と効果時間は、接頭辞なしのLv.'+state.baseLevel+'から受け継ぎます。</p>':'';
+ const capped=state.level>=state.maxLevel?'<p class="option-note" data-super-configuration-max>この状態は最大レベルのため、おこていゆイベントの強化候補には入りません。'+(prefixed?'接頭辞なしを育てたいときは、「なし」を選んでください。':'')+'</p>':'';
+ const acquisition=editable&&!owned.includes('true')?'<p class="option-note" data-super-configuration-acquisition>「真の」は、モアイの戦士を20体撃退すると獲得できます。</p>':'';
+ return '<section class="super-configuration" data-super-configuration-id="'+esc(state.configuration)+'"><h3>'+esc(state.name)+'</h3>'+selector+'<p class="option-note">接頭辞ごとにレベルを持ちます。おこていゆイベントでは、そのとき選んでいる状態が強化されます。</p>'+inherited+'<p class="option-note" data-super-configuration-effects>'+esc(additionalEffectsText(state.additionalEffects))+'</p><dl class="collection-facts">'+levels+'<div><dt>発動中の攻撃力</dt><dd>'+number(attack)+'（+'+number(attack-stats.attack)+'）</dd></div><div><dt>発動中の気</dt><dd>'+number(ki)+'（+'+number(ki-stats.ki)+'）</dd></div><div><dt>行動速度</dt><dd>'+state.multiplier.toFixed(2)+'倍</dd></div><div><dt>効果時間</dt><dd>'+state.duration.toFixed(2)+'秒</dd></div></dl>'+capped+acquisition+'<p>1戦闘に1回。自分または相手のHPが25%以下になると自動で発動します。かけごえでも発動を指示できます。効果中は攻撃技だけを使います。</p></section>';
 }
 /** The record book pairs names with icons. Technique details live in the collection. */
 export function repertoireMarkup(ids){

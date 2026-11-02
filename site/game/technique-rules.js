@@ -28,7 +28,7 @@ export function techniqueDuration(id,definitions=TECHNIQUES){
 }
 export const ADDED_TECHNIQUE_IDS=Object.freeze(['charged_punch','charged_energy_ray','energy_punch','void_wave','cosmos_wave','cannon_shell','chaos_wave','okoteiyu_beam','tackle']);
 export const PLAYER_TECHNIQUE_IDS=Object.freeze(['punch','energy_ray',...ADDED_TECHNIQUE_IDS]);
-export const SUPER_MAX_LEVEL=100;
+export {SUPER_MAX_LEVEL,SUPER_CONFIGURATIONS,superStateDetails,superConfigurationLevel,superConfigurationMaxLevel,availableSuperConfigurationIds} from './super-prefix-rules.js';
 export function techniqueMaxLevel(id,definitions=TECHNIQUES){const max=definitions[id]?.maxLevel;if(!Number.isSafeInteger(max)||max<1)throw new RangeError('技の最大レベルが設定されていません。');return max;}
 export function clampTechniqueLevel(id,level,definitions=TECHNIQUES){if(!Number.isSafeInteger(level)||level<1)throw new RangeError('技レベルが正しくありません。');return Math.min(level,techniqueMaxLevel(id,definitions));}
 export function playerTechniqueLevel(player,id){return clampTechniqueLevel(id,id==='punch'?(player.punchLevel??1):id==='energy_ray'?(player.energyRayLevel??1):(player.techniqueLevels?.[id]??1));}
@@ -55,14 +55,9 @@ export function techniquePower(id,stats,level){
  if(id==='chaos_wave')return (stats.attack+stats.ki)*2;
  throw new RangeError('不明な技です。');
 }
-export const SUPER_CONFIGURATIONS=Object.freeze({none:Object.freeze({id:'none',label:'なし',prefix:'',additionalEffects:Object.freeze([])})});
 export const availableTechniqueIds=player=>['punch',...(player?.energyRayUnlocked?['energy_ray']:[]),...ADDED_TECHNIQUE_IDS.filter(id=>player?.unlockedTechniques?.includes(id)&&(id!=='okoteiyu_beam'||player.level>=10))];
 export function defaultTechniqueSlots(player){return ['punch',player?.energyRayUnlocked?'energy_ray':null,null];}
 export function validateTechniqueSlots(slots,player){
  if(!Array.isArray(slots)||slots.length!==3||!slots.some(Boolean)||slots.some(id=>id!==null&&!availableTechniqueIds(player).includes(id))||new Set(slots.filter(Boolean)).size!==slots.filter(Boolean).length)throw new TypeError('技スロットが正しくありません。');
  return [...slots];
-}
-export function superStateDetails(player){
- const id=player?.superConfiguration||'none',configuration=SUPER_CONFIGURATIONS[id];if(!configuration)throw new TypeError('スーパーおこていゆ状態の設定が正しくありません。');
- const level=Math.min(SUPER_MAX_LEVEL,player?.superLevel||1);return {configuration:id,configurationLabel:configuration.label,prefix:configuration.prefix,name:configuration.prefix+'スーパーおこていゆ状態',level,maxLevel:SUPER_MAX_LEVEL,multiplier:Number((1.5+level/50).toFixed(2)),duration:Number((8+level/10).toFixed(2))};
 }

@@ -1,4 +1,4 @@
-import {techniqueMaxLevel,SUPER_MAX_LEVEL,playerTechniqueLevel,availableTechniqueIds} from './technique-rules.js';
+import {techniqueMaxLevel,SUPER_MAX_LEVEL,playerTechniqueLevel,availableTechniqueIds,superConfigurationLevel,superConfigurationMaxLevel} from './technique-rules.js';
 /** The current reward lineup; new rewards can be added here without changing the draw. */
 export const OKOTEIYU_EVENT_REWARDS=Object.freeze([
  Object.freeze({id:'super_state_level_up',label:'スーパーおこていゆ状態',percent:35,levelKey:'superLevel',maxLevel:SUPER_MAX_LEVEL}),
@@ -11,6 +11,7 @@ export const OKOTEIYU_EVENT_REWARDS=Object.freeze([
 export function eligibleOkoteiyuRewards(player){
  return OKOTEIYU_EVENT_REWARDS.filter(item=>{
   if(!player)return true;
+  if(item.id==='super_state_level_up')return superConfigurationLevel(player)<superConfigurationMaxLevel(player.superConfiguration||'none');
   if(item.techniqueId)return !availableTechniqueIds(player).includes(item.techniqueId)||playerTechniqueLevel(player,item.techniqueId)<techniqueMaxLevel(item.techniqueId);
   return (player[item.levelKey]??1)<item.maxLevel;
  });

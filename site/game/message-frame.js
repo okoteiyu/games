@@ -1,3 +1,4 @@
+import {categorizeMessage,getMessageCategory} from './message-category.js';
 /* Two-line pagination uses actual font measurements. It never hides story text. */
 export class OkoteiyuMessage {
   constructor(element, { onAdvance = () => {} } = {}) {
@@ -17,9 +18,16 @@ export class OkoteiyuMessage {
     this.resizeObserver.observe(this.body);
     document.fonts?.ready.then(() => this.paginate());
   }
-  set({ speaker = 'ナレーション', text = '', kind = 'narration' }) {
+  set(payload) {
+    const {speaker,text='',kind,category}=categorizeMessage(payload),meta=getMessageCategory(category);
     this.speaker.textContent = speaker;
     this.element.dataset.kind = kind;
+    this.element.dataset.category=category;
+    this.element.setAttribute('aria-label',meta.label+'のメッセージ');
+    this.element.style.setProperty('--message-border',meta.border);
+    this.element.style.setProperty('--message-ink',meta.ink);
+    this.element.style.setProperty('--message-category-line',meta.line);
+    this.element.style.setProperty('--message-category-accent',meta.border);
     this.text = text; this.page = 0; this.paginate();
   }
   paginate() {

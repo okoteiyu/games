@@ -1,3 +1,4 @@
+import {normalizeMessageCategory} from './message-category.js';
 /* Shared presentation metadata for game events. Samples are UI demonstrations. */
 export const EVENT_TYPES = Object.freeze([
   { id: 'daily', label: '日常・会話', shortLabel: '日常', color: '#715E4B', sample: 'おこていゆは、焼いたベーコンをじっと見つめている。どうやら、研究の手が止まってしまったようだ。' },
@@ -33,5 +34,6 @@ export function normalizeGameEvent(input) {
   if (typeof speaker !== 'string' || !speaker.trim()) {
     throw new TypeError('イベントの話者は空でない文字列で指定してください。');
   }
-  return Object.freeze({ type, text: value.text, kind, speaker });
+  const category=normalizeMessageCategory(value.category,{kind});
+  return Object.freeze({ type, text: value.text, kind, speaker, category });
 }

@@ -20,6 +20,7 @@ import { AreaMap } from './area-map.js';
 import { BuildingMapDialog } from './building-map.js';
 import {FacilityStaffUI,staffGreeting} from './facility-staff-ui.js';
 import {SceneConversation} from './scene-conversation.js';
+import {categorizeMessage} from './message-category.js';
 import { GameEvents } from './game-events.js';
 export class SquareSceneView {
  constructor(element) {
@@ -58,7 +59,8 @@ let eventVisible=false,lastMessage=null;
 const message=new OkoteiyuMessage(document.querySelector('#message'),{onAdvance:()=>{if(!gameRuntime?.messageLocked){if(sceneConversation?.active)sceneConversation.advance();else hideEvent();}}});
 function presentMessage(payload) {
  if(sceneConversation?.active&&!sceneConversation.presenting)sceneConversation.close({notify:false,restoreFocus:false});
- lastMessage={speaker:payload.speaker??'ナレーション',text:payload.text??'',kind:payload.kind??'narration'};
+ const displayed=categorizeMessage(payload);
+ lastMessage={speaker:displayed.speaker,text:displayed.text??'',kind:displayed.kind,category:displayed.category};
  replayButton.hidden=true;replayButton.disabled=false;
  eventVisible=true;overlay.hidden=false;shield.hidden=false;view.surface.inert=true;
  view.element.dataset.messageVisible='true';view.surface.setAttribute('aria-disabled','true');
@@ -228,6 +230,7 @@ gameRuntime.onBattleEvent=event=>areaMap.handleBattleEvent(event);
 const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>(gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene))&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready),onError:(text,error)=>{toast(text);if(browserSave.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
 let previousStaffState='';
 gameRuntime.onProgressChange=()=>{
+ message.next.disabled=Boolean(gameRuntime.messageLocked);
  if(sceneConversation.active&&sceneConversation.current.sceneId!==gameRuntime.scene)sceneConversation.close({notify:false,restoreFocus:false});
  facilityStaffUI.refresh();const staffState=JSON.stringify(readStaff());
  if(staffState!==previousStaffState){previousStaffState=staffState;areaMap.refreshStaff();buildingMap.refreshStaff();}

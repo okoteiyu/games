@@ -131,3 +131,13 @@
 .message-frame__continue:active span { translate: 0 2px; }
 @keyframes message-nod { 0%, 65%, 100% { translate: 0 0; } 80% { translate: 0 2px; } }
 @media (prefers-reduced-motion: reduce) { .message-frame__continue span { animation: none; } }
+
+/* Category colors stay explicit on the frame so switching text/category also
+   repaints the title, inner line and continuation marker together. */
+.message-frame[data-category]::before{border-color:var(--message-category-line);}
+.message-frame[data-category] .message-frame__speaker{border-color:var(--message-border);color:var(--message-ink);max-inline-size:calc(100% - 66px);overflow-wrap:anywhere;}
+.message-frame[data-category] .message-frame__speaker::before{background:var(--message-category-accent);}
+.message-frame[data-category] .message-frame__continue{color:var(--message-category-accent);}
+.view-message .message-frame[data-category]::before{border-color:var(--message-category-line);}
+@media(max-height:540px){.message-frame[data-category] .message-frame__speaker{max-inline-size:calc(100% - 54px);}}
+@media(max-height:340px){.message-frame[data-category] .message-frame__speaker{max-inline-size:calc(100% - 38px);}}

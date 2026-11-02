@@ -97,7 +97,21 @@ export class OptionsDialog {
    const confirmReturn=event.target.closest('[data-patrol-return]');if(confirmReturn){if(confirmReturn.dataset.patrolReturn==='cancel'){if(this.history.length)this.goBack();else dialog.close('cancel');return;}if(confirmReturn.disabled||!this.canSelectMap()||this.readGame()?.scene!=='patrol')return;confirmReturn.disabled=true;dialog.addEventListener('close',()=>this.onSelectMap('house'),{once:true});dialog.close();return;}
    const button=event.target.closest('[data-panel]');if(button)this.navigate(button.dataset.panel);
   });
-  this.body.addEventListener('change',async event=>{if(!event.target.matches('[data-super-configuration]'))return;await this.onSuperConfiguration(event.target.value);this.renderTechniques();});
+  this.body.addEventListener('change',async event=>{
+   const select=event.target;if(!select.matches('[data-super-configuration]')||select.disabled)return;
+   const snapshot=this.readGame();if(snapshot?.location!=='home'||snapshot.pendingAngerEvent){this.renderTechniques();return;}
+   const generation=this.generation,value=select.value;select.disabled=true;
+   try{
+    const accepted=await this.onSuperConfiguration(value);if(!this.dialog.open||this.route!=='techniques')return;
+    if(generation!==this.generation){
+     const current=this.body.querySelector('[data-super-configuration]');if(accepted&&current?.value===value)current.focus({preventScroll:true});return;
+    }
+    this.renderTechniques();this.body.querySelector('[data-super-configuration]')?.focus({preventScroll:true});
+    if(!accepted)this.body.querySelector('[data-technique-status]').textContent='接頭辞オプションを変更できませんでした。';
+   }catch(error){
+    if(this.dialog.open&&generation===this.generation){this.renderTechniques();this.body.querySelector('[data-technique-status]').textContent=error.message||'接頭辞オプションを変更できませんでした。';}
+   }
+  });
   this.body.addEventListener('keydown',event=>{
    const tab=event.target.closest('[role=tab][data-growth-tab]');if(!tab||!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
    event.preventDefault();const index=GROWTH_GUIDE_TABS.findIndex(([id])=>id===tab.dataset.growthTab),length=GROWTH_GUIDE_TABS.length;
