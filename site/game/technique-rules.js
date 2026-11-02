@@ -11,8 +11,14 @@ export const TECHNIQUES=Object.freeze({
  cannon_shell:Object.freeze({id:'cannon_shell',maxLevel:50,name:'砲撃',duration:2,motion:'common_attack',effect:'shell',description:'体を動かして、勢いよく砲弾を放つ攻撃。',power:'攻撃力 × 3 ＋ 技レベル × 5'}),
  void_wave:Object.freeze({id:'void_wave',maxLevel:1,name:'ヴォイドウェーブ',duration:4,motion:'common_attack',effect:'void_wave',description:'漆黒の波を放つ、気を使う攻撃。',power:'気 × 4'}),
  cosmos_wave:Object.freeze({id:'cosmos_wave',maxLevel:1,name:'コスモスウェーブ',duration:4,motion:'common_attack',effect:'cosmos_wave',description:'華やかな虹色の波を放つ、気を使う攻撃。',power:'気 × 4'}),
- chaos_wave:Object.freeze({id:'chaos_wave',maxLevel:1,name:'カオスウェーブ',duration:4,motion:'common_attack',effect:'chaos_wave',description:'攻撃力と気を合わせ、青・紫・白・黒の混沌とした波を放つ攻撃。',power:'（攻撃力 ＋ 気） × 2'}),
- enemy_attack:Object.freeze({id:'enemy_attack',maxLevel:30,name:'共通攻撃',duration:.5,description:'体全体を一瞬前へ動かし、すぐに元の位置へ戻る攻撃。',power:'攻撃力をそのまま威力にする'})
+ chaos_wave:Object.freeze({id:'chaos_wave',maxLevel:1,name:'カオスウェーブ',duration:4,motion:'common_attack',effect:'chaos_wave',description:'攻撃力と気を合わせ、青・紫・白・黒の混沌とした波を放つ攻撃。',power:'（攻撃力 ＋ 気） × 2'})
+});
+/** Accepted relative ratings for presentation only; technique levels and battle
+ * calculations do not use these values. */
+export const TECHNIQUE_RANKS=Object.freeze({
+ punch:4,normal_attack:4,energy_ray:3,charged_punch:8,charged_energy_ray:7,
+ energy_punch:7,tackle:9,okoteiyu_beam:10,cannon_shell:9,fake_moai_beam:7,
+ void_wave:5,cosmos_wave:5,chaos_wave:6
 });
 export const TECHNIQUE_MOTION_LIMITS=Object.freeze({min:.5,max:10});
 export function techniqueDuration(id,definitions=TECHNIQUES){
@@ -47,7 +53,6 @@ export function techniquePower(id,stats,level){
  if(id==='cannon_shell')return stats.attack*3+5*level;
  if(id==='void_wave'||id==='cosmos_wave')return stats.ki*4;
  if(id==='chaos_wave')return (stats.attack+stats.ki)*2;
- if(id==='enemy_attack')return stats.attack;
  throw new RangeError('不明な技です。');
 }
 export const SUPER_CONFIGURATIONS=Object.freeze({none:Object.freeze({id:'none',label:'なし',prefix:'',additionalEffects:Object.freeze([])})});
