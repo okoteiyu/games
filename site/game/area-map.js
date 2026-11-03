@@ -4,6 +4,7 @@ import {BattleLog} from './battle-log.js';
 import {interiorMapSvg,staffCountDrawing} from './interior-map.js';
 import {getFacilityStaffCounts} from './facility-staff.js';
 import {INTERIOR_ROOMS} from './interior-rules.js';
+import {outdoorMapDrawing} from './outdoor-map.js';
 
 // Decorative cue stays outside the map SVGs copied into the dialogs.
 const MAP_TAP_CUE='<span class="area-map__tap-cue" aria-hidden="true"><svg viewBox="0 0 32 32" focusable="false"><path d="M13 19V9a2 2 0 0 1 4 0v7a2 2 0 0 1 4 0v1a2 2 0 0 1 4 0v2a2 2 0 0 1 4 0v4c0 4-2 7-6 7h-6c-2 0-3-1-4-2L7 21c-1-2 1-4 3-3l3 2Z" fill="#f4e6ce"/><path d="M9 7a6 6 0 0 1 12 0M11.5 7a3.5 3.5 0 0 1 7 0"/></svg></span>';
@@ -51,7 +52,8 @@ export class AreaMap {
  }
  showInterior(id){
   const room=INTERIOR_ROOMS[id];if(!room||id==='analysis-room')return false;this.clearBattleLog();this.mode='interior';this.interiorId=id;this.element.dataset.area='interior';this.title.textContent=room.title;this.hint.textContent='';
-  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="'+room.title+'の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+interiorMapSvg(id)+MAP_TAP_CUE+'</button>';this.refreshStaff();return true;
+  const drawing=id==='outdoor'?'<svg class="room-map" viewBox="-30 0 2060 1000" role="img" aria-label="拠点の屋外の地図">'+outdoorMapDrawing({selected:'grounds'})+'</svg>':interiorMapSvg(id);
+  this.content.innerHTML='<button class="area-map__house-trigger" data-house-map-open type="button" aria-label="'+room.title+'の建物マップを開く" aria-haspopup="dialog" aria-controls="buildingMapDialog" aria-expanded="false">'+drawing+MAP_TAP_CUE+'</button>';this.refreshStaff();return true;
  }
  refreshStaff(){
   const button=this.content.querySelector('[data-house-map-open]');if(!button)return false;

@@ -3,6 +3,7 @@ export const INTERIOR_ROOMS=Object.freeze(Object.fromEntries([
  ['analysis-room','コンピュータ室','b1','B1','analysis','analysis-room'],
  ['player-room','あなたの部屋','2f','F2','player','player-room'],
  ['warehouse','倉庫','outdoor','屋外','warehouse','warehouse'],
+ ['outdoor','拠点の屋外','outdoor','屋外','grounds','outdoor'],
  ['production-room','生産施設','b1','B1','production','production-room'],
  ['research-room','研究所','b1','B1','research','research-room'],
  ['maintenance-room','整備施設','b1','B1','maintenance','maintenance-room'],

@@ -33,6 +33,7 @@ export const BUILDING_FLOORS=Object.freeze([
   {id:'player',name:'あなたの部屋',text:''},
   {id:'core',name:'階段・エレベーター',text:''}]},
  {id:'outdoor',label:'屋外',name:'おこていゆハウス周辺',areas:[
+  {id:'grounds',name:'拠点の屋外',text:''},
   {id:'building',name:'おこていゆハウスの建物',mapOnly:true,text:'F1におこていゆ、F2にあなたが暮らす建物。'},
   {id:'entrance',name:'建物入口',mapOnly:true,text:''},
   {id:'warehouse',name:'倉庫',text:'食材や資材、作業道具を保管する倉庫。'},
