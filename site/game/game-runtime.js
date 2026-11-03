@@ -213,7 +213,9 @@ export class GameRuntime {
   if(this.messageLocked){this.sync();return;}
   if(this.scene==='story'&&this.story?.active){this.activeRuntimeMessage=null;this.story.onMessageClosed();this.sync();return;}
   if(this.story?.isExploring){const previous=this.activeRuntimeMessage;this.activeRuntimeMessage=null;this.story.onInspectionMessageClosed?.(previous);this.sync();return;}
+  if(this.campController?.finalIntro&&this.isMessageVisible()){this.sync();return;}
   const previous=this.activeRuntimeMessage;this.activeRuntimeMessage=null;
+  if(this.campController?.onMessageClosed(previous)){this.sync();return;}
   if(previous?.superUnlockId)this.session.acknowledgeSuperUnlock?.(previous.superUnlockId);
   this.showNextMessage();this.sync();
  }

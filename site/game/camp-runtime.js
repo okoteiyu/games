@@ -8,10 +8,15 @@ import {isBuildingVisitScene} from './interior-rules.js';
 import {setPaintedText,releasePaintedLabels} from './painted-label.js';
 
 const done=new Set(['failed','finished']);
+const finalExplorationMessages={
+ supplies:'今の物資で進めるのは、ここまで。ふたりは帰り支度を始めた。',
+ 'time-limit':'長い探索も、そろそろ一区切り。ふたりは帰り支度を始めた。',
+ 'no-route':'この先へは進めそうにない。ふたりが引き返そうとすると……。'
+};
 /** Keeps exploration presentation separate from ordinary battles and saves. */
 export class CampRuntime{
  constructor(game){
-  this.game=game;this.active=false;this.engine=null;this.entries=[];this.serial=0;
+  this.game=game;this.active=false;this.engine=null;this.entries=[];this.serial=0;this.finalIntro=null;
   this.ui=new CampUI({view:game.view,readState:()=>({...game.snapshot(),camp:game.session.state.camp,canCamp:this.canDepart()}),canOpen:()=>this.canBrowse(),
    onStart:options=>this.requestStart(options),onReturn:()=>this.returnHome(),
    onSaveBag:(slot,bag)=>{const ok=game.session.setCampBag(slot,bag);game.sync();return ok;},
@@ -48,7 +53,7 @@ export class CampRuntime{
   let engine;try{engine=new CampExpedition({bag,destination,playerLevel:g.session.player.level,discovered:g.session.state.camp.discovered,rng:()=>g.session.random(),onEvent:event=>this.onEvent(event)});}catch(error){return {ok:false,message:error.message};}
   const result=g.session.requestCamp({bag,destination,relaxStreak:g.house.getConsecutiveRelaxActions(),spendCalmPoints:count=>g.house.spendCalmPoints(count)});
   if(!result.ok)return {...result,message:result.reason==='not-enough-calm'?'穏やかポイントが足りません。':'今はキャンプに出発できません。'};
-  this.serial++;this.active=true;this.engine=engine;this.entries=[];this.hadBattle=false;this.finalStarted=false;this.settling=false;
+  this.serial++;this.active=true;this.engine=engine;this.entries=[];this.hadBattle=false;this.finalStarted=false;this.finalIntro=null;this.settling=false;
   const stats=playerStats(g.session.player);this.hp=stats.hp;this.maxHp=stats.hp;engine.context({hp:this.hp,maxHp:this.maxHp});
   this.emit({type:'departure',day:1,activityHours:0,nodeId:CAMP_WORLD.startId,cost:result.calmPointsCost,destination});
   g.pendingEncounter=null;g.departureDestination={kind:'camp'};g.sync();g.startSceneCutin('departure');return result;
@@ -66,6 +71,7 @@ export class CampRuntime{
  }
  tick(dt){
   if(!this.active||!this.engine)return false;
+  if(this.finalIntro){this.presentFinalIntroduction();return true;}
   if(this.game.scene==='camp-night'){this.night.tick(dt);return true;}
   if(this.game.scene!=='camp')return false;
   const state=this.engine.tick(dt,{hp:this.hp,maxHp:this.maxHp});this.hp=state.hp;this.maxHp=state.maxHp;this.ui.update(state);return true;
@@ -78,13 +84,35 @@ export class CampRuntime{
   this.statusPanel.hidden=true;this.ui.update(this.engine.snapshot());g.startBattle(enemy,{encounterType:'camp',campEmbedded:true,region:'forest',timeOfDay:'day',playerHp:this.hp});
  }
  startFinal(){
-  const g=this.game;if(this.finalStarted||!this.engine)return;this.finalStarted=true;
+  const g=this.game;if(!this.active||this.finalStarted||this.finalIntro||!this.engine)return false;
   const s=this.engine.snapshot(),isVillage=s.nodeId===CAMP_DESTINATIONS.moai_village.nodeId,id=isVillage?'fake_moai':'great_fairy',species=CREATURES[id];
+  if(s.phase!=='final')return false;
   if(!species){this.engine.abort('unavailable');g.toast('最終地点のモデルを準備できませんでした。ホームへ戻れます。');this.ui.show(this.engine.snapshot());return;}
+  const destination=CAMP_DESTINATIONS[s.destination],arrival=s.finalReason==='destination',place=destination&&destination.id!=='none'?destination.name:'目標地点';
+  const text=arrival?place+'にたどり着いた。奥のほうに、珍生物の気配がする。':finalExplorationMessages[s.finalReason]||'今回の探索は、ここで一区切り。ふたりが帰り支度を始めると……。';
+  this.finalIntro={serial:this.serial,index:0,waitingForRead:false,speciesId:id,messages:[{type:'move',text},{type:'enemy',text:'道の先に、'+species.name+'が姿を現した。おこていゆは静かに身構えた。'}]};
+  this.ui.show(s);this.statusPanel.hidden=false;this.checkpoint();this.presentFinalIntroduction();g.sync();return true;
+ }
+ presentFinalIntroduction(){
+  const g=this.game,pending=this.finalIntro;
+  if(!this.active||!pending||pending.serial!==this.serial||this.finalStarted||g.scene!=='camp')return false;
+  if(this.engine?.snapshot().phase!=='final'){this.finalIntro=null;return false;}
+  if(g.isMessageVisible()||g.isModalPaused()||g.messageLocked||document.hidden)return false;
+  if(pending.index<pending.messages.length){
+   // An internal clear is not a read acknowledgement: show this page again.
+   pending.waitingForRead=true;g.say({...pending.messages[pending.index],kind:'narration',category:'narration',speaker:'ナレーション',campFinalIntro:{serial:pending.serial,index:pending.index}});return true;
+  }
+  const s=this.engine.snapshot(),id=pending.speciesId,species=CREATURES[id];
+  this.finalIntro=null;this.finalStarted=true;
   const level=Math.max(species.levelBand?.min||1,Math.min(species.levelBand?.max||106,g.session.player.level+3));
   this.emit({type:'guardian',name:species.name,nodeId:s.nodeId,day:s.day,activityHours:s.activityHours});
   this.ui.hide();this.night.hide();this.statusPanel.hidden=true;
-  g.startBattle({speciesId:id,level,id:'camp-guardian'},{encounterType:'camp-final',region:'forest',timeOfDay:'day',playerHp:this.hp});
+  g.startBattle({speciesId:id,level,id:'camp-guardian'},{encounterType:'camp-final',region:'forest',timeOfDay:'day',playerHp:this.hp});return true;
+ }
+ onMessageClosed(payload){
+  const pending=this.finalIntro,token=payload?.campFinalIntro;
+  if(!this.active||!pending||!pending.waitingForRead||this.game.scene!=='camp'||this.game.isMessageVisible()||pending.serial!==this.serial||token?.serial!==pending.serial||token.index!==pending.index)return false;
+  pending.waitingForRead=false;pending.index++;this.presentFinalIntroduction();return true;
  }
  settled(snapshot){
   const g=this.game;if(this.settling||!this.active||snapshot?.kind!=='camp'||snapshot.phase!=='ended')return false;this.settling=true;
@@ -105,6 +133,6 @@ export class CampRuntime{
   const afterBattle=this.hadBattle;if(!g.session.endCamp({afterBattle}))return false;
   this.deactivate();g.scene='house';g.setLocation('おこていゆハウス');g.house.arriveFromOutside({afterBattle});g.view.setHouse();g.messages=[];g.clearMessage();g.sync();return true;
  }
- deactivate(){this.active=false;this.serial++;this.ui.hide();this.night.hide();this.statusPanel.hidden=true;this.actionArea.hidden=true;delete this.game.battleUI.hud.dataset.campPlayerHpExternal;this.game.homeElement.after(this.game.battleUI.panel);}
+ deactivate(){this.active=false;this.serial++;this.finalIntro=null;this.ui.hide();this.night.hide();this.statusPanel.hidden=true;this.actionArea.hidden=true;delete this.game.battleUI.hud.dataset.campPlayerHpExternal;this.game.homeElement.after(this.game.battleUI.panel);}
  destroy(){this.deactivate();this.ui.destroy();this.night.destroy();releasePaintedLabels(this.actionArea);this.actionArea.remove();}
 }
