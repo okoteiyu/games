@@ -55,6 +55,9 @@
 .main-view[data-story-active=true] .message-replay{display:none!important;}
 .story-portrait{inset:18% 4% 11% 47%;}
 .story-portrait .scene-conversation__name{display:none;}
+.story-portrait--pair{inset-inline-start:37%;inset-inline-end:3%;}
+.story-portrait--pair .scene-conversation__portrait{inline-size:73%;inset-inline-start:35%;}
+.story-portrait--pair .scene-conversation__portrait:nth-child(2){inset-inline-start:75%;filter:brightness(.85) drop-shadow(0 4px 9px #13202266);}
 /* While a story asks the player to explore, the real floor map and staff list
    stay in place. Ordinary room controls yield to the single objective card. */
 [data-story-exploring=true] .analysis-room-actions,[data-story-exploring=true] .analysis-room-badge,[data-story-exploring=true] .house-toolbar,[data-story-exploring=true] .house-camera-hint,[data-story-exploring=true] .growth-guide-trigger{display:none!important;}

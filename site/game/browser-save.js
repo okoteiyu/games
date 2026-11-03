@@ -15,5 +15,12 @@ export class BrowserSave {
   try{const state=validatePreviewState(this.readState()),text=JSON.stringify({format:'okoteiyu-browser-home',version:1,state});if(text===this.lastText)return true;this.storage().setItem(BROWSER_SAVE_KEY,text);this.lastText=text;return true;}
   catch(error){this.failed=true;this.onError('ブラウザに保存できませんでした。セーブデータをファイルへ書き出してください。',error);return false;}
  }
+ /** Starting an unnamed introduction discards the previous browser slot. The
+  * draft remains in memory until the story registers the visitor's name. */
+ beginDraft(){
+  this.lastText=null;
+  try{this.storage().removeItem(BROWSER_SAVE_KEY);this.failed=false;return true;}
+  catch(error){this.failed=true;this.onError('前のブラウザ保存を消去できませんでした。ブラウザの保存設定をご確認ください。',error);return false;}
+ }
  resetFailure(){this.failed=false;this.lastText=null;return this.saveNow();}
 }

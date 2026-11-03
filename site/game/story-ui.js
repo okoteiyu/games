@@ -24,9 +24,9 @@ const allEpisodes=chapters=>chapters.flatMap(chapter=>(chapter.episodes||[]).map
 
 /** The library owns only presentation. The director validates and applies progress. */
 export class StoryUI {
- constructor({view,game,homeElement,contextElement=null,chapters=[],arcs=null,readProgress=()=>({}),onEpisode=()=>{},onExit=()=>{},onPause=()=>{},onChoice=()=>{},onOpenMap=()=>{},onNextEpisode=null,onFinish=null,onError=()=>{}}={}){
+ constructor({view,game,homeElement,contextElement=null,chapters=[],arcs=null,readProgress=()=>({}),onEpisode=()=>{},onExit=()=>{},onPause=()=>{},onChoice=()=>{},onRegister=()=>{},onOpenMap=()=>{},onNextEpisode=null,onFinish=null,onError=()=>{}}={}){
   if(!view?.element||!game||!homeElement)throw new TypeError('物語の表示先がありません。');
-  Object.assign(this,{view,game,homeElement,contextElement,chapters,readProgress,onEpisode,onExit,onPause,onChoice,onOpenMap,onNextEpisode,onFinish,onError});
+  Object.assign(this,{view,game,homeElement,contextElement,chapters,readProgress,onEpisode,onExit,onPause,onChoice,onRegister,onOpenMap,onNextEpisode,onFinish,onError});
   this.arcs=arcs||deriveArcs(chapters);this.selectedArcId=null;this.playback={active:false};this.available=false;this.selectedChapterId=chapters[0]?.id||null;this.closeAction=null;this.lastPanelKey='';this.libraryKey=null;
   this.trigger=document.createElement('button');this.trigger.type='button';this.trigger.id='storyTrigger';this.trigger.className='story-trigger';this.trigger.hidden=true;
   this.trigger.setAttribute('aria-haspopup','dialog');this.trigger.setAttribute('aria-controls','storyDialog');this.trigger.setAttribute('aria-expanded','false');this.trigger.innerHTML=icon('book')+'<span>物語</span><i class="story-trigger__bookmark" aria-hidden="true"></i>';(view.element.querySelector('.house-toolbar')||view.element).append(this.trigger);
@@ -50,6 +50,7 @@ export class StoryUI {
    if(button.hasAttribute('data-story-next')){(this.onNextEpisode||((id)=>this.onEpisode(id,{replay:false})))(button.dataset.storyNext);return;}
    if(button.hasAttribute('data-story-finish')){(this.onFinish||this.onExit)();return;}
    if(button.hasAttribute('data-story-resume'))this.onPause(false);
+   if(button.hasAttribute('data-story-register'))this.onRegister();
   });
   this.dialog.addEventListener('click',event=>{
    if(event.target.closest('[data-story-close]')){this.dialog.close();return;}
@@ -140,7 +141,8 @@ export class StoryUI {
   setPaintedText(this.toolbar.querySelector('[data-story-episode-title]'),episode?.title||p.title||'物語',{background:'#fbf7eb',lines:1,immutableImage:true});
   const count=Math.max(1,Number(p.sceneCount)||episode?.scenes?.length||1),current=Math.min(count,Math.max(1,(Number(p.sceneIndex)||0)+1));
   setPaintedText(this.toolbar.querySelector('[data-story-position]'),current+' / '+count,{background:'#fbf7eb',lines:1,align:'right',immutableImage:true});
-  const pause=this.toolbar.querySelector('[data-story-pause]'),pauseState=String(Boolean(p.paused));pause.setAttribute('aria-label',p.paused?'物語を再開':'物語を一時停止');if(pause.getAttribute('aria-pressed')!==pauseState){pause.setAttribute('aria-pressed',pauseState);pause.innerHTML=icon(p.paused?'play':'pause');}pause.disabled=p.mode==='complete';
+  const exit=this.toolbar.querySelector('[data-story-exit]');exit.disabled=p.exitAllowed===false;exit.setAttribute('aria-label',exit.disabled?'名前を登録した後にホームへ戻れます':'ここまでを保存してホームへ');exit.title=exit.getAttribute('aria-label');
+  const pause=this.toolbar.querySelector('[data-story-pause]'),pauseState=String(Boolean(p.paused));pause.setAttribute('aria-label',p.paused?'物語を再開':'物語を一時停止');if(pause.getAttribute('aria-pressed')!==pauseState){pause.setAttribute('aria-pressed',pauseState);pause.innerHTML=icon(p.paused?'play':'pause');}pause.disabled=['complete','registration'].includes(p.mode);
   this.renderActions();
  }
  renderActions(){
@@ -148,6 +150,9 @@ export class StoryUI {
   this.panel.dataset.storyActionMode=p.mode||'read';
   const heading=(eyebrow,title)=>'<header class="story-actions__heading"><span>'+esc(eyebrow)+'</span><h2>'+esc(title)+'</h2></header>';
   if(p.paused){this.panel.innerHTML=heading('ここまで、しおりを挟んで','ひとやすみ')+'<div class="story-actions__body"><p>お好きなときに、続きをどうぞ。</p><button type="button" class="story-action-button" data-story-resume>'+icon('play')+'<span>続きを読む</span></button></div>';return;}
+  if(p.mode==='registration'){
+   this.panel.innerHTML=heading('新しい暮らしの、はじまり','あなたの名前')+'<div class="story-actions__body"><p>名前を登録すると、ここまでの進行が保存されます。</p><button type="button" class="story-action-button" data-story-register>'+icon('book')+'<span>名前を登録する</span></button></div>';return;
+  }
   if(p.mode==='objective'||p.mode==='explore'){
    const objective=p.objective||{},inspect=objective.kind==='inspect_object',reached=Boolean(p.objectiveRoomReached),talking=Boolean(p.objectiveTalking),inspected=Boolean(p.objectiveInspected),reading=Boolean(p.inspectionReading),busy=talking||reading,room=objective.roomLabel||'指定の部屋',target=inspect?objective.targetLabel||'指定のもの':objective.staffLabel||'指定の人';
    const targetLabel=inspect?'見るもの':'話す人',stepLabel=inspect?'3Dビューでタップして観察':'左の会員ボタンから挨拶';

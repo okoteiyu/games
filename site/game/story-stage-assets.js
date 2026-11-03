@@ -6,7 +6,8 @@ export const STORY_ROOM_ASSETS=Object.freeze({
  'computer-room':{url:'analysis-room/room.glb',metadata:'analysis-room/metadata.json'},
  lounge:{url:'guest-lounge/room.glb',metadata:'guest-lounge/metadata.json'},
  'player-room':{url:'player-room/room.glb',metadata:'player-room/metadata.json'},
- 'training-hall':{url:'battle3d/training_day.glb'}
+ 'training-hall':{url:'battle3d/training_day.glb'},
+ outdoor:{url:'outdoor/room.glb',metadata:'outdoor/metadata.json'}
 });
 
 export function storyCanvasTexture(draw,size=512){
@@ -107,4 +108,27 @@ export function createStoryBook(){
 export function createStoryShadow(radius=.22){
  const texture=storyCanvasTexture((ctx,s)=>{const g=ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s*.47);g.addColorStop(0,'#403d3166');g.addColorStop(.55,'#403d3122');g.addColorStop(1,'#403d3100');ctx.fillStyle=g;ctx.fillRect(0,0,s,s);},128);
  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(radius*2.6,radius*2.1),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));mesh.rotation.x=-Math.PI/2;mesh.position.y=.007;return mesh;
+}
+
+export function createStoryMap(){
+ // Native CharacterRoot coordinates: +X points forward. A standard plane
+ // rotated about Y therefore presents its printed, upright side to the viewer.
+ const root=new THREE.Group();root.name='Story.OfferedMap';
+ const paper=storyCanvasTexture((ctx,s)=>{
+  ctx.fillStyle='#fff8df';ctx.fillRect(0,0,s,s);ctx.strokeStyle='#b9a483';ctx.lineWidth=5;ctx.strokeRect(18,18,s-36,s-36);
+  ctx.fillStyle='#dce5cb';ctx.fillRect(40,46,130,132);ctx.fillRect(344,312,117,142);
+  ctx.strokeStyle='#d4cab4';ctx.lineWidth=24;ctx.lineCap='round';ctx.lineJoin='round';
+  for(const points of [[[42,238],[466,238]],[[226,50],[226,466]],[[44,390],[336,390],[336,70]]]){
+   ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
+  }
+  ctx.strokeStyle='#a8895d';ctx.lineWidth=8;ctx.setLineDash([7,14]);ctx.beginPath();ctx.moveTo(82,390);ctx.lineTo(226,390);ctx.lineTo(226,238);ctx.lineTo(336,238);ctx.lineTo(336,132);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#b17b60';ctx.beginPath();ctx.moveTo(293,124);ctx.lineTo(336,88);ctx.lineTo(379,124);ctx.closePath();ctx.fill();ctx.fillStyle='#edd3a0';ctx.fillRect(302,124,68,53);ctx.fillStyle='#a78866';ctx.fillRect(328,146,18,31);
+  ctx.fillStyle='#788961';ctx.beginPath();ctx.arc(83,390,15,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff9e4';ctx.lineWidth=5;ctx.beginPath();ctx.arc(83,390,6,0,Math.PI*2);ctx.stroke();
+  // A subtle central fold makes the paper read as a prop rather than a screen.
+  ctx.fillStyle='#988c6b14';ctx.fillRect(s/2-2,24,4,s-48);
+ },512);
+ const face=new THREE.Mesh(new THREE.PlaneGeometry(.26,.15),new THREE.MeshStandardMaterial({map:paper,roughness:.95}));face.name='Story.Map.PrintedSide';root.add(face);
+ const back=new THREE.Mesh(new THREE.PlaneGeometry(.26,.15),mat('#f1e8cf',.96));back.rotation.y=Math.PI;back.position.z=-.0006;back.name='Story.Map.Back';root.add(back);
+ root.rotation.y=Math.PI/2;root.position.set(.205,.126,0);root.userData.printedFrame={normalNative:[1,0,0],topNative:[0,1,0]};
+ return root;
 }

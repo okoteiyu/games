@@ -23,6 +23,7 @@ import {SceneConversation} from './scene-conversation.js';
 import {categorizeMessage} from './message-category.js';
 import {StoryDirector} from './story-director.js';
 import {STORY_CHAPTERS} from './story-content.js';
+import {createStoryProgress} from './story-progress.js';
 import {resolveFacilityStoryStaff} from './story-objectives.js';
 import { GameEvents } from './game-events.js';
 export class SquareSceneView {
@@ -43,8 +44,8 @@ export class SquareSceneView {
 
 installPasswordViewportGuard();
 installBonusButtonLayout(document.querySelector('[data-home-choice="interfere"]'));
-let patrolUI=null,houseUI=null,trainingHallUI=null,analysisRoomUI=null,interiorUI=null,gameRuntime=null,sceneConversation=null,facilityStaffUI=null,storyDirector=null;
-const needsVisitorName=()=>!gameRuntime?.session.state.visitorName;
+let patrolUI=null,houseUI=null,trainingHallUI=null,analysisRoomUI=null,interiorUI=null,gameRuntime=null,sceneConversation=null,facilityStaffUI=null,storyDirector=null,browserSave=null;
+const needsVisitorName=()=>!(storyDirector?.primarySession??gameRuntime?.session)?.state.visitorName;
 const view=new SquareSceneView(document.querySelector('#mainView'));
 const readStaff=()=>{const staff=gameRuntime?.session.state.facilityStaff;return staff?resolveFacilityStoryStaff(staff,gameRuntime.session.state.story,STORY_CHAPTERS,{replayEpisodeId:storyDirector?.active&&storyDirector.replay?storyDirector.episode?.id:null}):null;};
 function inspectInteriorObject(target,room){
@@ -124,11 +125,11 @@ if(new URLSearchParams(location.search).get('event')==='demo')showEvent(samples[
 const input=document.querySelector('#mediaFile');
 const popup=new NoticePopup({game:document.querySelector('#game')});
 let startupRestoreError=null;
-const visitorNamePopup=new VisitorNamePopup({game:document.querySelector('#game'),onRegister:name=>{gameRuntime.registerVisitorName(name);browserSave.resetFailure();return true;}});
+const visitorNamePopup=new VisitorNamePopup({game:document.querySelector('#game'),onRegister:name=>{if(!storyDirector?.awaitingRegistration)return false;browserSave.resetFailure();return storyDirector.registerVisitorName(name);},onRegistered:()=>storyDirector?.resumeAfterRegistration()});
 function ensureVisitorName(){
  if(!startupNoticeShown)return;
  if(startupRestoreError){if(popup.open({type:'error',title:'保存データを復元できませんでした',message:startupRestoreError}))startupRestoreError=null;return;}
- if(needsVisitorName())visitorNamePopup.open();
+ if(storyDirector?.awaitingRegistration)visitorNamePopup.open();
  else storyDirector?.maybeStart();
 }
 // Native dialog close listeners release the shared modal owner first.
@@ -151,7 +152,7 @@ const optionsUI=new OptionsDialog({
  onEquipItem:(kind,id)=>gameRuntime?.equipItem(kind,id)??false,
  onSelectMap:(id,tier='easy')=>{if(id==='training-hall')return gameRuntime?.visitTrainingHall()??false;if(id==='training')return gameRuntime?.requestTraining(tier)??false;if(id==='patrol')return gameRuntime?.requestPatrol()??false;if(id==='house'){if(!gameRuntime?.cancelPatrol())return false;view.setHouse();setLocation('おこていゆハウス');hideEvent();return true;}return false;},
  readState:({browser=false}={})=>({rank:document.querySelector('#rankValue').textContent,location:browser&&(isBuildingVisitScene(gameRuntime?.scene)||storyDirector?.active)?'おこていゆハウス':document.querySelector('#locationName').textContent,gauges:{experience:Number(document.querySelector('#experienceGauge').getAttribute('aria-valuenow'))/100},rankPoints:rankHint.getPoints(),...(gameRuntime?{prototype:gameRuntime.exportProgress({browser})}: {})}),
- applyState:state=>{validatePatrolTransfer(state);gameRuntime?.importProgress(state.prototype);if(state.rankPoints!=null)setRankPoints(state.rankPoints);else setRank(state.rank);setLocation('おこていゆハウス');view.setHouse();gameRuntime?.sync();if(window.mainViewPreview?.browserSave?.initialized)window.mainViewPreview.browserSave.resetFailure();if(needsVisitorName()&&optionsUI.dialog.open)optionsUI.dialog.close();}
+ applyState:state=>{validatePatrolTransfer(state);gameRuntime?.importProgress(state.prototype);if(needsVisitorName()){const primary=storyDirector?.primarySession??gameRuntime.session,completedBattles=[...primary.state.story.completedBattles];primary.state.story={...createStoryProgress(),completedBattles};if(browserSave?.beginDraft()===false)throw new Error('新しい物語を始めるためのブラウザ保存を消去できませんでした。');}if(state.rankPoints!=null)setRankPoints(state.rankPoints);else setRank(state.rank);setLocation('おこていゆハウス');view.setHouse();gameRuntime?.sync();if(!needsVisitorName()&&browserSave?.initialized)browserSave.resetFailure();if(needsVisitorName()&&optionsUI.dialog.open)optionsUI.dialog.close();}
 
 });
 function setLocation(label){setPaintedText(document.querySelector('#locationName'),label,{background:'bronze',align:'center',lines:2});document.querySelector('#homeChoices').hidden=label!=='おこていゆハウス'||Boolean(storyDirector?.active);}
@@ -226,7 +227,7 @@ interiorUI=new InteriorRoomUI({view,homeElement:document.querySelector('#homeCho
 window.mainViewPreview.interiors=interiorUI;
 const interiorRooms=Object.fromEntries(Object.keys(INTERIOR_ROOMS).filter(id=>id!=='analysis-room').map(id=>[id,interiorUI]));
 gameRuntime=new GameRuntime({view,house:houseUI,patrol:patrolUI,trainingHall:trainingHallUI,analysisRoom:analysisRoomUI,interiorRooms,homeElement:document.querySelector('#homeChoices'),
- isPaused:()=>needsVisitorName()||eventVisible||isModalBlocked(),isModalPaused:()=>needsVisitorName()||isModalBlocked(),isMessageVisible:()=>eventVisible,
+ isPaused:()=>eventVisible||isModalBlocked(),isModalPaused:()=>isModalBlocked(),isMessageVisible:()=>eventVisible,
  showMessage:(payload,{record=true,showMessage=true}={})=>showMessage?showEvent(payload,{record}):events.dispatch(payload,{showMessage:false}),hideMessage:hideEvent,setLocation,setGauges,toast,readMessagePage:()=>({page:message.page,pages:message.pages.length}),advanceMessagePage:()=>message.advance()});
 window.mainViewPreview.game=gameRuntime;
 const staffSceneReady=()=>{const id=gameRuntime?.scene;const room=id==='analysis-room'?analysisRoomUI:interiorUI;return isInteriorScene(id)&&room?.active&&room.roomDefinition?.id===id&&room.ready&&!room.loading&&!room.failed&&!room.controller?.contextLost&&!gameRuntime.recovery?.blocked;};
@@ -237,8 +238,8 @@ gameRuntime.onTrainingHallEntered=()=>areaMap.showTraining();
 gameRuntime.onAnalysisRoomEntered=()=>areaMap.showAnalysis();
 gameRuntime.onInteriorEntered=id=>areaMap.showInterior(id);
 gameRuntime.onBattleEvent=event=>areaMap.handleBattleEvent(event);
-const browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>Boolean(storyDirector?.active&&storyDirector.canCheckpoint)||((gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene))&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready)),onError:(text,error)=>{toast(text);if(browserSave.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
-storyDirector=new StoryDirector({runtime:gameRuntime,view,game:document.querySelector('#game'),homeElement:document.querySelector('#homeChoices'),contextElement:areaMap.element,onOpenMap:opener=>buildingMap.open(opener),onCheckpoint:()=>browserSave.saveNow()});
+browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>!needsVisitorName()&&(Boolean(storyDirector?.active&&storyDirector.canCheckpoint)||((gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene))&&['home','patrol','training'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready))),onError:(text,error)=>{toast(text);if(browserSave?.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
+storyDirector=new StoryDirector({runtime:gameRuntime,view,game:document.querySelector('#game'),homeElement:document.querySelector('#homeChoices'),contextElement:areaMap.element,onOpenMap:opener=>buildingMap.open(opener),onCheckpoint:()=>browserSave.saveNow(),onRequestRegistration:()=>ensureVisitorName()});
 window.mainViewPreview.story=storyDirector;window.mainViewPreview.storyUI=storyDirector.ui;
 let previousStaffState='';
 gameRuntime.onProgressChange=()=>{

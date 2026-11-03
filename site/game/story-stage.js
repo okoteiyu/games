@@ -1,7 +1,8 @@
 import * as THREE from './vendor/three/three.module.js';
 import {GLTFLoader} from './vendor/three/addons/loaders/GLTFLoader.js';
 import {loadAssetJson,loadGLTFAsset,loadAssetBuffer} from './asset-store.js';
-import {STORY_ROOM_ASSETS,storyCanvasTexture,createHeadquartersSet,createRoadSet,createStoryBook,createStoryShadow} from './story-stage-assets.js';
+import {STORY_ROOM_ASSETS,storyCanvasTexture,createHeadquartersSet,createRoadSet,createStoryBook,createStoryMap,createStoryShadow} from './story-stage-assets.js';
+import {StoryStageEffects} from './story-stage-effects.js';
 
 const smooth=value=>{const n=THREE.MathUtils.clamp(value,0,1);return n*n*(3-2*n);};
 const find=(root,name)=>root.getObjectByName(name)||root.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name));
@@ -23,7 +24,7 @@ export class StoryStage {
   this.container=document.createElement('div');this.container.className='story-stage';Object.assign(this.container.style,{position:'absolute',inset:'0',background:'#e9eadf'});
   this.status=document.createElement('div');this.status.className='house3d-status';this.status.setAttribute('role','status');Object.assign(this.status.style,{position:'absolute',inset:'0',display:'grid',placeContent:'center',gap:'12px',textAlign:'center',padding:'24px',background:'#eeeee3',color:'#6e5943'});
   this.status.innerHTML='<span>物語の場面を準備しています…</span><button type="button" hidden>もう一度読み込む</button>';this.container.append(this.status);
-  this.status.querySelector('button').addEventListener('click',()=>{if(this.currentScene)this.show(this.currentScene);});
+  this.status.querySelector('button').addEventListener('click',()=>{if(this.currentScene)this.show(this.currentScene);});this.effects=new StoryStageEffects(this.container);
   this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#e7e8df');this.camera=new THREE.PerspectiveCamera(38,1,.012,80);this.cameraAim=new THREE.Vector3(0,.3,0);
   this.scene.add(new THREE.HemisphereLight(0xfff8e9,0x98a5a0,2.0));this.keyLight=new THREE.DirectionalLight(0xffefd6,2.5);this.keyLight.position.set(-3,6,4);this.scene.add(this.keyLight);const fill=new THREE.DirectionalLight(0xe7f0ff,.85);fill.position.set(3,2,-4);this.scene.add(fill);
   this.resizeObserver=new ResizeObserver(()=>this.render());this.resizeObserver.observe(this.container);
@@ -64,7 +65,11 @@ export class StoryStage {
   actor.book=createStoryBook();actor.book.scale.setScalar(.85);actor.book.position.set(0,.205,.205);actor.book.rotation.x=-.65;actor.book.visible=false;anchor.add(actor.book);
   // Author the prop in the actor's Y-up frame, then keep it attached to the
   // same rigid root as both hands while nodding, walking and looking around.
-  actor.root.attach(actor.book);actor.shadow=createStoryShadow(.18);anchor.add(actor.shadow);
+  actor.root.attach(actor.book);actor.map=createStoryMap();actor.map.visible=false;actor.root.add(actor.map);actor.shadow=createStoryShadow(.18);anchor.add(actor.shadow);
+  actor.handRest=actor.hands.map(hand=>{
+   const tip=vector([0,1,0]).applyMatrix4(hand.matrix),axis=vector([0,1,0]).applyQuaternion(hand.quaternion);
+   return {tip,axis};
+  });
   this.scene.add(anchor);this.actor=actor;
   const moaiTemplate=await this.template('support3d/moai_kun.glb');if(this.destroyed)throw new Error('物語の表示を終了しました。');const moai=new THREE.Group();moai.name='Story.MoaiKun';moai.add(moaiTemplate.scene.clone(true));this.scene.add(moai);this.moai=moai;this.moaiShadow=createStoryShadow(.105);this.scene.add(this.moaiShadow);
   const punimTemplate=await this.template('battle3d/punim.glb',manifest.models.punim.sha256);if(this.destroyed)throw new Error('物語の表示を終了しました。');const punim=new THREE.Group(),punimModel=punimTemplate.scene.clone(true);punim.add(punimModel);punim.name='Story.Punim';
@@ -85,7 +90,8 @@ export class StoryStage {
  async environment(stage){
   if(this.environments.has(stage)){const cached=this.environments.get(stage);this.environments.delete(stage);this.environments.set(stage,cached);return cached;}
   let environment;
-  if(stage==='headquarters')environment=createHeadquartersSet();
+  if(stage==='black')environment={root:new THREE.Group(),actorPosition:[0,0,0],cameraWide:{position:[0,.4,2],target:[0,.2,0],fov:38}};
+  else if(stage==='headquarters')environment=createHeadquartersSet();
   else if(stage==='road')environment=createRoadSet();
   else{
    const definition=STORY_ROOM_ASSETS[stage];if(!definition)throw new RangeError('物語の場面が見つかりません。');
@@ -103,7 +109,10 @@ export class StoryStage {
     'computer-room':{actorPosition:[0,0,1.72],cameraWide:{position:[.6,1.1,3.55],target:[0,.16,.75],fov:52}},
     lounge:{actorPosition:[8.8,0,.22],actorYaw:.65,cameraWide:{position:[10.3,.9,1.7],target:[8.4,.14,-.2],fov:50}},
     'player-room':{actorPosition:[.05,0,1.95],cameraWide:{position:[.55,.95,3.9],target:[0,.12,1.10],fov:52}},
-    'training-hall':{actorPosition:[.3,0,.3],cameraWide:{position:[.75,.78,2.7],target:[.25,.13,-.2],fov:48}}
+    'training-hall':{actorPosition:[.3,0,.3],cameraWide:{position:[.75,.78,2.7],target:[.25,.13,-.2],fov:48}},
+    // Greet the arriving hero on the paved approach, outside the closed gate.
+    // The security bars remain behind the actors rather than across their face.
+    outdoor:{actorPosition:[10.8,.077,8.65],cameraWide:{position:[11.8,4.8,18],target:[12.8,2.7,.4],fov:52}}
    }[stage];
    environment={root,metadata,templateKey:assetUrl(definition.url,metadata.glbSha256||metadata.model?.sha256).href,...settings};
    if(stage==='house'){
@@ -119,28 +128,35 @@ export class StoryStage {
   while(this.environments.size>2){const key=[...this.environments.keys()].find(id=>id!==this.stageName),environment=this.environments.get(key);this.environments.delete(key);environment.root.removeFromParent();disposeTrees([environment.root]);if(environment.templateKey)this.templates.delete(environment.templateKey);}
  }
  async show(scene){
-  if(this.destroyed)return false;this.currentScene={...scene};this.active=true;const generation=++this.generation,newStage=this.stageName!==scene.stage;this.ready=false;
+  if(this.destroyed)return false;
+  // The director advances a transition just like a silent animation. Retain
+  // the preceding pose underneath it, then load the next set under full black.
+  if(scene.type==='transition'&&scene.stage==='black'&&this.ready){
+   this.currentScene={...scene};this.active=true;this.generation++;this.elapsed=0;this.transitioning=true;this.effects.clearImpact();this.effects.fadeTo(1,scene.duration||1.1);this.render();this.onReady(scene);return true;
+  }
+  const fadeIn=this.transitioning||this.effects.alpha>.99;this.transitioning=false;this.currentScene={...scene};this.active=true;const generation=++this.generation,newStage=this.stageName!==scene.stage;this.ready=false;this.effects.clearImpact();
   if(newStage||!this.renderer){this.status.hidden=false;this.status.style.display='grid';this.status.querySelector('span').textContent='物語の場面を準備しています…';this.status.querySelector('button').hidden=true;if(this.canvas)this.canvas.style.visibility='hidden';}
   try{
    this.createRenderer();await this.makeActor();const environment=await this.environment(scene.stage);if(this.destroyed||generation!==this.generation)return false;
    if(newStage){
     this.environmentSet?.root.removeFromParent();this.environmentSet=environment;this.scene.add(environment.root);this.stageName=scene.stage;this.actor.anchor.position.fromArray(environment.actorPosition);this.actor.anchor.rotation.set(0,0,0);
-    const road=scene.stage==='road';this.scene.background=new THREE.Color(road?'#dce9eb':'#e7e8df');this.scene.fog=road?new THREE.Fog('#dce9eb',14,37):null;
+    const road=scene.stage==='road',outdoor=scene.stage==='outdoor',black=scene.stage==='black',background=black?'#000000':outdoor?'#c8d9df':road?'#dce9eb':'#e7e8df';this.scene.background=new THREE.Color(background);this.scene.fog=outdoor?new THREE.Fog(background,75,150):road?new THREE.Fog(background,14,37):null;this.camera.far=outdoor?180:80;
     if(environment.door)environment.door.position.x=environment.doorClosed+(scene.stage==='house'&&scene.animation!=='door'?environment.doorTravel:0);this.trimEnvironments();
    }
    this.elapsed=0;this.sceneStartPosition=this.actor.anchor.position.clone();this.actorTarget=this.sceneStartPosition.clone();
    if(scene.animation==='sit'&&scene.stage==='house')this.actorTarget.set(.05,environment.seatTop-this.actor.bodyRestBottom+.028,-1.33);
    else if(scene.stage==='house'&&this.sceneStartPosition.y>.03)this.actorTarget.y=environment.seatTop+.002;
-   this.actor.book.visible=Boolean(scene.prop==='book'||scene.prop==='paper'||/記録帳|案内の紙/.test(scene.text||''));
+   const visible=scene.stage!=='black';this.actor.anchor.visible=visible;this.moai.visible=visible;this.moaiShadow.visible=visible;
+   this.actor.book.visible=Boolean(visible&&scene.prop!=='map'&&(scene.prop==='book'||scene.prop==='paper'||/記録帳|案内の紙/.test(scene.text||'')));this.actor.map.visible=Boolean(visible&&scene.prop==='map');
    this.actor.bodyMaterial.map=this.actor.faces[scene.expression]||this.actor.faces.neutral;this.actor.bodyMaterial.needsUpdate=true;
    this.punim.visible=scene.stage==='road'&&scene.punimVisible===true;this.punimShadow.visible=this.punim.visible;
-   this.setCamera(scene,newStage);this.ready=true;this.status.hidden=true;this.status.style.display='none';this.sample();this.render();this.onReady(scene);return true;
+   this.setCamera(scene,newStage);this.ready=true;this.status.hidden=true;this.status.style.display='none';if(scene.stage==='black')this.effects.setBlack(1);else if(fadeIn){this.effects.setBlack(1);this.effects.fadeTo(0,.45);}else this.effects.setBlack(0);this.sample();this.render();this.onReady(scene);return true;
   }catch(error){
-   if(this.destroyed||generation!==this.generation)return false;this.lastError=error?.message||String(error);this.status.hidden=false;this.status.style.display='grid';this.status.querySelector('span').textContent='物語の場面を表示できませんでした。';this.status.querySelector('button').hidden=false;this.onError(error);return false;
+   if(this.destroyed||generation!==this.generation)return false;this.effects.setBlack(0);this.lastError=error?.message||String(error);this.status.hidden=false;this.status.style.display='grid';this.status.querySelector('span').textContent='物語の場面を表示できませんでした。';this.status.querySelector('button').hidden=false;this.onError(error);return false;
   }
  }
  setCamera(scene,immediate){
-  const position=this.actorTarget.clone(),wide=scene.shot==='wide'||['computer-room','lounge','training-hall'].includes(scene.stage);
+  const position=this.actorTarget.clone(),wide=scene.shot==='wide'||scene.shot==='front'||['black','computer-room','lounge','training-hall'].includes(scene.stage);
   let target,eye,fov;
   if(wide){const config=this.environmentSet.cameraWide;eye=vector(config.position);target=vector(config.target);fov=config.fov;}
   else{
@@ -167,7 +183,7 @@ export class StoryStage {
    const envelope=Math.sin(Math.min(1,t/3.4)*Math.PI);actor.hands[0].position.y+=.028*envelope;actor.hands[0].position.x+=.012*envelope;actor.hands[0].rotateX(.28*envelope*Math.sin(t*8));actor.hands[0].scale.y*=1+.12*envelope;
   }
   if(animation==='surprise'){
-   const jump=t<.9?.035*Math.sin(t/.9*Math.PI):0;actor.root.position.y+=jump;actor.root.rotateZ(.07*Math.sin(Math.min(1,t/1.3)*Math.PI));actor.anchor.position.z+=.035*smooth(t/1.2);actor.anchor.rotation.y+=.20*Math.sin(Math.min(1,t/2.8)*Math.PI);
+   const jump=t<.9?.035*Math.sin(t/.9*Math.PI):0;actor.root.position.y+=jump;actor.root.rotateZ(.07*Math.sin(Math.min(1,t/1.3)*Math.PI));actor.anchor.position.z+=.035*smooth(t/1.2);actor.anchor.rotation.y+=this.currentScene.turn?Math.PI*smooth((t-.15)/.85):.20*Math.sin(Math.min(1,t/2.8)*Math.PI);
    actor.hands.forEach((hand,index)=>{hand.position.y+=.018*smooth(t/.4);hand.rotateX((index?1:-1)*.13*smooth(t/.4));});
   }
   if(animation==='happy'){
@@ -181,22 +197,40 @@ export class StoryStage {
    resetPose(actor.poses.find(pose=>pose?.node===hand));
    hand.position.x+=.09;hand.position.y+=.030;hand.position.z+=(index?1:-1)*.050;
   });
+  if(actor.map.visible){
+   // Begin already holding the sheet clear of the belly. Interpolating from
+   // bare-hand rest tips would draw the paper through the rigid body.
+   const offer=animation==='offer-map'?smooth(t/1.45):1,start=vector([.175,.087,0]),destination=vector([.205,.126,0]);
+   actor.map.position.copy(start).lerp(destination,offer);actor.map.scale.set(1,1,1);
+   actor.hands.forEach((hand,index)=>{
+    const pose=actor.poses.find(value=>value?.node===hand);resetPose(pose);
+    const grip=actor.map.position.clone();grip.z=index?-.13:.13;const reach=grip.sub(pose.position);
+    hand.quaternion.setFromUnitVectors(vector([0,1,0]),reach.clone().normalize());hand.scale.y=reach.length();
+   });
+  }
   if(animation==='door'&&this.environmentSet.door){
    const open=smooth((t-.3)/1.6);this.environmentSet.door.position.x=this.environmentSet.doorClosed+this.environmentSet.doorTravel*open;
    actor.hands.forEach(hand=>{hand.position.x+=.012*Math.sin(open*Math.PI);hand.position.y+=.016*Math.sin(open*Math.PI);});
    if(this.stageName==='house')actor.anchor.position.z-=.28*smooth((t-1.7)/2.2);
   }
   const moaiHop=walking?Math.max(0,Math.sin(t*7))*.042:Math.max(0,Math.sin(this.totalTime*2.0))*.009;
-  this.moai.position.copy(actor.anchor.position).add(new THREE.Vector3(-.34,0,-.20));this.moai.position.y=moaiHop;this.moai.rotation.y=actor.anchor.rotation.y-.05;this.moaiShadow.position.set(this.moai.position.x,.008,this.moai.position.z);
+  this.moai.position.copy(actor.anchor.position).add(new THREE.Vector3(-.34,moaiHop,-.20));this.moai.rotation.y=actor.anchor.rotation.y-.05;this.moaiShadow.position.set(this.moai.position.x,actor.anchor.position.y+.008,this.moai.position.z);
   if(this.punim.visible){
-   const tired=this.currentScene.punimState==='tired',approach=animation==='surprise'?smooth(t/2.8):0;
+   const tired=this.currentScene.punimState==='tired',approach=animation==='surprise'&&!this.currentScene.turn?smooth(t/2.8):0;
    this.punim.position.set(actor.anchor.position.x+.54,tired?.002:.018*Math.max(0,Math.sin(t*4.4)),actor.anchor.position.z-1.10+.55*approach);this.punim.rotation.y=tired?-.5:0;this.punim.rotation.z=tired?.10:.035*Math.sin(t*2.7);this.punimShadow.position.set(this.punim.position.x,.008,this.punim.position.z);
+   if(this.currentScene.punimEntry){
+    const entry=smooth(t/1.15),hop=t<1.15?.19*Math.sin(Math.PI*t/1.15):.014*Math.max(0,Math.sin((t-1.15)*5));
+    this.punim.position.set(actor.anchor.position.x+THREE.MathUtils.lerp(1.05,.40,entry),hop,actor.anchor.position.z+THREE.MathUtils.lerp(-1.35,-.60,entry));this.punim.rotation.y=-.4*entry;
+   }
+   else if(this.currentScene.turn){this.punim.position.x=actor.anchor.position.x+.40;this.punim.position.z=this.sceneStartPosition.z-.60;}
+   this.punimShadow.position.set(this.punim.position.x,.008,this.punim.position.z);
   }
   const cameraMix=smooth(this.cameraElapsed/1.4);this.camera.position.copy(this.cameraFrom.position).lerp(this.cameraGoal.position,cameraMix);this.cameraAim.copy(this.cameraFrom.target).lerp(this.cameraGoal.target,cameraMix);this.camera.fov=THREE.MathUtils.lerp(this.cameraFrom.fov,this.cameraGoal.fov,cameraMix);this.camera.lookAt(this.cameraAim);this.camera.updateProjectionMatrix();this.scene.updateMatrixWorld(true);
+  if(this.currentScene.speedLines){const center=actor.anchor.position.clone().add(vector([0,.30,0])).project(this.camera);this.effects.impact(t,{x:center.x*.5+.5,y:-center.y*.5+.5});}else this.effects.clearImpact();
  }
  update(dt){
   if(!this.ready||!this.active||this.destroyed||this.contextLost||document.hidden)return;
-  const elapsed=Math.min(.25,Math.max(0,Number(dt)||0));this.elapsed+=elapsed;this.totalTime+=elapsed;this.cameraElapsed+=elapsed;this.sample();this.render();
+  const elapsed=Math.min(.25,Math.max(0,Number(dt)||0));this.elapsed+=elapsed;this.totalTime+=elapsed;this.cameraElapsed+=elapsed;this.effects.advance(elapsed);if(!this.transitioning)this.sample();this.render();
  }
  advance(dt){this.update(dt);}
  setActive(active){this.active=Boolean(active);if(this.active)this.render();}
@@ -207,16 +241,16 @@ export class StoryStage {
  }
  async recoverAfterInterruption(){
   if(this.destroyed||!this.currentScene)return false;
-  if(!this.actor||!this.moai||!this.punim||!this.environmentSet||this.stageName!==this.currentScene.stage)return this.show(this.currentScene);
-  try{const elapsed=this.elapsed;this.releaseRenderer();this.contextLost=false;this.createRenderer();this.ready=true;this.elapsed=elapsed;this.sample();this.status.hidden=true;this.status.style.display='none';this.render();return true;}
+  if(!this.actor||!this.moai||!this.punim||!this.environmentSet||!this.transitioning&&this.stageName!==this.currentScene.stage)return this.show(this.currentScene);
+  try{const elapsed=this.elapsed;this.releaseRenderer();this.contextLost=false;this.createRenderer();this.ready=true;this.elapsed=elapsed;if(!this.transitioning)this.sample();this.status.hidden=true;this.status.style.display='none';this.render();return true;}
   catch(error){this.ready=false;this.lastError=error?.message||String(error);this.status.hidden=false;this.status.style.display='grid';this.status.querySelector('span').textContent='物語の表示を復旧できませんでした。';this.status.querySelector('button').hidden=false;this.onError(error);return false;}
  }
  releaseRenderer(){
   if(!this.renderer)return;this.canvas.removeEventListener('webglcontextlost',this.onContextLost);this.canvas.removeEventListener('webglcontextrestored',this.onContextRestored);this.canvas.remove();this.renderer.dispose();this.renderer.forceContextLoss?.();this.renderer=null;
  }
- getDiagnostics(){return {ready:this.ready,active:this.active,stage:this.stageName||null,sceneId:this.currentScene?.id||null,animation:this.currentScene?.animation||null,expression:this.currentScene?.expression||null,punimVisible:this.punim?.visible||false,punimState:this.currentScene?.punimState||null,elapsed:this.elapsed,renderFrames:this.renderFrames,contextLost:this.contextLost,error:this.lastError||null,environmentCacheSize:this.environments.size,actorPosition:this.actor?.anchor.position.toArray()||null,actorScale:this.actor?.model.scale.toArray()||null,camera:{position:this.camera.position.toArray(),target:this.cameraAim.toArray(),fov:this.camera.fov},size:{width:this.width||0,height:this.height||0}};}
+ getDiagnostics(){return {ready:this.ready,active:this.active,stage:this.stageName||null,sceneId:this.currentScene?.id||null,animation:this.currentScene?.animation||null,expression:this.currentScene?.expression||null,punimVisible:this.punim?.visible||false,punimState:this.currentScene?.punimState||null,punimPosition:this.punim?.position.toArray()||null,elapsed:this.elapsed,renderFrames:this.renderFrames,contextLost:this.contextLost,error:this.lastError||null,environmentCacheSize:this.environments.size,actorVisible:this.actor?.anchor.visible||false,actorYaw:this.actor?.anchor.rotation.y||0,actorPosition:this.actor?.anchor.position.toArray()||null,actorScale:this.actor?.model.scale.toArray()||null,mapVisible:this.actor?.map.visible||false,effects:this.effects.diagnostics(),camera:{position:this.camera.position.toArray(),target:this.cameraAim.toArray(),fov:this.camera.fov},size:{width:this.width||0,height:this.height||0}};}
  destroy(){
-  if(this.destroyed)return;this.destroyed=true;this.generation++;this.active=false;this.ready=false;this.resizeObserver.disconnect();this.releaseRenderer();this.container.remove();
+  if(this.destroyed)return;this.destroyed=true;this.generation++;this.active=false;this.ready=false;this.resizeObserver.disconnect();this.releaseRenderer();this.effects.destroy();this.container.remove();
   disposeTrees([this.scene,...[...this.environments.values()].map(environment=>environment.root),...this.pendingActors.map(actor=>actor.anchor)],this.pendingActors.flatMap(actor=>Object.values(actor.faces||{})));
   this.scene.clear();this.environments.clear();this.templates.clear();this.pendingActors=[];
  }

@@ -1,5 +1,5 @@
 import {TECHNIQUES} from './technique-rules.js';
-import {isInitialProgress,normalizeVisitorName,validateVisitorProgress} from './visitor-profile.js';
+import {validateVisitorProgress} from './visitor-profile.js';
 import {battleResultMessages,superUnlockMessage} from './battle-result.js';
 import {normalizeMessageCategory} from './message-category.js';
 import {currentTimeOfDay} from './world-time.js';
@@ -83,7 +83,7 @@ export class GameRuntime {
   this.enqueueMessages((this.session.pendingSuperUnlockNotifications?.()||[]).map(superUnlockMessage));
  }
  showNextMessage(){
-  if(this.messageLocked||this.isMessageVisible()||this.isModalPaused()||document.hidden||!this.session.state.visitorName)return false;
+  if(this.messageLocked||this.isMessageVisible()||this.isModalPaused()||document.hidden||(!this.session.state.visitorName&&!this.story?.battlePending))return false;
   if(this.resultMessageActive){
    if(!this.resultCutinComplete)return false;
    if(this.resultMessages.length){this.say(this.resultMessages.shift());return true;}
@@ -100,10 +100,8 @@ export class GameRuntime {
  isRelaxing(){return /^(eating|bed_lie|bed_rise|chair_sit|chair_rise)$/.test(this.house.controller?.life?.phase||'');}
  isHouseReady(){return Boolean(this.house.controller?.ready&&this.house.controller?.life);}
  registerVisitorName(value){
-  const name=normalizeVisitorName(value);
-  if(!name)throw new Error('名前を入力してください。');
-  if(this.scene!=='house'||!isInitialProgress(this.session.state,this.house.getConsecutiveRelaxActions()))throw new Error('名前を登録できる初期状態ではありません。');
-  this.session.state.visitorName=name;this.sync();return true;
+  if(!this.story?.awaitingRegistration)throw new Error('名前を登録する場面ではありません。');
+  return this.story.registerVisitorName(value);
  }
  homeCommands(){
   const commands=this.session.commandAvailability(this.house.getConsecutiveRelaxActions(),{isRelaxing:this.isRelaxing()});

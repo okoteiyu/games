@@ -5,20 +5,21 @@ import {GameSession,applyStoryBattleRewards} from './game-session.js';
 import {isStoryEpisodeAvailable,startStoryEpisode,checkpointStoryScene,completeStoryEpisode,hasStoryBattleReward,getStoryArcChapter} from './story-progress.js';
 import {STAFF_SILHOUETTE_URL} from './scene-conversation.js';
 import {currentTimeOfDay} from './world-time.js';
+import {normalizeVisitorName} from './visitor-profile.js';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
-const stageNames={'headquarters':'ヒーロー会 本拠点',road:'引っ越しの道中',house:'おこていゆハウス','computer-room':'コンピュータ室',lounge:'休憩室','player-room':'あなたの部屋','training-hall':'訓練所'};
+const stageNames={'headquarters':'ヒーロー会 本拠点',road:'引っ越しの道中',house:'おこていゆハウス',outdoor:'おこていゆハウス 屋外',black:'物語','computer-room':'コンピュータ室',lounge:'休憩室','player-room':'あなたの部屋','training-hall':'訓練所'};
 
 /** Authored data, playback, and persistent progress have separate owners.
  * Story battles use the ordinary combat engine; each scene chooses a preset
  * or the current profile. Only its first victory transfers persistent rewards. */
 export class StoryDirector {
- constructor({runtime,view,game,homeElement,contextElement,onCheckpoint=()=>{},onOpenMap=()=>false}){
-  Object.assign(this,{runtime,view,onCheckpoint,onOpenMap});this.primarySession=runtime.session;
+ constructor({runtime,view,game,homeElement,contextElement,onCheckpoint=()=>{},onOpenMap=()=>false,onRequestRegistration=()=>{}}){
+  Object.assign(this,{runtime,view,onCheckpoint,onOpenMap,onRequestRegistration});this.primarySession=runtime.session;
   this.active=false;this.replay=false;this.paused=false;this.loading=false;this.error=null;this.serial=0;this.autoSuppressed=false;this.battlePending=false;
   this.stage=this.createStage();
   this.ui=new StoryUI({view,game,homeElement,contextElement,chapters:STORY_CHAPTERS,arcs:STORY_ARCS,readProgress:()=>this.progress,
-   onEpisode:(id,options)=>this.start(id,options),onNextEpisode:id=>this.start(id),onExit:()=>this.exit(),onFinish:()=>this.exit(),onPause:paused=>this.setPaused(paused),onChoice:index=>this.choose(index),onOpenMap:opener=>this.canExplore&&this.onOpenMap(opener),onError:error=>this.fail(error)});
+   onEpisode:(id,options)=>this.start(id,options),onNextEpisode:id=>this.start(id),onExit:()=>this.exit(),onFinish:()=>this.exit(),onPause:paused=>this.setPaused(paused),onChoice:index=>this.choose(index),onRegister:()=>this.awaitingRegistration&&this.onRequestRegistration(),onOpenMap:opener=>this.canExplore&&this.onOpenMap(opener),onError:error=>this.fail(error)});
   this.portrait=document.createElement('div');this.portrait.className='scene-conversation story-portrait';this.portrait.hidden=true;
   this.portrait.innerHTML='<img class="scene-conversation__portrait" alt=""><span class="scene-conversation__name"></span>';view.element.append(this.portrait);
   runtime.story=this;
@@ -33,6 +34,7 @@ export class StoryDirector {
  get objectiveRoomReached(){return Boolean(this.runtime.scene===this.objective?.roomId&&(this.objective?.kind==='inspect_object'||this.objectiveState?.mapVisited));}
  get canExplore(){return this.isExploring&&!this.paused&&!this.loading&&!this.error&&!this.objectiveTalking&&!this.inspectionReading;}
  get canCheckpoint(){return this.primarySession.state.location==='home'&&!this.primarySession.state.battle;}
+ get awaitingRegistration(){return Boolean(this.active&&!this.replay&&!this.loading&&!this.error&&this.mode==='registration'&&this.scene?.type==='registration'&&!this.primarySession.state.visitorName);}
  get contextLost(){return Boolean(this.stage.contextLost);}
  findEpisode(id){for(const chapter of STORY_CHAPTERS){const episode=chapter.episodes.find(entry=>entry.id===id);if(episode)return {chapter,episode};}return null;}
  refresh(){
@@ -40,7 +42,7 @@ export class StoryDirector {
  }
  maybeStart(){
   const r=this.runtime;
-  if(this.active||this.autoSuppressed||r.scene!=='house'||!this.primarySession.state.visitorName||!r.isHouseReady()||r.isMessageVisible()||r.pendingCutin||this.primarySession.state.pendingAngerEvent||r.isModalPaused()||document.hidden)return false;
+  if(this.active||this.autoSuppressed||r.scene!=='house'||!r.isHouseReady()||r.isMessageVisible()||r.pendingCutin||this.primarySession.state.pendingAngerEvent||r.isModalPaused()||document.hidden)return false;
   const progress=this.progress,checkpoint=progress.activeEpisode;
   if(checkpoint&&this.findEpisode(checkpoint.episodeId))return this.start(checkpoint.episodeId);
   if(getStoryArcChapter(progress,'hero',STORY_CHAPTERS)!==0)return false;
@@ -116,7 +118,7 @@ export class StoryDirector {
  }
  async start(id,{replay=false}={}){
   const r=this.runtime,found=this.findEpisode(id);
-  if(!found||r.isModalPaused()||document.hidden||this.battlePending||!this.primarySession.state.visitorName||!['house','story'].includes(r.scene)||!isStoryEpisodeAvailable(this.progress,id,STORY_CHAPTERS))return false;
+  if(!found||r.isModalPaused()||document.hidden||this.battlePending||(!this.primarySession.state.visitorName&&(id!=='ch0-01'||replay))||!['house','story'].includes(r.scene)||!isStoryEpisodeAvailable(this.progress,id,STORY_CHAPTERS))return false;
   this.closeObjectiveConversation();this.objectiveState=null;this.ensureStage();
   const wasActive=this.active,saved=this.progress.activeEpisode;
   this.replay=Boolean(replay||this.progress.completedEpisodes.includes(id));this.active=true;this.paused=false;this.error=null;this.episode=found.episode;this.chapter=found.chapter;
@@ -129,17 +131,21 @@ export class StoryDirector {
   this.index=index;this.checkpoint();this.paint();await this.present();r.sync();return true;
  }
  paint(mode=this.mode||'read',extra={}){
-  this.mode=mode;this.ui.setPlayback({active:this.active,chapterId:this.chapter?.id,episodeId:this.episode?.id,sceneIndex:this.index,sceneCount:this.episode?.scenes.length||1,mode,paused:this.paused,replay:this.replay,choices:[],prompt:'',nextEpisodeId:null,objective:this.objective,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,objectiveInspected:this.objectiveInspected,inspectionReading:this.inspectionReading,...extra});
+  this.mode=mode;this.ui.setPlayback({active:this.active,exitAllowed:Boolean(this.primarySession.state.visitorName),chapterId:this.chapter?.id,episodeId:this.episode?.id,sceneIndex:this.index,sceneCount:this.episode?.scenes.length||1,mode,paused:this.paused,replay:this.replay,choices:[],prompt:'',nextEpisodeId:null,objective:this.objective,objectiveRoomReached:this.objectiveRoomReached,objectiveTalking:this.objectiveTalking,objectiveInspected:this.objectiveInspected,inspectionReading:this.inspectionReading,...extra});
   this.refresh();
  }
  setPortrait(scene){
-  this.portrait.hidden=!scene.portrait;
-  if(scene.portrait){const img=this.portrait.querySelector('img');img.src=STAFF_SILHOUETTE_URL;img.alt=scene.speaker+'のシルエット';this.portrait.querySelector('span').textContent=scene.speaker;this.portrait.dataset.speaker=scene.speaker;}
+  const people=scene.portraits|| (scene.portrait?[scene.portrait]:[]);
+  this.portrait.hidden=!people.length;this.portrait.classList.toggle('story-portrait--pair',people.length>1);
+  if(!people.length)return;
+  const images=people.map(person=>{const img=document.createElement('img');img.className='scene-conversation__portrait';img.src=STAFF_SILHOUETTE_URL;img.alt=(person==='manager_a'?'管理人A':person==='manager_b'?'管理人B':scene.speaker)+'のシルエット';return img;});
+  const label=document.createElement('span');label.className='scene-conversation__name';label.textContent=scene.speaker;this.portrait.replaceChildren(...images,label);this.portrait.dataset.speaker=scene.speaker;
  }
  async present(){
   if(!this.active)return false;
   const scene=this.scene,r=this.runtime,serial=++this.serial;this.response=false;this.elapsed=0;this.loading=true;this.error=null;this.portrait.hidden=true;r.messageLocked=false;r.clearMessage();
   if(!scene){this.finishEpisode();return true;}
+  if(scene.type==='registration'&&(this.replay||this.primarySession.state.visitorName)){this.index++;return this.present();}
   this.checkpoint();
   if(scene.type==='battle'){
    if(!this.replay&&hasStoryBattleReward(this.progress,scene.id)){this.index++;return this.present();}
@@ -152,7 +158,7 @@ export class StoryDirector {
   if(r.scene!=='story'){r.trainingHall?.deactivate();r.deactivateRoomVisits();r.house.leaveHouse();r.scene='story';}
   this.ensureStage();
   const visual=scene.type==='choice'?{...(this.lastVisual||this.episode.scenes.slice(0,this.index).findLast(entry=>entry.type==='scene')||{stage:'house',shot:'medium',animation:'idle',expression:'neutral'})}:scene;this.lastVisual=visual;
-  this.paint(scene.type==='choice'?'choice':scene.auto?'auto':'read',scene.type==='choice'?{choices:scene.options,prompt:scene.prompt}:{});
+  this.paint(scene.type==='choice'?'choice':scene.type==='registration'?'registration':scene.auto?'auto':'read',scene.type==='choice'?{choices:scene.options,prompt:scene.prompt}:{});
   r.setLocation(stageNames[visual.stage]||'物語');
   // The stage is already mounted during same-set shot changes.
   if(!this.stage.container.isConnected){this.view.clear();this.view.surface.append(this.stage.container);}
@@ -161,10 +167,32 @@ export class StoryDirector {
    if(ready===false)throw new Error('物語の3D画面を準備できませんでした。');
    this.loading=false;
    if(scene.type==='choice'){this.paint('choice',{choices:scene.options,prompt:scene.prompt});return true;}
-   this.setPortrait(scene);r.messageLocked=this.paused||Boolean(scene.auto);r.say({speaker:scene.speaker||'ナレーション',kind:scene.portrait?'speech':'narration',category:scene.category??(scene.portrait?'conversation':'narration'),text:scene.text},{record:false});
+   if(scene.type==='registration'){r.messageLocked=true;this.paint('registration');this.onRequestRegistration();return true;}
+   this.setPortrait(scene);r.messageLocked=this.paused||Boolean(scene.auto);
+   const hasMessage=scene.message!==false&&typeof scene.text==='string'&&scene.text.length>0,conversation=Boolean(scene.portrait||scene.portraits?.length);
+   if(hasMessage)r.say({speaker:scene.speaker||'ナレーション',kind:conversation?'speech':'narration',category:scene.category??(conversation?'conversation':'narration'),text:scene.text},{record:false});
    const page=r.readMessagePage?.()||{pages:1};this.autoDuration=Math.max(Number(scene.duration)||0,Array.from(scene.text||'').length/7+1.2,page.pages*2.4);
+   if(!hasMessage&&scene.auto)this.autoDuration=Number(scene.duration)||1;
    this.paint(scene.auto?'auto':'read');return true;
   }catch(error){if(this.active&&serial===this.serial)this.fail(error);return false;}
+ }
+ /** The first durable checkpoint contains both the name and the next scene.
+  * Draft battle rewards stay in memory until this single synchronous write. */
+ registerVisitorName(value){
+  if(!this.awaitingRegistration)throw new Error('名前を登録する場面ではありません。');
+  const name=normalizeVisitorName(value);if(!name)throw new Error('名前を入力してください。');
+  const oldCheckpoint=clone(this.progress.activeEpisode),nextIndex=this.index+1,next=this.episode.scenes[nextIndex];
+  if(!next)throw new Error('登録後の物語を準備できませんでした。');
+  this.primarySession.state.visitorName=name;
+  try{
+   checkpointStoryScene(this.progress,{episodeId:this.episode.id,sceneIndex:nextIndex,sceneId:next.id},STORY_CHAPTERS);
+   if(this.onCheckpoint()!==true)throw new Error('セーブデータを保存できませんでした。ブラウザの保存設定を確認して、もう一度お試しください。');
+  }catch(error){this.primarySession.state.visitorName=null;this.progress.activeEpisode=oldCheckpoint;throw error;}
+  this.index=nextIndex;this.registrationContinuation=true;return true;
+ }
+ resumeAfterRegistration(){
+  if(!this.registrationContinuation||!this.active||!this.primarySession.state.visitorName)return false;
+  this.registrationContinuation=false;this.present();this.runtime.sync();return true;
  }
  onMessageClosed(){
   if(!this.active||this.runtime.scene!=='story'||this.loading||this.paused||this.mode!=='read'||this.scene?.auto)return false;
@@ -177,12 +205,11 @@ export class StoryDirector {
   const scene=this.scene;if(scene?.type!=='choice'||this.response)return false;
   const option=scene.options[index];if(!option)return false;
   this.response=true;this.portrait.hidden=true;this.paint('read');
-  if(scene.id.endsWith('-call'))this.stage.show({...this.lastVisual,animation:'surprise',expression:'surprise'}).catch(error=>this.fail(error));
   if(option.response)this.runtime.say({...option.response,kind:'narration',category:'narration'},{record:false});else{this.index++;this.present();}
   return true;
  }
  setPaused(paused){
-  if(!this.active||this.battlePending||this.mode==='complete')return false;
+  if(!this.active||this.battlePending||['complete','registration'].includes(this.mode))return false;
   this.paused=Boolean(paused);this.runtime.messageLocked=this.paused||Boolean(this.scene?.auto);this.paint(this.mode,this.scene?.type==='choice'&&!this.response?{choices:this.scene.options,prompt:this.scene.prompt}:{});return true;
  }
  tick(dt){
@@ -235,7 +262,7 @@ export class StoryDirector {
  }
  exportProgress(){return {session:this.primarySession.exportState({allowPending:true}),relaxStreak:this.runtime.house.getConsecutiveRelaxActions()};}
  exit(){
-  if(!this.active||this.battlePending)return false;
+  if(!this.active||this.battlePending||!this.primarySession.state.visitorName)return false;
   this.closeObjectiveConversation();this.objectiveState=null;
   this.autoSuppressed=true;this.active=false;this.serial++;this.paused=false;this.error=null;this.loading=false;this.portrait.hidden=true;
   const r=this.runtime;r.messageLocked=false;r.clearMessage();r.trainingHall?.deactivate();r.deactivateRoomVisits();r.session=this.primarySession;r.scene='house';this.ui.setPlayback({active:false});this.stage.destroy();r.setLocation('おこていゆハウス');r.house.arriveFromOutside({afterBattle:Boolean(this.hadRewardBattle)});this.hadRewardBattle=false;this.view.setHouse();this.setReturnLabel(false);this.refresh();this.onCheckpoint();r.sync();return true;
@@ -248,7 +275,7 @@ export class StoryDirector {
  fail(error){
   if(!this.active)return;
   this.loading=false;this.error=error?.message||'物語の表示を準備できませんでした。';this.portrait.hidden=true;this.runtime.messageLocked=false;this.runtime.clearMessage();
-  this.paint('choice',{prompt:'物語の表示を、もう一度',choices:[{label:'再読み込みする'},{label:'ここまで保存してホームへ'}]});
+  this.paint('choice',{prompt:'物語の表示を、もう一度',choices:[{label:'再読み込みする'},...(this.primarySession.state.visitorName?[{label:'ここまで保存してホームへ'}]:[])]});
  }
  async recoverAfterInterruption(){
   if(!this.active||this.runtime.scene!=='story')return true;
