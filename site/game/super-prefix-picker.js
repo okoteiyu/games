@@ -19,15 +19,17 @@ export function superPrefixPickerMarkup(player,{disabled=false}={}){
 /** Delegation survives live game-state refreshes and does not create a new modal. */
 export class SuperPrefixPicker {
  constructor({root,onSelect,canOpen=()=>true}){
-  this.root=root;this.onSelect=onSelect;this.canOpen=canOpen;
-  root.addEventListener('click',event=>{
+  this.root=root;this.onSelect=onSelect;this.canOpen=canOpen;this.dismissedTriggerPointer=false;this.pointerInList=false;this.dismissalSerial=0;this.destroyed=false;this.cleanups=[];
+  const listen=(target,type,callback,options)=>{target.addEventListener(type,callback,options);this.cleanups.push(()=>target.removeEventListener(type,callback,options));};
+  listen(root,'click',event=>{
+   if(!this.root.open)return;
    const trigger=event.target.closest('[data-super-configuration]');
-   if(trigger){if(!trigger.disabled){if(this.isOpen)this.close();else this.open();}return;}
+   if(trigger){if(this.dismissedTriggerPointer){this.dismissedTriggerPointer=false;return;}if(!trigger.disabled){if(this.isOpen)this.close();else this.open();}return;}
    const option=event.target.closest('[data-super-option]');if(option&&this.isOpen)this.select(option);
   });
-  root.addEventListener('keydown',event=>{
+  listen(root,'keydown',event=>{
    if(!event.target.closest('[data-super-picker]'))return;
-   const keys=['ArrowDown','ArrowUp','Home','End','Escape','Tab','Enter',' '];if(!keys.includes(event.key))return;
+   const keys=['ArrowDown','ArrowUp','Home','End','Escape','Tab','Enter',' '];if(!keys.includes(event.key))return;this.dismissedTriggerPointer=false;this.pointerInList=false;
    if(event.key==='Tab'){if(this.isOpen)this.close({focus:true});return;}
    if(event.key==='Escape'){if(this.isOpen){event.preventDefault();event.stopPropagation();this.close({focus:true});}return;}
    if(['Enter',' '].includes(event.key)){
@@ -39,9 +41,22 @@ export class SuperPrefixPicker {
    const next=event.key==='Home'?0:event.key==='End'?last:event.key==='ArrowDown'?Math.min(last,index+1):Math.max(0,index-1);
    this.focusOption(options[next]);
   });
-  root.addEventListener('cancel',event=>{if(this.isOpen){event.preventDefault();this.close({focus:true});}});
-  root.addEventListener('focusout',event=>{if(this.isOpen&&event.relatedTarget&&!this.picker?.contains(event.relatedTarget))this.close();});
-  document.addEventListener('pointerdown',event=>{if(this.isOpen&&!this.picker?.contains(event.target))this.close();},true);
+  listen(root,'cancel',event=>{if(this.isOpen){event.preventDefault();this.close({focus:true});}});
+  listen(root,'focusout',event=>{if(this.isOpen&&!this.pointerInList&&event.relatedTarget&&!this.picker?.contains(event.relatedTarget))this.close();});
+  // The trigger is outside the list too. Remember its dismissing press so
+  // the following native click cannot immediately open the same list again.
+  listen(document,'pointerdown',event=>{
+   this.dismissedTriggerPointer=false;this.pointerInList=Boolean(this.isOpen&&this.list?.contains(event.target));
+   if(this.isOpen&&!this.pointerInList){
+    this.dismissedTriggerPointer=Boolean(this.trigger?.contains(event.target));this.close();
+   }
+  },true);
+  // Touch compatibility focus changes can happen after pointerup; retain
+  // the inside-list flag through that sequence and clear it at click.
+  listen(document,'click',event=>{if(this.isOpen&&!this.list?.contains(event.target)&&!this.trigger?.contains(event.target))this.close();this.pointerInList=false;},true);
+  listen(document,'pointercancel',()=>{this.dismissedTriggerPointer=false;this.pointerInList=false;},true);
+  listen(window,'blur',()=>{this.dismissedTriggerPointer=false;this.pointerInList=false;});
+  listen(root,'close',()=>{this.close();this.dismissedTriggerPointer=false;this.pointerInList=false;});
  }
  get picker(){return this.root.querySelector('[data-super-picker]');}
  get trigger(){return this.picker?.querySelector('[data-super-configuration]');}
@@ -50,14 +65,14 @@ export class SuperPrefixPicker {
  get isOpen(){return this.trigger?.getAttribute('aria-expanded')==='true';}
  focusOption(option){option?.focus({preventScroll:true});option?.scrollIntoView({block:'nearest',inline:'nearest'});}
  open(position='selected'){
-  if(!this.root.open||!this.trigger||this.trigger.disabled||!this.canOpen())return;
+  if(this.destroyed||!this.root.open||!this.trigger||this.trigger.disabled||!this.canOpen())return;
   this.trigger.setAttribute('aria-expanded','true');this.list.hidden=false;
   this.list.scrollIntoView({block:'nearest',inline:'nearest'});
   const options=this.options;this.focusOption(position==='first'?options[0]:position==='last'?options.at(-1):options.find(o=>o.getAttribute('aria-selected')==='true')||options[0]);
  }
  close({focus=false}={}){
   if(!this.trigger)return;
-  this.trigger.setAttribute('aria-expanded','false');this.list.hidden=true;
+  if(this.isOpen)this.dismissalSerial++;this.trigger.setAttribute('aria-expanded','false');this.list.hidden=true;
   if(focus)this.trigger.focus({preventScroll:true});
  }
  select(option){
@@ -65,6 +80,7 @@ export class SuperPrefixPicker {
   const value=option.dataset.superOption;if(!this.options.includes(option))return;
   const changed=this.trigger.value!==value;this.close({focus:true});if(changed)this.onSelect(value);
  }
- snapshot(){return this.isOpen?{active:document.activeElement?.dataset.superOption}:null;}
- restore(state){if(state){this.open();this.focusOption(this.options.find(o=>o.dataset.superOption===state.active));}}
+ snapshot(){return this.isOpen?{active:document.activeElement?.dataset.superOption,serial:this.dismissalSerial}:null;}
+ restore(state){if(state&&(state.serial===undefined||state.serial===this.dismissalSerial)){this.open();this.focusOption(this.options.find(o=>o.dataset.superOption===state.active));}}
+ destroy(){this.close();this.destroyed=true;this.dismissedTriggerPointer=false;this.pointerInList=false;for(const stop of this.cleanups.splice(0))stop();}
 }

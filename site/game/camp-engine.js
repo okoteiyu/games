@@ -13,9 +13,12 @@ export class CampExpedition{
   if(!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が正しくありません。');
   this.startId=startId;this.depths=this.distances(startId);this.destination=destinations[destination];if(this.destination.nodeId&&!this.nodeIndex.has(this.destination.nodeId))throw new RangeError('目的地が見つかりません。');
   this.rng=rng;this.onEvent=onEvent;this.secondsPerActivityHour=secondsPerActivityHour;this.goalDistances=this.destination.nodeId?this.distances(this.destination.nodeId):null;
-  this.visited=new Set([startId,...discovered.filter(id=>this.nodeIndex.has(id))]);this.route=[startId];this.logs=[];this.rainForNextCrossing=false;
+  this.visited=new Set([startId,...discovered.filter(id=>this.nodeIndex.has(id))]);
+  // Historical discovery is for the map. The current trip has a separate
+  // reached set and a simple ancestry stack so retreat can never reopen a child.
+  this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;
   const supplies={...summary.counts};supplies.food--;
-  this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,initialSupplies:{...summary.counts},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false};
+  this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,initialSupplies:{...summary.counts},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null};
  }
  random(){const value=Number(this.rng());if(!Number.isFinite(value))throw new TypeError('キャンプの乱数が正しくありません。');return Math.max(0,Math.min(1-Number.EPSILON,value));}
  pick(items){return items.length?items[Math.floor(this.random()*items.length)]:null;}
@@ -32,17 +35,29 @@ export class CampExpedition{
  snapshot(){
   const s=this.state,active=s.phase==='travel'||s.phase==='encounter';
   const remainingDays=['final','failed','finished'].includes(s.phase)?0:Math.max(0,Math.min(CAMP_MAX_DAYS-s.day+(active?1:0),s.supplies.food+(active?1:0)));
-  return clone({...s,remainingDays,current:s.nodeId,next:s.nextNodeId,visited:[...this.visited],route:this.route,injuryProbabilityMultiplier:(s.supplies.gloves ? .7 : 1)*(s.supplies.goggles ? .7 : 1)});
+  return clone({...s,remainingDays,current:s.nodeId,next:s.nextNodeId,visited:[...this.visited],tripReached:[...this.tripReached],activePath:this.activePath,route:this.route,backtracking:s.movementMode==='backtrack',injuryProbabilityMultiplier:(s.supplies.gloves ? .7 : 1)*(s.supplies.goggles ? .7 : 1)});
  }
- candidateNodes(){const current=this.nodeIndex.get(this.state.nodeId),depth=this.depths.get(current.id);return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>node&&(this.depths.get(node.id)===depth||this.depths.get(node.id)===depth+1)&&canTraverseCampNode(node,this.state.supplies));}
+ remainingActivityHours(){const s=this.state;return s.dayHoursRemaining+Math.min(s.supplies.food,CAMP_MAX_DAYS-s.day)*s.dayHours;}
+ maximumActivityHours(){const s=this.state;return s.dayHoursRemaining+Math.max(0,CAMP_MAX_DAYS-s.day)*s.dayHours;}
+ crossingHoursFor(node,{counts=this.state.supplies,rain=this.rainForNextCrossing}={}){return (CAMP_TERRAINS[node.terrain]?.hours??6)*(counts.compass ? .6 : 1)*(rain?1.5:1);}
+ hasTimeFor(node,{counts=this.state.supplies,hours=this.remainingActivityHours(),maxHours=this.maximumActivityHours(),rain=this.rainForNextCrossing}={}){
+  const cost=this.crossingHoursFor(node,{counts,rain});
+  // Even perfect survival-kit draws cannot create a sixteenth activity day.
+  return cost<=maxHours+EPS&&(cost<=hours+EPS||Boolean(counts.survival_kit&&this.state.day<CAMP_MAX_DAYS));
+ }
+ candidateNodes({ignoreTime=false}={}){
+  const current=this.nodeIndex.get(this.state.nodeId),depth=this.depths.get(current.id);
+  return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>node&&!this.tripReached.has(node.id)&&(this.depths.get(node.id)===depth||this.depths.get(node.id)===depth+1)&&canTraverseCampNode(node,this.state.supplies)&&(ignoreTime||this.hasTimeFor(node)));
+ }
  unknownWithinFour(candidate){
+  if(this.tripReached.has(candidate.id)||!canTraverseCampNode(candidate,this.state.supplies)||!this.hasTimeFor(candidate))return false;
   const initial={...this.state.supplies};for(const [id,n]of Object.entries(campTraversalConsumption(candidate)))initial[id]-=n;
-  const queue=[{node:candidate,remaining:3,counts:initial,path:new Set([this.state.nodeId,candidate.id])}];
+  const queue=[{node:candidate,remaining:3,counts:initial,hours:this.remainingActivityHours()-this.crossingHoursFor(candidate),maxHours:this.maximumActivityHours()-this.crossingHoursFor(candidate),path:new Set([this.state.nodeId,candidate.id])}];
   for(let i=0;i<queue.length;i++){
-   const {node,remaining,counts,path}=queue[i];if(!this.visited.has(node.id))return true;if(!remaining)continue;
-   for(const id of node.neighbors){const next=this.nodeIndex.get(id);if(path.has(id)||!next||(this.depths.get(next.id)!==this.depths.get(node.id)&&this.depths.get(next.id)!==this.depths.get(node.id)+1)||!canTraverseCampNode(next,counts))continue;
+   const {node,remaining,counts,hours,maxHours,path}=queue[i];if(!this.visited.has(node.id))return true;if(!remaining)continue;
+   for(const id of node.neighbors){const next=this.nodeIndex.get(id);if(this.tripReached.has(id)||path.has(id)||!next||(this.depths.get(next.id)!==this.depths.get(node.id)&&this.depths.get(next.id)!==this.depths.get(node.id)+1)||!canTraverseCampNode(next,counts)||!this.hasTimeFor(next,{counts,hours,maxHours,rain:false}))continue;
     const nextCounts={...counts};for(const [s,n]of Object.entries(campTraversalConsumption(next)))nextCounts[s]-=n;
-    queue.push({node:next,remaining:remaining-1,counts:nextCounts,path:new Set([...path,id])});
+    queue.push({node:next,remaining:remaining-1,counts:nextCounts,hours:hours-this.crossingHoursFor(next,{counts,rain:false}),maxHours:maxHours-this.crossingHoursFor(next,{counts,rain:false}),path:new Set([...path,id])});
    }
   }
   return false;
@@ -56,11 +71,17 @@ export class CampExpedition{
  planNext(){
   if(this.state.phase!=='travel'||this.state.nextNodeId)return;
   if(this.destination.nodeId===this.state.nodeId){this.finalize('destination');return;}
-  const next=this.chooseNextNode();if(!next){this.finalize('no-route');return;}
-  const hours=(CAMP_TERRAINS[next.terrain]?.hours??6)*(this.state.supplies.compass ? .6 : 1)*(this.rainForNextCrossing?1.5:1);
-  const knownHours=this.state.dayHoursRemaining+Math.min(this.state.supplies.food,CAMP_MAX_DAYS-this.state.day)*this.state.dayHours;
-  if(hours>knownHours+EPS&&!this.state.supplies.survival_kit){this.finalize('supplies');return;}
-  this.rainForNextCrossing=false;Object.assign(this.state,{nextNodeId:next.id,crossingHours:hours,crossingHoursElapsed:0,travelProgress:0,waitingForNight:hours>knownHours+EPS});
+  let next=this.chooseNextNode(),movementMode='forward';
+  if(!next){
+   // Backtracking is the sole allowed revisit. It retraces the active ancestry
+   // one edge at a time and uses the destination's ordinary conditions/costs.
+   const parentId=this.activePath.length>1?this.activePath[this.activePath.length-2]:null;
+   next=parentId?this.nodeIndex.get(parentId):null;movementMode='backtrack';
+   if(!next||!canTraverseCampNode(next,this.state.supplies)){this.finalize(!next&&this.candidateNodes({ignoreTime:true}).length?'supplies':'no-route');return;}
+   if(!this.hasTimeFor(next)){this.finalize('supplies');return;}
+  }
+  const hours=this.crossingHoursFor(next),knownHours=this.remainingActivityHours();
+  this.rainForNextCrossing=false;Object.assign(this.state,{nextNodeId:next.id,crossingHours:hours,crossingHoursElapsed:0,travelProgress:0,waitingForNight:hours>knownHours+EPS,movementMode});
  }
  medical(reason){
   const s=this.state;if(!s.supplies.medical_kit||!(s.maxHp>0)||!(s.hp>0)||s.hp>s.maxHp*.5)return false;
@@ -70,9 +91,15 @@ export class CampExpedition{
  arrive(){
   const s=this.state,node=this.nodeIndex.get(s.nextNodeId);if(!node){this.finalize('no-route');return;}
   if(!canTraverseCampNode(node,s.supplies)){this.finalize('supplies');return;}
+  const fromNodeId=s.nodeId,backtracking=s.movementMode==='backtrack';
+  if(backtracking){
+   if(this.activePath.length<2||this.activePath.at(-1)!==fromNodeId||this.activePath.at(-2)!==node.id){this.finalize('no-route');return;}
+  }else if(this.tripReached.has(node.id)){this.finalize('no-route');return;}
   const newlyDiscovered=!this.visited.has(node.id);
   for(const [id,amount]of Object.entries(campTraversalConsumption(node)))this.consume(id,amount);
-  s.nodeId=node.id;s.nextNodeId=null;s.crossingHours=0;s.crossingHoursElapsed=0;s.travelProgress=0;s.distance++;this.visited.add(node.id);this.route.push(node.id);this.emit('arrive',{terrain:node.terrain,newlyDiscovered});
+  s.nodeId=node.id;s.nextNodeId=null;s.crossingHours=0;s.crossingHoursElapsed=0;s.travelProgress=0;s.distance++;s.movementMode=null;
+  if(backtracking)this.activePath.pop();else{this.activePath.push(node.id);this.tripReached.add(node.id);}
+  this.visited.add(node.id);this.route.push(node.id);this.emit('arrive',{terrain:node.terrain,newlyDiscovered,fromNodeId,backtracking});
   // Separate draws allow a weather/wildlife event and a battle at one vertex.
   if(this.random()<.3){
    if(this.random()<.5){this.rainForNextCrossing=true;this.emit('weather',{kind:'rain',multiplier:1.5});this.medical('rain');}
@@ -117,7 +144,7 @@ export class CampExpedition{
  }
  finalize(reason){
   if(['final','failed','finished'].includes(this.state.phase))return false;
-  Object.assign(this.state,{phase:'final',finalReason:reason,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,waitingForNight:false});this.emit('final',{destination:this.state.destination,reason});return true;
+  Object.assign(this.state,{phase:'final',finalReason:reason,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,waitingForNight:false,movementMode:null});this.emit('final',{destination:this.state.destination,reason});return true;
  }
  finish(result='completed'){if(this.state.phase==='finished')return false;this.state.phase='finished';this.state.finalReason=result;this.emit('finish',{result});return true;}
  abort(reason='cancelled'){return this.finish(reason);}

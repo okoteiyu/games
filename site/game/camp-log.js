@@ -13,7 +13,7 @@ export class CampLog{
   const day=event.day||1;let text='';
   switch(event.type){
    case 'departure':text='あなたとおこていゆは、未開の地へ出発した。';break;
-   case 'arrive':text=event.newlyDiscovered?'新しい場所にたどり着いた。':'道を確かめながら、先へ進んだ。';break;
+   case 'arrive':text=event.backtracking?'来た道を戻り、別の道を探している。':event.newlyDiscovered?'新しい場所にたどり着いた。':'道を確かめながら、先へ進んだ。';break;
    case 'weather':text='雨が降ってきた。次の移動は、少しゆっくり。';break;
    case 'wildlife':text=event.consumedFood?'野生生物に、携帯食料をひとつ持っていかれた。':'野生生物がバッグをのぞきに来た。';break;
    case 'survival':if(!event.extended)return false;text='サバイバルキットを活用し、もう1日分の備えができた。';break;
