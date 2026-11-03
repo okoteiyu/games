@@ -113,7 +113,6 @@
 .camp-live__header { position:absolute;z-index:2;inset-inline:9px;inset-block-start:9px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none; }
 .camp-live__header>div { padding:7px 10px;border:1px solid #b9c49d;border-radius:9px 3px;background:#fdfef0ec;box-shadow:0 2px 5px #56653c0c; }
 .camp-live__header small { display:block;color:#93a073;font-size:7px;letter-spacing:.12em;line-height:1.5; }.camp-live__header strong { color:#65774e;font-size:12px;line-height:1.5; }
-.camp-live__atlas { pointer-events:auto;align-self:flex-start;padding:7px 9px;border:1px solid #b5c19a;border-radius:9px 3px;background:#fffff0e8;color:#78885e;font:inherit;font-size:10px;touch-action:manipulation;cursor:pointer; }
 .camp-live__supplies { position:absolute;z-index:2;inset-inline-start:9px;inset-block-start:70px;inline-size:102px;padding:8px 7px;border:1px solid #bcc7a4;border-radius:11px 4px;background:#fbfcecE8;pointer-events:none; }
 .camp-live__supplies h3 { margin:0 0 5px;color:#80916b;font-size:9px;letter-spacing:.1em;font-weight:500; }
 .camp-live-supply { display:grid;grid-template-columns:15px minmax(0,1fr) 13px;align-items:center;gap:3px;min-block-size:20px;color:#657652; }
@@ -162,7 +161,7 @@
  display:none;
 }
 .camp-live__supplies { max-block-size:calc(100% - 150px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#bdc8a4 transparent;pointer-events:auto;touch-action:pan-y; }
-.camp-live__footer { inset-inline-start:10px;inset-inline-end:90px;inset-block-end:9px;justify-content:flex-start;min-inline-size:0; }
+.camp-live__footer { inset-inline-start:10px;inset-inline-end:10px;inset-block-end:9px;justify-content:flex-start;min-inline-size:0; }
 .camp-live__footer>span { max-inline-size:100%;line-height:1.5;overflow-wrap:anywhere; }
 .camp-live[data-phase=finished] .camp-live__footer>span,
 .camp-live[data-phase=failed] .camp-live__footer>span,

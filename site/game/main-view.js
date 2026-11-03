@@ -93,7 +93,7 @@ function hideEvent() {
  const restoreFocus=overlay.contains(document.activeElement);
  eventVisible=false;overlay.hidden=true;shield.hidden=true;view.surface.inert=false;
  view.element.dataset.messageVisible='false';view.surface.removeAttribute('aria-disabled');
- replayButton.hidden=false;replayButton.disabled=!lastMessage||Boolean(gameRuntime?.messageLocked);houseUI?.updateControls();
+ replayButton.hidden=Boolean(gameRuntime?.campController?.active);replayButton.disabled=!lastMessage||Boolean(gameRuntime?.messageLocked);houseUI?.updateControls();
  if(restoreFocus&&!isModalBlocked())replayButton.focus({preventScroll:true});
  gameRuntime?.onMessageClosed();
  facilityStaffUI?.refresh();
@@ -263,7 +263,7 @@ window.mainViewPreview.story=storyDirector;window.mainViewPreview.storyUI=storyD
 let previousStaffState='';
 gameRuntime.onProgressChange=()=>{
  message.next.disabled=Boolean(gameRuntime.messageLocked);
- storyDirector?.refresh();if(storyDirector?.active)replayButton.hidden=true;
+ storyDirector?.refresh();if(storyDirector?.active||gameRuntime.campController?.active)replayButton.hidden=true;
  if(sceneConversation.active&&sceneConversation.current.sceneId!==gameRuntime.scene)sceneConversation.close({notify:false,restoreFocus:false});
  facilityStaffUI.refresh();const staffState=JSON.stringify(readStaff());
  if(staffState!==previousStaffState){previousStaffState=staffState;areaMap.refreshStaff();buildingMap.refreshStaff();}
