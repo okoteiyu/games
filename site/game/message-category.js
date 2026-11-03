@@ -12,6 +12,18 @@ export function normalizeMessageCategory(category,{kind='narration'}={}){
  return category;
 }
 export function getMessageCategory(category){return MESSAGE_CATEGORIES[normalizeMessageCategory(category)];}
+/** Display punctuation belongs to the frame, not to the authored story/save. */
+export function formatMessageText(text,category){
+ if(category!=='innerThought'||!text)return text;
+ if(text.startsWith('（')&&text.endsWith('）')){
+  let depth=0;
+  for(let i=0;i<text.length;i++){
+   if(text[i]==='（')depth++;else if(text[i]==='）')depth--;
+   if(depth===0){if(i===text.length-1)return text;break;}
+  }
+ }
+ return '（'+text+'）';
+}
 export function categorizeMessage(payload={}){
  const kind=payload.kind??'narration',category=normalizeMessageCategory(payload.category,{kind}),meta=MESSAGE_CATEGORIES[category];
  const speaker=category==='innerThought'?'':category==='experience'||category==='item'?meta.label:payload.speaker??(kind==='speech'?'おこていゆ':'ナレーション');

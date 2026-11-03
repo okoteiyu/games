@@ -139,9 +139,54 @@
 .message-frame[data-category] .message-frame__speaker::before{background:var(--message-category-accent);}
 .message-frame[data-category] .message-frame__continue{color:var(--message-category-accent);}
 .view-message .message-frame[data-category]::before{border-color:var(--message-category-line);}
-.message-frame[data-category="innerThought"]{background:#fff;box-shadow:0 5px 0 #e7ece9,0 11px 26px rgb(64 75 69 / 12%);}
+/* A thought keeps the shared text box and hit targets; only its white
+   silhouette and three small thought bubbles replace the ordinary frame. */
+.message-frame[data-category="innerThought"],
+.view-message .message-frame[data-category="innerThought"]{
+  background:transparent;
+  border-color:transparent;
+  box-shadow:none;
+}
+.message-frame[data-category="innerThought"]::before,
+.view-message .message-frame[data-category="innerThought"]::before{
+  inset:0;
+  border:0;
+  border-radius:0;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201000%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20stroke%3D%22%23cbd8d1%22%20stroke-width%3D%223%22%20stroke-linejoin%3D%22round%22%20d%3D%22M26%2028C36%2012%2070%209%2093%2015C108%202%20142%203%20161%2017C184%204%20219%207%20236%2021C260%203%20304%203%20326%2019C350%204%20389%206%20410%2021C435%205%20474%205%20493%2020C519%203%20557%207%20576%2021C601%204%20640%206%20658%2021C686%204%20723%205%20744%2019C770%205%20807%208%20827%2023C850%2010%20883%2015%20899%2034C927%2019%20962%2028%20968%2046C990%2043%20997%2064%20988%2080C998%2094%20997%20110%20986%20121C998%20138%20996%20158%20980%20164C992%20184%20972%20196%20951%20187C937%20198%20922%20194%20913%20181C894%20197%20864%20197%20842%20183C817%20198%20781%20195%20763%20181C737%20197%20698%20195%20678%20180C650%20196%20613%20196%20592%20181C566%20198%20528%20197%20508%20181C482%20197%20442%20198%20420%20181C394%20198%20355%20196%20334%20181C310%20197%20272%20197%20249%20181C225%20196%20188%20197%20166%20181C143%20194%20112%20191%2096%20176C72%20195%2042%20190%2037%20173C11%20181%201%20159%2013%20144C2%20129%202%20111%2014%20101C1%2086%201%2064%2017%2055C2%2035%2012%2022%2026%2028Z%22%2F%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat;
+  filter:drop-shadow(0 3px 0 #e7eeea) drop-shadow(0 5px 8px #40504616);
+}
 .message-frame[data-category="innerThought"] .message-frame__speaker{display:none;}
-.message-frame[data-category="innerThought"] .message-frame__sprig i{background:#dce4df;}
-.message-frame[data-category="innerThought"] .message-frame__sprig i:nth-child(2){background:#e8edea;}
+.message-frame[data-category="innerThought"] .message-frame__sprig,
+.view-message .message-frame[data-category="innerThought"] .message-frame__sprig{
+  display:block;
+  inset-inline-start:86px;
+  inset-inline-end:auto;
+  inset-block-start:-32px;
+  inline-size:40px;
+  block-size:38px;
+  z-index:1;
+}
+.message-frame[data-category="innerThought"] .message-frame__sprig i{
+  position:absolute;
+  inset-inline-start:0;
+  inset-block-start:0;
+  box-sizing:border-box;
+  inline-size:6px;
+  block-size:6px;
+  border:1px solid #cbd8d1;
+  border-radius:50%;
+  background:#fff;
+  transform:none;
+  box-shadow:0 1px 1px #6d7e7120;
+}
+.message-frame[data-category="innerThought"] .message-frame__sprig i:nth-child(2){inset-inline-start:11px;inset-block-start:9px;inline-size:10px;block-size:10px;background:#fff;}
+.message-frame[data-category="innerThought"] .message-frame__sprig i:nth-child(3){inset-inline-start:23px;inset-block-start:21px;inline-size:14px;block-size:14px;}
+@media(max-height:540px){
+  .view-message .message-frame[data-category="innerThought"] .message-frame__sprig{inset-inline-start:70px;inset-block-start:-29px;scale:.9;transform-origin:bottom left;}
+}
+@media(max-height:340px){
+  .view-message .message-frame[data-category="innerThought"] .message-frame__sprig{display:none;}
+}
+
 @media(max-height:540px){.message-frame[data-category] .message-frame__speaker{max-inline-size:calc(100% - 54px);}}
 @media(max-height:340px){.message-frame[data-category] .message-frame__speaker{max-inline-size:calc(100% - 38px);}}

@@ -1,4 +1,4 @@
-import {categorizeMessage,getMessageCategory} from './message-category.js';
+import {categorizeMessage,getMessageCategory,formatMessageText} from './message-category.js';
 /* Two-line pagination uses actual font measurements. It never hides story text. */
 export class OkoteiyuMessage {
   constructor(element, { onAdvance = () => {} } = {}) {
@@ -29,7 +29,7 @@ export class OkoteiyuMessage {
     this.element.style.setProperty('--message-ink',meta.ink);
     this.element.style.setProperty('--message-category-line',meta.line);
     this.element.style.setProperty('--message-category-accent',meta.accent??meta.border);
-    this.text = text; this.page = 0; this.paginate();
+    this.text = formatMessageText(text,category); this.page = 0; this.paginate();
   }
   paginate() {
     const style = getComputedStyle(this.body);
