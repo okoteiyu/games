@@ -58,10 +58,34 @@
 .camp-bag-tools { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
 .camp-button { display:flex;align-items:center;justify-content:center;gap:8px;min-inline-size:0;min-block-size:38px;padding:8px 13px;border:1px solid #aab684;border-radius:10px 4px;background:linear-gradient(120deg,#dce6c1,#c5d49e);color:#526540;font:inherit;font-size:12px;font-weight:600;line-height:1.5;cursor:pointer;touch-action:manipulation; }
 .camp-button--quiet { border-color:#c9cdb2;background:#fbf9ec;color:#8a876d;font-weight:400; }
-.camp-destination { display:grid;grid-template-columns:auto 1fr;align-items:center;gap:8px 15px;margin-top:18px;padding-top:15px;border-top:1px dashed #c4cbae; }
-.camp-destination label { font-size:12px;font-weight:600; }
-.camp-destination select { inline-size:100%;min-block-size:40px;min-inline-size:0;padding:8px 12px;border:1px solid #b9c49c;border-radius:9px 4px;background:#fffdf4;color:#61734b;font-size:13px; }
-.camp-destination p { grid-column:1/-1;margin:0;color:#90917b;font-size:10px;line-height:1.7; }
+.camp-destination { min-inline-size:0;display:grid;gap:8px;margin-top:18px;padding-top:15px;border-top:1px dashed #c4cbae; }
+.camp-destination p { margin:0;color:#90917b;font-size:10px;line-height:1.7; }
+/* The real destination list stays in the modal scroll flow, clear of its footer. */
+.camp-destination-picker { min-inline-size:0; }
+.camp-destination-picker__label { display:block;margin-bottom:7px;color:#6e7755;font-size:12px;font-weight:600;letter-spacing:.05em; }
+.camp-destination-picker__trigger { display:flex;align-items:center;gap:10px;inline-size:100%;min-inline-size:0;min-block-size:66px;padding:10px 12px;border:1px solid #b8ba94;border-radius:12px 5px;background:linear-gradient(125deg,#fffdf5,#f0eedb);box-shadow:inset 0 1px #fff,0 2px 6px #6975430c;color:#586748;font:inherit;text-align:start;cursor:pointer;touch-action:manipulation; }
+.camp-destination-picker__trigger:hover,.camp-destination-picker__trigger[aria-expanded=true] { border-color:#a3ae7c;background:linear-gradient(125deg,#fcfff0,#e9efda); }
+.camp-destination-picker__trigger[aria-expanded=true] { box-shadow:0 0 0 2px #a3b47822; }
+.camp-destination-picker__symbol,.camp-destination-picker__option-symbol { display:grid;place-items:center;flex:none;inline-size:36px;block-size:39px;border:1px solid #c0c6a4;border-radius:10px 4px;background:linear-gradient(145deg,#e6eccf,#f9f1dc);color:#8b956b;box-shadow:inset 0 1px #fff9; }
+.camp-destination-picker svg { display:block;inline-size:25px;block-size:25px;fill:#fcfae8;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round; }
+.camp-destination-picker__copy { display:grid;gap:3px;min-inline-size:0;flex:1;overflow-wrap:anywhere; }
+.camp-destination-picker__copy strong { font-size:14px;font-weight:600;line-height:1.4; }
+.camp-destination-picker__copy small { color:#8b8d72;font-size:11px;line-height:1.5; }
+.camp-destination-picker__chevron { flex:none;inline-size:8px;block-size:8px;margin-inline:5px 3px;border-inline-end:1.5px solid #a08e68;border-block-end:1.5px solid #a08e68;transform:rotate(45deg);transition:transform .16s; }
+.camp-destination-picker__trigger[aria-expanded=true] .camp-destination-picker__chevron { transform:translateY(3px) rotate(225deg); }
+.camp-destination-picker__list { display:grid;gap:4px;max-block-size:min(230px,calc(100dvh - 220px));margin-top:7px;padding:6px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b6c29a transparent;border:1px solid #beb798;border-radius:11px 4px;background:#fffdf4;box-shadow:0 5px 13px #6d59391a; }
+.camp-destination-picker__list[hidden] { display:none; }
+.camp-destination-picker__option { display:flex;align-items:center;gap:9px;min-inline-size:0;min-block-size:65px;padding:8px;border:1px solid transparent;border-radius:8px 3px;color:#5d694d;cursor:pointer;touch-action:manipulation; }
+.camp-destination-picker__option[aria-selected=true] { border-color:#b2c08f;background:#eef3de; }
+.camp-destination-picker__option:hover,.camp-destination-picker__option:focus-visible { outline:none;border-color:#bca27a;background:#f6efdf; }
+.camp-destination-picker__option:focus-visible { box-shadow:inset 0 0 0 1px #a28b63; }
+.camp-destination-picker__option-symbol { inline-size:30px;block-size:33px;border-color:#d0cfb5;background:#f8f6e8; }
+.camp-destination-picker__option-symbol svg { inline-size:22px;block-size:22px; }
+.camp-destination-picker__check { display:grid;place-items:center;flex:none;inline-size:19px;block-size:19px;border:1px solid #c5c7ab;border-radius:50%;color:transparent;font:12px/1 sans-serif; }
+.camp-destination-picker__option[aria-selected=true] .camp-destination-picker__check { border-color:#8fa16a;background:#8fa16a;color:#fffef2; }
+.camp-destination-picker__trigger:focus-visible { outline:2px solid #91a06f;outline-offset:2px; }
+@media(max-width:360px) { .camp-destination-picker__trigger { gap:8px;padding:9px; }.camp-destination-picker__copy strong { font-size:13px; }.camp-destination-picker__copy small { font-size:10.5px; }.camp-destination-picker__option { padding:7px 6px;gap:7px; }.camp-destination-picker__list { padding:5px; } }
+@media(prefers-reduced-motion:reduce) { .camp-destination-picker__chevron { transition:none; } }
 .camp-dialog__footer { flex:none;padding:11px 18px 14px;border-top:1px solid #bcc69f;background:linear-gradient(#f6f8e9,#edf1dc);box-shadow:0 -3px 12px #6f7f4d09; }
 .camp-departure-info { display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px;font-size:10px;color:#899071; }
 .camp-departure-info>span { display:flex;align-items:baseline;gap:5px; }
