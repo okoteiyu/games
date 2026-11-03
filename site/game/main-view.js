@@ -65,11 +65,12 @@ const samples=[
 const overlay=document.querySelector('#messageOverlay');
 const shield=document.querySelector('#viewInputShield');
 const replayButton=document.querySelector('#messageReplay');
-let eventVisible=false,lastMessage=null;
+let eventVisible=false,lastMessage=null,activeOfflineRewardId=null;
 const message=new OkoteiyuMessage(document.querySelector('#message'),{onAdvance:()=>{if(!gameRuntime?.messageLocked){if(sceneConversation?.active)sceneConversation.advance();else hideEvent();}}});
 function presentMessage(payload) {
  if(sceneConversation?.active&&!sceneConversation.presenting)sceneConversation.close({notify:false,restoreFocus:false});
  const displayed=categorizeMessage(payload);
+ activeOfflineRewardId=typeof payload.offlineRewardId==='string'?payload.offlineRewardId:null;
  lastMessage={speaker:displayed.speaker,text:displayed.text??'',kind:displayed.kind,category:displayed.category};
  replayButton.hidden=true;replayButton.disabled=false;
  eventVisible=true;overlay.hidden=false;shield.hidden=false;view.surface.inert=true;
@@ -87,6 +88,7 @@ function replayMessage(){
 }
 replayButton.addEventListener('click',replayMessage);
 function hideEvent() {
+ const rewardId=activeOfflineRewardId;activeOfflineRewardId=null;if(rewardId&&!gameRuntime?.clearingMessage)browserSave?.acknowledgeReward(rewardId);
  sceneConversation?.close({notify:false,restoreFocus:false});
  const restoreFocus=overlay.contains(document.activeElement);
  eventVisible=false;overlay.hidden=true;shield.hidden=true;view.surface.inert=false;
@@ -152,7 +154,14 @@ const optionsUI=new OptionsDialog({
  onEquipItem:(kind,id)=>gameRuntime?.equipItem(kind,id)??false,
  onSelectMap:(id,tier='easy')=>{if(id==='camp')return gameRuntime?.campController.open()??false;if(id==='training-hall')return gameRuntime?.visitTrainingHall()??false;if(id==='training')return gameRuntime?.requestTraining(tier)??false;if(id==='patrol')return gameRuntime?.requestPatrol()??false;if(id==='house'){if(!gameRuntime?.cancelPatrol())return false;view.setHouse();setLocation('おこていゆハウス');hideEvent();return true;}return false;},
  readState:({browser=false}={})=>({rank:document.querySelector('#rankValue').textContent,location:browser&&(isBuildingVisitScene(gameRuntime?.scene)||storyDirector?.active||gameRuntime?.campController.canCheckpoint)?'おこていゆハウス':document.querySelector('#locationName').textContent,gauges:{experience:Number(document.querySelector('#experienceGauge').getAttribute('aria-valuenow'))/100},rankPoints:rankHint.getPoints(),...(gameRuntime?{prototype:gameRuntime.exportProgress({browser})}: {})}),
- applyState:state=>{validatePatrolTransfer(state);gameRuntime?.importProgress(state.prototype);if(needsVisitorName()){const primary=storyDirector?.primarySession??gameRuntime.session,completedBattles=[...primary.state.story.completedBattles];primary.state.story={...createStoryProgress(),completedBattles};if(browserSave?.beginDraft()===false)throw new Error('新しい物語を始めるためのブラウザ保存を消去できませんでした。');}if(state.rankPoints!=null)setRankPoints(state.rankPoints);else setRank(state.rank);setLocation('おこていゆハウス');view.setHouse();gameRuntime?.sync();if(!needsVisitorName()&&browserSave?.initialized)browserSave.resetFailure();if(needsVisitorName()&&optionsUI.dialog.open)optionsUI.dialog.close();}
+ applyState:state=>{
+  const apply=()=>{validatePatrolTransfer(state);gameRuntime?.importProgress(state.prototype);if(needsVisitorName()){const primary=storyDirector?.primarySession??gameRuntime.session,completedBattles=[...primary.state.story.completedBattles];primary.state.story={...createStoryProgress(),completedBattles};if(browserSave?.beginDraft()===false)throw new Error('新しい物語を始めるためのブラウザ保存を消去できませんでした。');}if(state.rankPoints!=null)setRankPoints(state.rankPoints);else setRank(state.rank);setLocation('おこていゆハウス');view.setHouse();gameRuntime?.sync();};
+  if(browserSave)browserSave.withWriteLock(apply);else apply();
+  // A confirmed file import starts a new current checkpoint. Merely decoding
+  // or previewing a file neither claims rewards nor replaces its browser slot.
+  if(!needsVisitorName()&&browserSave?.initialized&&!browserSave.restoring)browserSave.resetFailure({discardRewards:true});
+  if(needsVisitorName()&&optionsUI.dialog.open)optionsUI.dialog.close();
+ }
 
 });
 function setLocation(label){setPaintedText(document.querySelector('#locationName'),label,{background:'bronze',align:'center',lines:2});document.querySelector('#homeChoices').hidden=label!=='おこていゆハウス'||Boolean(storyDirector?.active);}
@@ -241,7 +250,14 @@ gameRuntime.onBattleEvent=event=>areaMap.handleBattleEvent(event);
 gameRuntime.onCampStarted=entries=>areaMap.showCamp(entries);
 gameRuntime.onCampEvent=event=>areaMap.handleCampEvent(event);
 gameRuntime.onCampCheckpoint=()=>browserSave?.saveNow();
-browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>!needsVisitorName()&&(Boolean(storyDirector?.active&&storyDirector.canCheckpoint)||((gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene)||gameRuntime.campController.canCheckpoint)&&['home','patrol','training','camp'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready))),onError:(text,error)=>{toast(text);if(browserSave?.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
+browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>!needsVisitorName()&&(Boolean(storyDirector?.active&&storyDirector.canCheckpoint)||((gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene)||gameRuntime.campController.canCheckpoint)&&['home','patrol','training','camp'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready))),
+ readVisitorName:()=>(storyDirector?.primarySession??gameRuntime?.session)?.state.visitorName,readCalm:()=>houseUI.getConsecutiveRelaxActions(),applyCalmPoints:amount=>houseUI.addCalmPoints(amount),canApplyCalm:()=>!needsVisitorName()&&houseUI.canAddCalmPoints(),onOfflineReward:()=>gameRuntime.sync(),
+ onError:(text,error)=>{toast(text);if(browserSave?.restoring)startupRestoreError=text+'\n'+(error?.message||'');}});
+function flushOfflineReward(){
+ if(!browserSave||browserSave.busy||browserSave.failed||document.hidden||gameRuntime?.clearingMessage||needsVisitorName()||storyDirector?.active||gameRuntime.scene!=='house'||!houseUI.controller?.ready||eventVisible||isModalBlocked()||gameRuntime.messageLocked||gameRuntime.pendingCutin||gameRuntime.session.state.pendingAngerEvent||gameRuntime.messages.length)return false;
+ const reward=browserSave.pendingRewards[0];if(!reward)return false;
+ gameRuntime.say({type:'daily',kind:'narration',category:'narration',speaker:'ナレーション',offlineRewardId:reward.id,text:'留守のあいだ、おこていゆはのんびり休んでいたようだ。穏やかポイントが増えた。'},{record:false});return true;
+}
 storyDirector=new StoryDirector({runtime:gameRuntime,view,game:document.querySelector('#game'),homeElement:document.querySelector('#homeChoices'),contextElement:areaMap.element,onOpenMap:opener=>buildingMap.open(opener),onCheckpoint:()=>browserSave.saveNow(),onRequestRegistration:()=>ensureVisitorName()});
 window.mainViewPreview.story=storyDirector;window.mainViewPreview.storyUI=storyDirector.ui;
 let previousStaffState='';
@@ -251,10 +267,13 @@ gameRuntime.onProgressChange=()=>{
  if(sceneConversation.active&&sceneConversation.current.sceneId!==gameRuntime.scene)sceneConversation.close({notify:false,restoreFocus:false});
  facilityStaffUI.refresh();const staffState=JSON.stringify(readStaff());
  if(staffState!==previousStaffState){previousStaffState=staffState;areaMap.refreshStaff();buildingMap.refreshStaff();}
- gameRuntime.campController.refresh();browserSave.saveNow();optionsUI.refreshGameView();
+ gameRuntime.campController.refresh();browserSave.processPendingResume();flushOfflineReward();browserSave.saveNow();optionsUI.refreshGameView();
 };
 facilityStaffUI.refresh();areaMap.refreshStaff();
-window.addEventListener('pagehide',()=>browserSave.saveNow());document.addEventListener('visibilitychange',()=>{if(document.hidden)browserSave.saveNow();});
+const suspendBrowser=()=>browserSave.suspend(),resumeBrowser=()=>{if(!document.hidden)browserSave.resume();};
+window.addEventListener('blur',suspendBrowser);window.addEventListener('pagehide',suspendBrowser);
+window.addEventListener('focus',resumeBrowser);window.addEventListener('pageshow',resumeBrowser);
+document.addEventListener('visibilitychange',()=>document.hidden?suspendBrowser():resumeBrowser());
 window.mainViewPreview.browserSave=browserSave;
 
 rankHint.readGame=()=>gameRuntime.snapshot();

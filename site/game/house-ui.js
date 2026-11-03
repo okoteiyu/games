@@ -146,7 +146,7 @@ export class HouseUI {
   const loading=this.ensureLoaded(),generation=this.loadGeneration;
   const ready=await loading;
   if(generation!==this.loadGeneration)return false;
-  if(ready&&Number.isSafeInteger(calm)){this.restoreConsecutiveRelaxActions(calm);this.retryCalmPoints=null;}
+  if(ready&&Number.isSafeInteger(this.retryCalmPoints??calm)){this.restoreConsecutiveRelaxActions(this.retryCalmPoints??calm);this.retryCalmPoints=null;}
   return ready;
  }
  async applyHouseUpdate(update){if(!this.controller?.ready)throw new Error('部屋の準備ができていません。');const result=await this.controller.applyHouseUpdate(update);this.updateControls();return result;}
@@ -154,6 +154,13 @@ export class HouseUI {
  arriveFromOutside(options={}){return this.controller?.arriveFromOutside(options)||false;}
  leaveHouse(){return this.controller?.leaveHouse()||false;}
  spendCalmPoints(count){return this.controller?.spendCalmPoints(count)??false;}
+ canAddCalmPoints(){return Number.isSafeInteger(this.retryCalmPoints)||Boolean(this.controller?.life&&!this.controller.life.destroyed);}
+ addCalmPoints(count){
+  if(!Number.isSafeInteger(count)||count<0)throw new RangeError('穏やかポイントの加算数が正しくありません。');
+  if(Number.isSafeInteger(this.retryCalmPoints)){const gained=Math.min(99-this.retryCalmPoints,count);this.retryCalmPoints+=gained;this.updateRelaxCounter(this.retryCalmPoints);return gained;}
+  return this.controller?.addCalmPoints(count)??false;
+ }
+
  getConsecutiveRelaxActions(){return this.retryCalmPoints??this.controller?.getConsecutiveRelaxActions?.()??0;}
  resetConsecutiveRelaxActions(reason='explicit'){return this.controller?.resetConsecutiveRelaxActions?.(reason)??false;}
  onAngerPointGain(){return this.controller?.onAngerPointGain?.()??false;}

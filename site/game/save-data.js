@@ -2,6 +2,7 @@
 import { normalizeRankPoints, getRankProgress } from './rank-progress.js';
 import { validateSessionState } from './game-session.js';
 import { validateVisitorProgress } from './visitor-profile.js';
+import {normalizeSavedAt} from './offline-calm.js';
 const FORMAT = 'okoteiyu-ui-preview';
 const VERSION = 1;
 const ITERATIONS = 210000;
@@ -27,9 +28,11 @@ function invalidState() { return new Error('セーブデータの表示内容が
 export function validatePreviewState(state) {
   const hasRankPoints = record(state) && own(state, 'rankPoints');
   const hasPrototype = record(state) && own(state, 'prototype');
+  const hasSavedAt = record(state) && own(state, 'lastSavedAt');
   const fields = ['rank', 'location', 'gauges'];
   if (hasRankPoints) fields.push('rankPoints');
   if (hasPrototype) fields.push('prototype');
+  if (hasSavedAt) fields.push('lastSavedAt');
   if (!exactKeys(state, fields) ||
       typeof state.rank !== 'string' || !/^[A-Z][A-Z0-9]{0,7}$/.test(state.rank) ||
       typeof state.location !== 'string' || !state.location.trim() ||
@@ -39,6 +42,8 @@ export function validatePreviewState(state) {
   if (typeof experience !== 'number' || !Number.isFinite(experience) || experience < 0 || experience > 1 ||
       anger!==undefined&&(typeof anger !== 'number' || !Number.isFinite(anger) || anger < 0 || anger > 1)) throw invalidState();
   const safeState = { rank: state.rank, location: state.location, gauges: { experience } };
+  // A missing or unusable clock must not discard otherwise valid legacy progress.
+  if(hasSavedAt&&normalizeSavedAt(state.lastSavedAt)!==null)safeState.lastSavedAt=state.lastSavedAt;
   // A v1 save without this optional field keeps its original three-key shape.
   if (hasRankPoints) {
     if (state.rankPoints === null) safeState.rankPoints = null;
@@ -114,8 +119,9 @@ async function deriveKey(password, salt, usage) {
 }
 
 /** Encode the current preview state as a password-encrypted JSON text file. */
-export async function encodeSave(state, password) {
+export async function encodeSave(state, password, {now=()=>Date.now()}={}) {
   const safeState = validatePreviewState(state);
+  const savedAt=normalizeSavedAt(now());if(safeState.prototype?.session.visitorName&&savedAt!==null)safeState.lastSavedAt=savedAt;
   requirePassword(password);
   const crypto = requireCrypto();
   const salt = crypto.getRandomValues(new Uint8Array(16));

@@ -339,6 +339,7 @@ export class HouseView {
  arriveFromOutside(options={}){if(!this.life)return false;this.sceneMode='room';this.mode='follow';this.cameraTransition=null;this.roomCameraState=null;this.inspection=null;this.life.arriveFromOutside(options);this.updateTarget();this.followTarget.copy(this.targetCenter);this.lastCollisionTarget.set(Infinity,Infinity,Infinity);this.applyCamera(0,true);this.render();return true;}
  leaveHouse(){if(!this.life)return false;this.life.leaveHouse();return true;}
  spendCalmPoints(count){return this.life?.spendCalmPoints(count)??false;}
+ addCalmPoints(count){return this.life?.addCalmPoints(count)??false;}
  getConsecutiveRelaxActions(){return this.life?.consecutiveRelaxActions??0;}
  resetConsecutiveRelaxActions(reason='explicit'){if(!this.life)return false;return this.life.resetConsecutiveRelaxActions(reason);}
  onAngerPointGain(){if(!this.life)return false;return this.life.onAngerPointGain();}
