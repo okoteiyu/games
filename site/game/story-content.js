@@ -4,7 +4,7 @@ const manager=(id,stage,who,text,options={})=>scene(id,stage,text,{speaker:who==
 
 export const STORY_CHAPTERS=Object.freeze([
  {
-  id:'chapter-0',number:0,title:'小さな研究者と、あなた',
+  id:'chapter-0',arcId:'hero',number:0,title:'小さな研究者と、あなた',
   description:'はじめての出発。はじめてのかけごえ。そして、ふたり分の帰る場所。',
   episodes:[
    {
@@ -83,7 +83,7 @@ export const STORY_CHAPTERS=Object.freeze([
   ]
  },
  {
-  id:'chapter-1',number:1,nextChapter:1,title:'知ること、強くなること',
+  id:'chapter-1',arcId:'hero',number:1,nextChapter:1,title:'知ること、強くなること',
   description:'研究も、訓練も、ひとりきりではない。いつもの場所から、新しい発見へ。',
   episodes:[
    {
@@ -123,4 +123,10 @@ export const STORY_CHAPTERS=Object.freeze([
    }
   ]
  }
+]);
+
+/** Only published arcs belong to the story catalogue. Coming Soon is a UI
+ * placeholder rather than an invented arc, chapter or unlock requirement. */
+export const STORY_ARCS=Object.freeze([
+ Object.freeze({id:'hero',title:'ヒーロー編',description:'小さな研究者と、あなた。出会いを重ね、ヒーローとして歩み始める物語。',chapterIds:Object.freeze(STORY_CHAPTERS.filter(chapter=>chapter.arcId==='hero').map(chapter=>chapter.id))})
 ]);

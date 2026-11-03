@@ -1,6 +1,6 @@
 import {isModalBlocked,tryOpenModal,releaseModal} from './modal-layer.js';
 import {setPaintedText,releasePaintedLabels} from './painted-label.js';
-import {isStoryEpisodeAvailable} from './story-progress.js';
+import {isStoryEpisodeAvailable,getStoryArcChapter,isStoryChapterAvailable} from './story-progress.js';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const paths={
@@ -18,14 +18,16 @@ const paths={
 };
 const icon=name=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+paths[name]+'</svg>';
 const episodeId=progress=>progress?.activeEpisode?.episodeId||null;
+const chapterArc=chapter=>chapter.arcId||'hero';
+const deriveArcs=chapters=>[...new Set(chapters.map(chapterArc))].map(id=>({id,title:id==='hero'?'ヒーロー編':id,chapterIds:chapters.filter(chapter=>chapterArc(chapter)===id).map(chapter=>chapter.id)}));
 const allEpisodes=chapters=>chapters.flatMap(chapter=>(chapter.episodes||[]).map((episode,index)=>({chapter,episode,index})));
 
 /** The library owns only presentation. The director validates and applies progress. */
 export class StoryUI {
- constructor({view,game,homeElement,contextElement=null,chapters=[],readProgress=()=>({}),onEpisode=()=>{},onExit=()=>{},onPause=()=>{},onChoice=()=>{},onOpenMap=()=>{},onNextEpisode=null,onFinish=null,onError=()=>{}}={}){
+ constructor({view,game,homeElement,contextElement=null,chapters=[],arcs=null,readProgress=()=>({}),onEpisode=()=>{},onExit=()=>{},onPause=()=>{},onChoice=()=>{},onOpenMap=()=>{},onNextEpisode=null,onFinish=null,onError=()=>{}}={}){
   if(!view?.element||!game||!homeElement)throw new TypeError('物語の表示先がありません。');
   Object.assign(this,{view,game,homeElement,contextElement,chapters,readProgress,onEpisode,onExit,onPause,onChoice,onOpenMap,onNextEpisode,onFinish,onError});
-  this.playback={active:false};this.available=false;this.selectedChapterId=chapters[0]?.id||null;this.closeAction=null;this.lastPanelKey='';this.libraryKey=null;
+  this.arcs=arcs||deriveArcs(chapters);this.selectedArcId=null;this.playback={active:false};this.available=false;this.selectedChapterId=chapters[0]?.id||null;this.closeAction=null;this.lastPanelKey='';this.libraryKey=null;
   this.trigger=document.createElement('button');this.trigger.type='button';this.trigger.id='storyTrigger';this.trigger.className='story-trigger';this.trigger.hidden=true;
   this.trigger.setAttribute('aria-haspopup','dialog');this.trigger.setAttribute('aria-controls','storyDialog');this.trigger.setAttribute('aria-expanded','false');this.trigger.innerHTML=icon('book')+'<span>物語</span><i class="story-trigger__bookmark" aria-hidden="true"></i>';(view.element.querySelector('.house-toolbar')||view.element).append(this.trigger);
   this.toolbar=document.createElement('section');this.toolbar.className='story-toolbar';this.toolbar.hidden=true;this.toolbar.setAttribute('aria-label','物語の進行と操作');
@@ -51,6 +53,12 @@ export class StoryUI {
   });
   this.dialog.addEventListener('click',event=>{
    if(event.target.closest('[data-story-close]')){this.dialog.close();return;}
+   const back=event.target.closest('[data-story-arcs]');if(back){const previous=this.selectedArcId;this.selectedArcId=null;this.renderLibrary();this.body.scrollTop=0;(this.body.querySelector('[data-story-arc="'+CSS.escape(previous||'')+'"]')||this.dialog.querySelector('#storyDialogTitle')).focus({preventScroll:true});return;}
+   const arcButton=event.target.closest('[data-story-arc]');if(arcButton&&!arcButton.disabled){
+    const selected=this.arcs.find(arc=>arc.id===arcButton.dataset.storyArc),chapters=selected&&this.chapters.filter(chapter=>chapterArc(chapter)===selected.id);if(!chapters?.length)return;
+    this.selectedArcId=selected.id;const progress=this.readProgress(),resume=allEpisodes(chapters).find(({episode})=>episode.id===episodeId(progress))?.chapter,current=chapters.find(chapter=>chapter.number===getStoryArcChapter(progress,selected.id,this.chapters));this.selectedChapterId=(resume||current||chapters[0]).id;
+    this.renderLibrary();this.body.scrollTop=0;this.body.querySelector('[data-story-arc-heading]')?.focus({preventScroll:true});return;
+   }
    const tab=event.target.closest('[data-story-chapter]');if(tab){this.selectedChapterId=tab.dataset.storyChapter;this.renderLibrary();this.body.querySelector('[data-story-chapter="'+CSS.escape(this.selectedChapterId)+'"]')?.focus({preventScroll:true});return;}
    const button=event.target.closest('[data-story-episode]');if(button&&!button.disabled){
     const id=button.dataset.storyEpisode,replay=button.dataset.storyReplay==='true';this.closeAction=()=>this.onEpisode(id,{replay});this.dialog.close('episode');return;
@@ -77,29 +85,38 @@ export class StoryUI {
  }
  open(opener=this.trigger){
   if(!this.available||this.playback.active||isModalBlocked())return false;
-  const progress=this.readProgress(),active=episodeId(progress),resumeChapter=allEpisodes(this.chapters).find(({episode})=>episode.id===active)?.chapter,currentChapter=this.chapters.find(chapter=>chapter.number===progress?.currentChapter);
-  this.selectedChapterId=(resumeChapter||currentChapter)?.id||this.selectedChapterId;
+  this.selectedArcId=null;
   this.opener=opener?.focus?opener:this.trigger;this.renderLibrary();this.status.textContent='';
   if(!tryOpenModal(this.dialog))return false;this.trigger.setAttribute('aria-expanded','true');
-  const resume=active&&this.body.querySelector('[data-story-episode="'+CSS.escape(active)+'"]');
-  (resume||this.dialog.querySelector('#storyDialogTitle')).focus({preventScroll:true});return true;
+  this.body.scrollTop=0;this.dialog.querySelector('#storyDialogTitle').focus({preventScroll:true});return true;
  }
  close(){if(this.dialog.open)this.dialog.close();}
  renderLibrary(){
-  const progress=this.readProgress()||{},completed=new Set(progress.completedEpisodes||[]),active=episodeId(progress),chapters=this.chapters;
-  const selected=chapters.find(chapter=>chapter.id===this.selectedChapterId)||chapters[0];if(!selected){this.body.innerHTML='<p class="story-library-empty">物語は、これから続いていきます。</p>';return;}
-  this.selectedChapterId=selected.id;const key=JSON.stringify([progress,selected.id,chapters]);if(key===this.libraryKey)return false;this.libraryKey=key;const episodes=selected.episodes||[],done=episodes.filter(episode=>completed.has(episode.id)).length;
-  const tabs=chapters.length>1?'<nav class="story-chapter-tabs" role="tablist" aria-label="物語の章">'+chapters.map(chapter=>'<button type="button" role="tab" id="story-tab-'+esc(chapter.id)+'" data-story-chapter="'+esc(chapter.id)+'" aria-selected="'+(chapter.id===selected.id)+'" aria-controls="storyChapterPanel" tabindex="'+(chapter.id===selected.id?'0':'-1')+'">第'+chapter.number+'章</button>').join('')+'</nav>':'';
-  const header='<section class="story-chapter-intro"><div class="story-chapter-intro__top"><span>第'+selected.number+'章</span><div class="story-chapter-dots" role="img" aria-label="全'+episodes.length+'話のうち'+done+'話を読了">'+episodes.map(episode=>'<i'+(completed.has(episode.id)?' class="is-complete"':'')+'></i>').join('')+'</div></div><h3>'+esc(selected.title)+'</h3><p>'+esc(selected.description||'')+'</p></section>';
+  const progress=this.readProgress()||{},completed=new Set(progress.completedEpisodes||[]),active=episodeId(progress),selectedArc=this.arcs.find(arc=>arc.id===this.selectedArcId);
+  const chapters=selectedArc?this.chapters.filter(chapter=>chapterArc(chapter)===selectedArc.id):[];
+  const key=JSON.stringify([progress,this.selectedArcId,this.selectedChapterId,this.chapters,this.arcs]);if(key===this.libraryKey)return false;this.libraryKey=key;
+  if(!selectedArc||!chapters.length){
+   this.selectedArcId=null;
+   const cards=this.arcs.filter(arc=>this.chapters.some(chapter=>chapterArc(chapter)===arc.id)).map(arc=>{
+    const arcChapters=this.chapters.filter(chapter=>chapterArc(chapter)===arc.id),episodes=allEpisodes(arcChapters),resume=episodes.some(({episode})=>episode.id===active),done=episodes.filter(({episode})=>completed.has(episode.id)).length;
+    const state=resume?'つづきあり':done?'読み進めています':'ここから始まる物語';
+    return '<button type="button" class="story-arc-card" data-story-arc="'+esc(arc.id)+'" aria-label="'+esc(arc.title)+'の章と話を選ぶ"><span class="story-arc-card__icon" aria-hidden="true">'+icon('book')+'</span><strong>'+esc(arc.title)+'</strong><span class="story-arc-card__description">'+esc(arc.description||'おこていゆと、あなたの物語。')+'</span><span class="story-arc-card__state">'+state+'</span><span class="story-arc-card__open">章と話を選ぶ '+icon('next')+'</span></button>';
+   }).join('');
+   const soon='<button type="button" class="story-arc-card story-arc-card--soon" disabled aria-label="Coming Soon、準備中"><span class="story-arc-card__icon" aria-hidden="true">'+icon('book')+'</span><strong>Coming Soon</strong><span class="story-arc-card__description">次の物語を、お楽しみに。</span><span class="story-arc-card__state">準備中</span><span class="story-arc-card__open" aria-hidden="true">'+icon('lock')+'</span></button>';
+   this.body.innerHTML='<section class="story-arcs-intro"><h3>編を選ぶ</h3><p>おこていゆと、どんな物語を読もう。</p></section><nav class="story-arc-grid" aria-label="物語の編">'+cards+soon+'</nav>';return true;
+  }
+  const selected=chapters.find(chapter=>chapter.id===this.selectedChapterId)||chapters[0];this.selectedChapterId=selected.id;const episodes=selected.episodes||[],done=episodes.filter(episode=>completed.has(episode.id)).length;
+  const breadcrumb='<div class="story-arc-breadcrumb"><button type="button" data-story-arcs>'+icon('back')+'<span>編の一覧</span></button><strong data-story-arc-heading tabindex="-1">'+esc(selectedArc.title)+'</strong></div>';
+  const tabs=chapters.length>1?'<nav class="story-chapter-tabs" role="tablist" aria-label="'+esc(selectedArc.title)+'の章">'+chapters.map(chapter=>'<button type="button" role="tab" id="story-tab-'+esc(chapter.id)+'" data-story-chapter="'+esc(chapter.id)+'" aria-selected="'+(chapter.id===selected.id)+'" aria-controls="storyChapterPanel" tabindex="'+(chapter.id===selected.id?'0':'-1')+'">第'+chapter.number+'章'+(!isStoryChapterAvailable(progress,chapter,this.chapters)?icon('lock'):'')+'</button>').join('')+'</nav>':'';
+  const unlockedChapter=isStoryChapterAvailable(progress,selected,this.chapters),header='<section class="story-chapter-intro"><div class="story-chapter-intro__top"><span>第'+selected.number+'章</span><div class="story-chapter-dots" role="img" aria-label="全'+episodes.length+'話のうち'+done+'話を読了">'+episodes.map(episode=>'<i'+(completed.has(episode.id)?' class="is-complete"':'')+'></i>').join('')+'</div></div><h3>'+esc(selected.title)+'</h3><p>'+esc(selected.description||'')+'</p>'+(!unlockedChapter?'<p class="story-chapter-lock">'+icon('lock')+'<span>同じ編の前の章を読み終えると、この章を読めます。</span></p>':'')+'</section>';
   const list=episodes.map((episode,index)=>{
    const finished=completed.has(episode.id),resume=active===episode.id;
-   const unlocked=isStoryEpisodeAvailable({currentChapter:0,...progress,completedEpisodes:[...completed]},episode.id,chapters);
+   const unlocked=isStoryEpisodeAvailable({currentChapter:0,...progress,completedEpisodes:[...completed]},episode.id,this.chapters);
    const label=finished?'読み返す':resume?'つづきから':unlocked?'はじめる':'未開放',state=finished?'complete':resume?'resume':unlocked?'ready':'locked';
    return '<li class="story-episode" data-state="'+state+'"><button type="button" class="story-episode__button" data-story-episode="'+esc(episode.id)+'" data-story-replay="'+finished+'"'+(!unlocked?' disabled':'')+' aria-label="第'+(index+1)+'話 '+esc(episode.title)+'、'+label+'"><span class="story-episode__number" aria-hidden="true">'+(finished?icon('check'):unlocked?String(index+1).padStart(2,'0'):icon('lock'))+'</span><span class="story-episode__copy"><span class="story-episode__top"><small>第'+(index+1)+'話</small><small class="story-episode__time">'+icon('clock')+'約'+(episode.readingMinutes||3)+'分</small></span><strong>'+esc(episode.title)+'</strong><span class="story-episode__description">'+esc(episode.description||'')+'</span><span class="story-episode__state">'+label+(unlocked?'<b aria-hidden="true"> →</b>':'')+'</span></span></button></li>';
   }).join('');
-  const future=Number(progress.currentChapter)>selected.number&&!chapters.some(chapter=>chapter.number===selected.number+1)?'<section class="story-next-chapter"><span>物語の、その先へ</span><h4>知ること、強くなること</h4><p>珍生物との出会いを重ね、おこていゆと一緒に力をつけていこう。</p><small>次の章は、これから追加されます。</small></section>':'';
-  this.body.innerHTML=tabs+'<div id="storyChapterPanel"'+(chapters.length>1?' role="tabpanel" aria-labelledby="story-tab-'+esc(selected.id)+'"':'')+'>'+header+'<ol class="story-episode-list" aria-label="第'+selected.number+'章の各話">'+list+'</ol>'+future+'</div>';
-  return true;
+  const future=getStoryArcChapter(progress,selectedArc.id,this.chapters)>selected.number&&!chapters.some(chapter=>chapter.number===selected.number+1)?'<section class="story-next-chapter"><span>物語の、その先へ</span><h4>続きの物語へ</h4><p>珍生物との出会いを重ね、おこていゆと一緒に力をつけていこう。</p><small>次の章は、これから追加されます。</small></section>':'';
+  this.body.innerHTML=breadcrumb+tabs+'<div id="storyChapterPanel"'+(chapters.length>1?' role="tabpanel" aria-labelledby="story-tab-'+esc(selected.id)+'"':'')+'>'+header+'<ol class="story-episode-list" aria-label="第'+selected.number+'章の各話">'+list+'</ol>'+future+'</div>';return true;
  }
  setPlayback(state={}){
   const previous=this.playback.active;this.playback={...this.playback,...state};const p=this.playback,active=Boolean(p.active);
@@ -112,14 +129,14 @@ export class StoryUI {
   this.view.element.dataset.storyActive=String(active);this.view.element.dataset.storyMode=active?p.mode||'read':'';
   if(!active){releasePaintedLabels(this.toolbar);this.lastPanelKey='';this.panel.replaceChildren();return;}
   const found=allEpisodes(this.chapters).find(({episode})=>episode.id===p.episodeId),chapter=found?.chapter||this.chapters.find(c=>c.id===p.chapterId),episode=found?.episode;
-  const index=found?.index??0,chapterLabel='第'+(chapter?.number??0)+'章 · 第'+(index+1)+'話'+(p.replay?' · 再読':'');
+  const index=found?.index??0,arcTitle=this.arcs.find(arc=>arc.id===chapterArc(chapter||{}))?.title,chapterLabel=(arcTitle?arcTitle+' · ':'')+'第'+(chapter?.number??0)+'章 · 第'+(index+1)+'話'+(p.replay?' · 再読':'');
   if(this.context){
-   setPaintedText(this.context.querySelector('[data-story-context-chapter]'),chapterLabel,{background:'#fbf7eb',lines:1,align:'center',immutableImage:true});
+   setPaintedText(this.context.querySelector('[data-story-context-chapter]'),chapterLabel,{background:'#fbf7eb',lines:1,align:'center',fitText:true,immutableImage:true});
    setPaintedText(this.context.querySelector('[data-story-context-title]'),episode?.title||p.title||'物語',{background:'#fbf7eb',lines:2,align:'center',immutableImage:true});
    const completed=new Set(this.readProgress()?.completedEpisodes||[]),dotsKey=JSON.stringify([chapter?.id,p.episodeId,[...completed]]);
    if(dotsKey!==this.contextDotsKey){this.contextDotsKey=dotsKey;this.context.querySelector('[data-story-context-dots]').innerHTML=(chapter?.episodes||[]).map(item=>'<i class="'+(completed.has(item.id)?'is-complete ':'')+(item.id===p.episodeId?'is-current':'')+'" aria-label="'+esc(item.title)+(completed.has(item.id)?'、読了':'')+(item.id===p.episodeId?'、今読んでいる話':'')+'"></i>').join('');}
   }
-  setPaintedText(this.toolbar.querySelector('[data-story-heading]'),chapterLabel,{background:'#fbf7eb',lines:1,immutableImage:true});
+  setPaintedText(this.toolbar.querySelector('[data-story-heading]'),chapterLabel,{background:'#fbf7eb',lines:1,fitText:true,immutableImage:true});
   setPaintedText(this.toolbar.querySelector('[data-story-episode-title]'),episode?.title||p.title||'物語',{background:'#fbf7eb',lines:1,immutableImage:true});
   const count=Math.max(1,Number(p.sceneCount)||episode?.scenes?.length||1),current=Math.min(count,Math.max(1,(Number(p.sceneIndex)||0)+1));
   setPaintedText(this.toolbar.querySelector('[data-story-position]'),current+' / '+count,{background:'#fbf7eb',lines:1,align:'right',immutableImage:true});

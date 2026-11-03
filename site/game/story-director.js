@@ -1,8 +1,8 @@
-import {STORY_CHAPTERS} from './story-content.js';
+import {STORY_CHAPTERS,STORY_ARCS} from './story-content.js';
 import {StoryUI} from './story-ui.js';
 import {StoryStage} from './story-stage.js';
 import {GameSession,applyStoryBattleRewards} from './game-session.js';
-import {isStoryEpisodeAvailable,startStoryEpisode,checkpointStoryScene,completeStoryEpisode,hasStoryBattleReward} from './story-progress.js';
+import {isStoryEpisodeAvailable,startStoryEpisode,checkpointStoryScene,completeStoryEpisode,hasStoryBattleReward,getStoryArcChapter} from './story-progress.js';
 import {STAFF_SILHOUETTE_URL} from './scene-conversation.js';
 import {currentTimeOfDay} from './world-time.js';
 
@@ -17,7 +17,7 @@ export class StoryDirector {
   Object.assign(this,{runtime,view,onCheckpoint,onOpenMap});this.primarySession=runtime.session;
   this.active=false;this.replay=false;this.paused=false;this.loading=false;this.error=null;this.serial=0;this.autoSuppressed=false;this.battlePending=false;
   this.stage=this.createStage();
-  this.ui=new StoryUI({view,game,homeElement,contextElement,chapters:STORY_CHAPTERS,readProgress:()=>this.progress,
+  this.ui=new StoryUI({view,game,homeElement,contextElement,chapters:STORY_CHAPTERS,arcs:STORY_ARCS,readProgress:()=>this.progress,
    onEpisode:(id,options)=>this.start(id,options),onNextEpisode:id=>this.start(id),onExit:()=>this.exit(),onFinish:()=>this.exit(),onPause:paused=>this.setPaused(paused),onChoice:index=>this.choose(index),onOpenMap:opener=>this.canExplore&&this.onOpenMap(opener),onError:error=>this.fail(error)});
   this.portrait=document.createElement('div');this.portrait.className='scene-conversation story-portrait';this.portrait.hidden=true;
   this.portrait.innerHTML='<img class="scene-conversation__portrait" alt=""><span class="scene-conversation__name"></span>';view.element.append(this.portrait);
@@ -43,8 +43,8 @@ export class StoryDirector {
   if(this.active||this.autoSuppressed||r.scene!=='house'||!this.primarySession.state.visitorName||!r.isHouseReady()||r.isMessageVisible()||r.pendingCutin||this.primarySession.state.pendingAngerEvent||r.isModalPaused()||document.hidden)return false;
   const progress=this.progress,checkpoint=progress.activeEpisode;
   if(checkpoint&&this.findEpisode(checkpoint.episodeId))return this.start(checkpoint.episodeId);
-  if(progress.currentChapter!==0)return false;
-  const next=STORY_CHAPTERS.find(chapter=>chapter.number===0)?.episodes.find(episode=>!progress.completedEpisodes.includes(episode.id));
+  if(getStoryArcChapter(progress,'hero',STORY_CHAPTERS)!==0)return false;
+  const next=STORY_CHAPTERS.find(chapter=>(chapter.arcId||'hero')==='hero'&&chapter.number===0)?.episodes.find(episode=>!progress.completedEpisodes.includes(episode.id));
   return next?this.start(next.id):false;
  }
  checkpoint(index=this.index){
@@ -230,7 +230,7 @@ export class StoryDirector {
  finishEpisode(){
   const r=this.runtime;this.closeObjectiveConversation();this.objectiveState=null;r.messageLocked=false;r.clearMessage();this.loading=false;this.portrait.hidden=true;
   if(!this.replay)completeStoryEpisode(this.progress,this.episode.id,STORY_CHAPTERS);
-  const episodes=STORY_CHAPTERS.flatMap(chapter=>chapter.episodes),next=episodes[episodes.findIndex(episode=>episode.id===this.episode.id)+1];
+  const arcId=this.chapter.arcId||'hero',episodes=STORY_CHAPTERS.filter(chapter=>(chapter.arcId||'hero')===arcId).flatMap(chapter=>chapter.episodes),next=episodes[episodes.findIndex(episode=>episode.id===this.episode.id)+1];
   this.paint('complete',{nextEpisodeId:next&&isStoryEpisodeAvailable(this.progress,next.id,STORY_CHAPTERS)?next.id:null});this.onCheckpoint();r.sync();
  }
  exportProgress(){return {session:this.primarySession.exportState({allowPending:true}),relaxStreak:this.runtime.house.getConsecutiveRelaxActions()};}
