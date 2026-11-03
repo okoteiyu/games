@@ -64,8 +64,8 @@ export class CampExpedition{
  }
  chooseNextNode(){
   let candidates=this.candidateNodes();if(!candidates.length)return null;
-  const unknown=candidates.filter(node=>this.unknownWithinFour(node));if(unknown.length)candidates=unknown;
   if(this.goalDistances&&this.random()<.7){const current=this.goalDistances.get(this.state.nodeId),closer=candidates.filter(node=>this.goalDistances.get(node.id)<current);if(closer.length)candidates=closer;}
+  const unknown=candidates.filter(node=>this.unknownWithinFour(node));if(unknown.length)candidates=unknown;
   return this.pick(candidates);
  }
  planNext(){
