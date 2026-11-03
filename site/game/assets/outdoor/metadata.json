@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "revision": "R208",
+  "revision": "R210",
   "id": "outdoor",
-  "title": "おこていゆハウス周辺",
+  "title": "おこていゆハウスの敷地",
   "floor": "outdoor",
   "areaId": "grounds",
   "units": "meters",
@@ -10,19 +10,19 @@
   "sharedLayoutSource": "outdoor-layout.js",
   "sharedLayoutSha256": "b2898cb1c1e0d117c83683cee316248dd24ee9de570c83c8a759405fcace72d7",
   "room": {
-    "width": 500,
-    "depth": 500,
-    "height": 14,
+    "width": 39.07999610900879,
+    "depth": 21.739999771118164,
+    "height": 8.463727340102196,
     "bounds": {
       "min": [
-        -250,
-        -0.48,
-        -244
+        -19.539997100830078,
+        -0.10999999940395355,
+        -9.339999198913574
       ],
       "max": [
-        250,
-        14,
-        256
+        19.53999900817871,
+        8.353727340698242,
+        12.40000057220459
       ]
     }
   },
@@ -86,25 +86,25 @@
     {
       "id": "terrain",
       "node": "Outdoor.terrain",
-      "label": "周辺の地面",
+      "label": "敷地内の芝生",
       "role": "terrain",
       "actualBounds": {
         "min": [
-          -250.0,
-          -0.4750000238418579,
-          -244.0
+          -19.399999618530273,
+          -0.10999999940395355,
+          -9.199999809265137
         ],
         "max": [
-          250.0,
+          19.399999618530273,
           0.0,
-          256.0
+          7.679999351501465
         ]
       },
       "footprint": [
-        -250.0,
-        -244.0,
-        500.0,
-        500.0
+        -19.399999618530273,
+        -9.199999809265137,
+        38.79999923706055,
+        16.8799991607666
       ]
     },
     {
@@ -134,25 +134,25 @@
     {
       "id": "street",
       "node": "Outdoor.street",
-      "label": "住宅街の道路と歩道",
+      "label": "正面の道路と敷地側歩道",
       "role": "street",
       "actualBounds": {
         "min": [
-          -36.0,
+          -19.399999618530273,
           -0.054999999701976776,
-          -12.129999160766602
+          7.619999885559082
         ],
         "max": [
-          36.0,
-          5.139999866485596,
-          13.84000015258789
+          19.399999618530273,
+          0.12999999523162842,
+          12.40000057220459
         ]
       },
       "footprint": [
-        -36.0,
-        -12.129999160766602,
-        72.0,
-        25.969999313354492
+        -19.399999618530273,
+        7.619999885559082,
+        38.79999923706055,
+        4.780000686645508
       ]
     },
     {
@@ -322,372 +322,12 @@
         38.41999435424805,
         13.049999237060547
       ]
-    },
-    {
-      "id": "neighbor-north-1",
-      "node": "Outdoor.neighbor-north-1",
-      "label": "周辺住宅 north 1",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          -18.35500144958496,
-          -0.060000061988830566,
-          -21.83500099182129
-        ],
-        "max": [
-          -9.645000457763672,
-          6.693515777587891,
-          -12.15000057220459
-        ]
-      },
-      "footprint": [
-        -18.35500144958496,
-        -21.83500099182129,
-        8.710000991821289,
-        9.6850004196167
-      ],
-      "mapRect": [
-        100,
-        -575,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-north-2",
-      "node": "Outdoor.neighbor-north-2",
-      "label": "周辺住宅 north 2",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          -4.355000019073486,
-          -0.060000061988830566,
-          -21.83500099182129
-        ],
-        "max": [
-          4.355000019073486,
-          6.993515968322754,
-          -12.15000057220459
-        ]
-      },
-      "footprint": [
-        -4.355000019073486,
-        -21.83500099182129,
-        8.710000038146973,
-        9.6850004196167
-      ],
-      "mapRect": [
-        800,
-        -575,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-north-3",
-      "node": "Outdoor.neighbor-north-3",
-      "label": "周辺住宅 north 3",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          9.645000457763672,
-          -0.060000061988830566,
-          -21.83500099182129
-        ],
-        "max": [
-          18.354999542236328,
-          7.293515682220459,
-          -12.15000057220459
-        ]
-      },
-      "footprint": [
-        9.645000457763672,
-        -21.83500099182129,
-        8.709999084472656,
-        9.6850004196167
-      ],
-      "mapRect": [
-        1500,
-        -575,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-south-1",
-      "node": "Outdoor.neighbor-south-1",
-      "label": "周辺住宅 south 1",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          -18.35500144958496,
-          -0.060000061988830566,
-          19.16499900817871
-        ],
-        "max": [
-          -9.645000457763672,
-          6.693515777587891,
-          28.850000381469727
-        ]
-      },
-      "footprint": [
-        -18.35500144958496,
-        19.16499900817871,
-        8.710000991821289,
-        9.685001373291016
-      ],
-      "mapRect": [
-        100,
-        1475,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-south-2",
-      "node": "Outdoor.neighbor-south-2",
-      "label": "周辺住宅 south 2",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          -4.355000019073486,
-          -0.060000061988830566,
-          19.16499900817871
-        ],
-        "max": [
-          4.355000019073486,
-          6.993515968322754,
-          28.850000381469727
-        ]
-      },
-      "footprint": [
-        -4.355000019073486,
-        19.16499900817871,
-        8.710000038146973,
-        9.685001373291016
-      ],
-      "mapRect": [
-        800,
-        1475,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-south-3",
-      "node": "Outdoor.neighbor-south-3",
-      "label": "周辺住宅 south 3",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          9.645000457763672,
-          -0.060000061988830566,
-          19.16499900817871
-        ],
-        "max": [
-          18.354999542236328,
-          7.293515682220459,
-          28.850000381469727
-        ]
-      },
-      "footprint": [
-        9.645000457763672,
-        19.16499900817871,
-        8.709999084472656,
-        9.685001373291016
-      ],
-      "mapRect": [
-        1500,
-        1475,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-east-1",
-      "node": "Outdoor.neighbor-east-1",
-      "label": "周辺住宅 east 1",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          26.645000457763672,
-          -0.060000061988830566,
-          -10.835000991821289
-        ],
-        "max": [
-          35.35499954223633,
-          6.693515777587891,
-          -1.1500002145767212
-        ]
-      },
-      "footprint": [
-        26.645000457763672,
-        -10.835000991821289,
-        8.709999084472656,
-        9.685000777244568
-      ],
-      "mapRect": [
-        2350,
-        -25,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-east-2",
-      "node": "Outdoor.neighbor-east-2",
-      "label": "周辺住宅 east 2",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          26.64499855041504,
-          -0.060000061988830566,
-          -0.8350008130073547
-        ],
-        "max": [
-          35.35499954223633,
-          6.993515968322754,
-          8.84999942779541
-        ]
-      },
-      "footprint": [
-        26.64499855041504,
-        -0.8350008130073547,
-        8.710000991821289,
-        9.685000240802765
-      ],
-      "mapRect": [
-        2350,
-        475,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-east-3",
-      "node": "Outdoor.neighbor-east-3",
-      "label": "周辺住宅 east 3",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          26.645000457763672,
-          -0.060000061988830566,
-          14.164999008178711
-        ],
-        "max": [
-          35.355003356933594,
-          7.293515682220459,
-          23.850000381469727
-        ]
-      },
-      "footprint": [
-        26.645000457763672,
-        14.164999008178711,
-        8.710002899169922,
-        9.685001373291016
-      ],
-      "mapRect": [
-        2350,
-        1225,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-west-1",
-      "node": "Outdoor.neighbor-west-1",
-      "label": "周辺住宅 west 1",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          -35.35499954223633,
-          -0.060000061988830566,
-          -10.835000991821289
-        ],
-        "max": [
-          -26.645000457763672,
-          6.693515777587891,
-          -1.1500002145767212
-        ]
-      },
-      "footprint": [
-        -35.35499954223633,
-        -10.835000991821289,
-        8.709999084472656,
-        9.685000777244568
-      ],
-      "mapRect": [
-        -750,
-        -25,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-west-2",
-      "node": "Outdoor.neighbor-west-2",
-      "label": "周辺住宅 west 2",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          -35.35499954223633,
-          -0.060000061988830566,
-          -0.8350008130073547
-        ],
-        "max": [
-          -26.645000457763672,
-          6.993515968322754,
-          8.84999942779541
-        ]
-      },
-      "footprint": [
-        -35.35499954223633,
-        -0.8350008130073547,
-        8.709999084472656,
-        9.685000240802765
-      ],
-      "mapRect": [
-        -750,
-        475,
-        400,
-        350
-      ]
-    },
-    {
-      "id": "neighbor-west-3",
-      "node": "Outdoor.neighbor-west-3",
-      "label": "周辺住宅 west 3",
-      "role": "neighbor-house",
-      "actualBounds": {
-        "min": [
-          -35.35499954223633,
-          -0.060000061988830566,
-          14.164999008178711
-        ],
-        "max": [
-          -26.64499855041504,
-          7.293515682220459,
-          23.850000381469727
-        ]
-      },
-      "footprint": [
-        -35.35499954223633,
-        14.164999008178711,
-        8.710000991821289,
-        9.685001373291016
-      ],
-      "mapRect": [
-        -750,
-        1225,
-        400,
-        350
-      ]
     }
   ],
   "model": {
     "url": "room.glb",
-    "bytes": 5806368,
-    "sha256": "117645461aaec09d73884ccb3b0f5065acc49470aba874a1d23ce55b9eaf5209"
+    "bytes": 4515068,
+    "sha256": "4c3703f3979e0bc69d46fee07bb55010dab5d681dc08640c12f3cdf2196159ec"
   },
   "appearance": {
     "surfaces": "embedded original image PBR color/normal/roughness-metallic",
@@ -751,44 +391,18 @@
       ]
     },
     "perimeterWallHeight": 1.5,
-    "neighborHouseCount": 12,
-    "neighborsPerDirection": 3,
-    "neighborNodes": [
-      "Outdoor.neighbor-north-1",
-      "Outdoor.neighbor-north-2",
-      "Outdoor.neighbor-north-3",
-      "Outdoor.neighbor-south-1",
-      "Outdoor.neighbor-south-2",
-      "Outdoor.neighbor-south-3",
-      "Outdoor.neighbor-east-1",
-      "Outdoor.neighbor-east-2",
-      "Outdoor.neighbor-east-3",
-      "Outdoor.neighbor-west-1",
-      "Outdoor.neighbor-west-2",
-      "Outdoor.neighbor-west-3"
-    ],
+    "neighborHouseCount": 0,
+    "neighborsPerDirection": 0,
+    "neighborNodes": [],
     "mailbox": true,
     "parcelLocker": true,
     "securityAppearanceOnly": true,
-    "roadClearanceRevision": "R208-neighbors-east-west-3-south-of-street",
-    "geometryReuse": "three northern house mesh prototypes linked across all four directions",
-    "backdropExtent": {
-      "sizeMetres": [
-        500,
-        500
-      ],
-      "centre": [
-        0,
-        -0.3,
-        6
-      ],
-      "artistBackdropOnly": true,
-      "canonicalArchitecturalDimension": false,
-      "uvMetreDensityPreserved": true
-    }
+    "roadClearanceRevision": "R210-site-frontage-only",
+    "geometryReuse": "Existing site meshes and PBR retained; distant geometry removed.",
+    "outsideScopeBackgroundOnly": true
   },
   "animationCount": 0,
-  "meshBatchCount": 185,
+  "meshBatchCount": 59,
   "source": "private editable Blender scene and original procedural PBR texture source",
   "status": "ready",
   "previews": [
@@ -796,17 +410,53 @@
       "url": "preview.webp",
       "width": 1100,
       "height": 820,
-      "bytes": 71234,
-      "sha256": "7d90c51a2b305f36cb1b6b1c41a3841edce95c7ae660b73338f801d17f590d2b"
+      "bytes": 14650,
+      "sha256": "d41a733fb3a6c36122d18e92df127f987e4f6407b955bd9ea8825f2705b4fb8d",
+      "camera": "Outdoor Entry Camera"
     }
   ],
   "geometryDiagnostics": {
-    "uniqueGltfMeshes": 92,
-    "meshInstances": 185,
-    "uniqueVertices": 131656,
-    "uniqueTriangles": 68980,
+    "uniqueGltfMeshes": 59,
+    "meshInstances": 59,
+    "uniqueVertices": 95606,
+    "uniqueTriangles": 50394,
     "embeddedImageCount": 24,
     "embeddedImageBytes": 1100809,
+    "dimensionsAreArtProductionValues": true
+  },
+  "threeDScope": {
+    "revision": "R210",
+    "included": [
+      "headquarters grounds",
+      "frontage road",
+      "site-side sidewalk and access"
+    ],
+    "excluded": [
+      "neighbor houses",
+      "distant ground backdrop",
+      "opposite sidewalk",
+      "surrounding street lamps"
+    ],
+    "outside": "scene background only; no geometry",
+    "siteMapRect": [
+      30,
+      40,
+      1940,
+      844
+    ],
+    "roadMapRect": [
+      30,
+      960,
+      1940,
+      160
+    ],
+    "sidewalkMapRect": [
+      30,
+      884,
+      1940,
+      76
+    ],
+    "shared2DLayoutUnchanged": true,
     "dimensionsAreArtProductionValues": true
   }
 }
