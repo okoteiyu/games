@@ -1,21 +1,12 @@
 import {interiorMapDrawing} from './interior-map.js';
 import {OUTDOOR_LAYOUT as layout} from './outdoor-layout.js';
-// A schematic overview; every footprint comes from the exported exterior layout.
+// Focus on the grounds and frontage present in the exported exterior model.
 export const OUTDOOR_MAP_VIEWBOX=layout.mapViewBox.join(' ');
 
 const rect=(x,y,width,height,fill,extra='')=>`<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="9" fill="${fill}" ${extra}/>`;
 const text=(x,y,value,size=30,extra='')=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" fill="#645b49" ${extra}>${value}</text>`;
 const line=points=>points.map(([x,y],index)=>`${index?'L':'M'}${x} ${y}`).join('');
 const featureRect=(feature,fill,extra='')=>rect(...feature.rect,fill,extra);
-
-function neighborsDrawing(){
- return '<g data-outdoor-feature="neighborhood" opacity=".46">'+layout.neighbors.map(({id,direction,rect:[x,y,w,h],roofColor})=>
-  `<g data-outdoor-neighbor="${id}" data-neighbor-direction="${direction}">`+
-  rect(x,y,w,h,'#f1ebdf','stroke="#c7beaa" stroke-width="4"')+
-  `<path d="M${x+14} ${y+20}H${x+w-14}V${y+h-20}H${x+14}Z" fill="${roofColor}" fill-opacity=".22" stroke="${roofColor}" stroke-width="5"/>`+
-  `<path d="M${x+w/2} ${y+20}V${y+h-20}M${x+14} ${y+20}L${x+w/2} ${y+65}L${x+w-14} ${y+20}M${x+14} ${y+h-20}L${x+w/2} ${y+h-65}L${x+w-14} ${y+h-20}" fill="none" stroke="${roofColor}" stroke-width="4"/>`+
-  '</g>').join('')+'</g>';
-}
 
 function fenceDrawing(){
  const [x,y,w,h]=layout.site.rect,bottom=y+h,gates=[layout.entry.freightGate,layout.entry.warehouseGate,layout.entry.mainGate].sort((a,b)=>a[0]-b[0]);
@@ -37,11 +28,11 @@ function securityDrawing(x,y,{id='entry',side=1}={}){
 export function outdoorMapDrawing({selected=null}={}){
  const zone=(id,x,y,width,height,fill,extra='')=>rect(x,y,width,height,fill,`data-building-zone="${id}" stroke="${selected===id?'#936843':'#ad9d7d'}" stroke-width="${selected===id?6:3}" ${extra}`);
  const [sx,sy,sw,sh]=layout.site.rect,[wx,wy,ww,wh]=layout.warehouse.rect,[hx,hy,hw,hh]=layout.house.rect,[fx,fy,fw,fh]=layout.freight.rect;
+ const streetRect=[sx,layout.street.rect[1],sw,layout.street.rect[3]],sidewalkRect=[sx,layout.street.sidewalk[1],sw,layout.street.sidewalk[3]],northX=sx+sw-64,northY=sy+178;
  const [doorX,doorY,doorWidth]=layout.house.frontDoor,[shutterX,shutterY,shutterWidth]=layout.freight.southShutter,[humanX,humanY,humanWidth]=layout.freight.southHumanDoor;
  const corridor=line(layout.corridor.points),corridorWidth=layout.corridor.width;
  const eastWindowStart=Math.min(...layout.house.eastWindows.map(window=>window.start)),eastWindowEnd=Math.max(...layout.house.eastWindows.map(window=>window.end));
- let drawing=neighborsDrawing()+
-  featureRect(layout.site,'#dbe8cc','data-outdoor-feature="grass" stroke="#b4bf9e" stroke-width="4"')+
+ let drawing=featureRect(layout.site,'#dbe8cc','data-outdoor-feature="grass" stroke="#b4bf9e" stroke-width="4"')+
   '<g data-outdoor-feature="lawn-grain" fill="none" stroke="#b9cd9f" stroke-width="3" opacity=".65">'+
   [[82,120],[185,150],[370,112],[550,100],[760,125],[1040,105],[1265,132],[1325,235],[1305,370],[1325,535],[66,824],[445,540],[445,720],[1330,808],[1770,814],[1900,840]].map(([x,y])=>`<path d="M${x-7} ${y+7}l7-14 7 14m-7-14v17"/>`).join('')+'</g>'+
   featureRect(layout.paved,'#d6d2c5','data-outdoor-feature="paved-yard" stroke="#b9b4a5" stroke-width="3"')+
@@ -49,9 +40,9 @@ export function outdoorMapDrawing({selected=null}={}){
   [590,710,830,950,1070,1190].map(x=>`<path d="M${x} ${layout.paved.rect[1]}v${layout.paved.rect[3]}"/>`).join('')+
   `<path d="M${layout.paved.rect[0]} ${layout.paved.rect[1]+112}h${layout.paved.rect[2]}"/></g>`+
   // Roads are outside the fence; only working approaches interrupt the lawn.
-  featureRect(layout.street,'#cdd0c8','data-outdoor-feature="street"')+
-  rect(...layout.street.sidewalk,'#e3dece','data-outdoor-feature="sidewalk"')+
-  `<path d="M${layout.street.rect[0]} 960h${layout.street.rect[2]}" stroke="#b4b6a7" stroke-width="4"/><path d="M${layout.street.rect[0]} 1040h${layout.street.rect[2]}" stroke="#f4f1df" stroke-width="6" stroke-dasharray="60 44"/>`+
+  rect(...streetRect,'#cdd0c8','data-outdoor-feature="street"')+
+  rect(...sidewalkRect,'#e3dece','data-outdoor-feature="sidewalk"')+
+  `<path d="M${streetRect[0]} 960h${streetRect[2]}" stroke="#b4b6a7" stroke-width="4"/><path d="M${streetRect[0]} 1040h${streetRect[2]}" stroke="#f4f1df" stroke-width="6" stroke-dasharray="60 44"/>`+
   text(1670,1092,'住宅街の道',54)+
   layout.walkways.map(path=>`<path data-outdoor-path="${path.id}" d="${line(path.points)}" fill="none" stroke="#d8d1bd" stroke-width="${path.width}"/>`).join('')+
   // Thick outer walls and a continuous opaque roof distinguish the enclosed link.
@@ -92,6 +83,6 @@ export function outdoorMapDrawing({selected=null}={}){
   text(1000,118,'おこていゆハウス周辺',64)+
   zone('grounds',...layout.groundsZone.rect,'#edf2df',`data-map-marker-x="${layout.groundsZone.rect[0]+layout.groundsZone.rect[2]-50}" data-map-marker-y="${layout.groundsZone.rect[1]+15}" data-map-marker-unit="1.4"`)+
   text(layout.groundsZone.rect[0]+155,layout.groundsZone.rect[1]+75,'拠点の屋外',50)+
-  '<g data-outdoor-feature="north-mark" stroke="#9aa68c" fill="none" stroke-width="5"><path d="M2110-270v-115m-22 36 22-36 22 36"/></g>'+text(2110,-414,'N',44);
+  `<g data-outdoor-feature="north-mark" stroke="#9aa68c" fill="none" stroke-width="5"><path d="M${northX} ${northY}v-115m-22 36 22-36 22 36"/></g>`+text(northX,northY-144,'N',44);
  return `<g data-outdoor-plan="house-surroundings" font-family="system-ui, sans-serif">${drawing}</g>`;
 }

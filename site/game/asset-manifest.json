@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちものと共通UI画像。専用確認ページだけの素材は除外。",
   "fileCount": 162,
-  "totalBytes": 157907475,
+  "totalBytes": 157910602,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -1288,17 +1288,17 @@
       "url": "assets/outdoor/metadata.json",
       "label": "屋外の設定",
       "type": "json",
-      "bytes": 10011,
+      "bytes": 10154,
       "priority": 2,
-      "sha256": "bee083e442a747b192e6f74a782893b62cce0ca5df5219ad4264050676a01c5d"
+      "sha256": "75ce4c368948fda1141281d38260aa08bf4de7e30bfb27d6d9e45515ce8bbb3a"
     },
     {
       "url": "assets/outdoor/preview.webp",
       "label": "屋外のプレビュー",
       "type": "image",
-      "bytes": 14650,
+      "bytes": 17634,
       "priority": 3,
-      "sha256": "d41a733fb3a6c36122d18e92df127f987e4f6407b955bd9ea8825f2705b4fb8d"
+      "sha256": "affedf68feabfd4dcae38bb3f60978371be1887d9551ab149c372c4e150fa8e9"
     }
   ]
 }

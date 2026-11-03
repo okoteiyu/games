@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "R210",
+  "revision": "R212",
   "id": "outdoor",
   "title": "おこていゆハウスの敷地",
   "floor": "outdoor",
@@ -8,7 +8,7 @@
   "units": "meters",
   "dimensionsAreArtProductionValues": true,
   "sharedLayoutSource": "outdoor-layout.js",
-  "sharedLayoutSha256": "b2898cb1c1e0d117c83683cee316248dd24ee9de570c83c8a759405fcace72d7",
+  "sharedLayoutSha256": "2aabff27622cd239fdfd03a71dac741c0fb099508c4b8e4eac90bb43b8978672",
   "room": {
     "width": 39.07999610900879,
     "depth": 21.739999771118164,
@@ -42,31 +42,31 @@
     "heroYaw": 3.141592653589793,
     "camera": {
       "position": [
-        26,
-        16,
-        29
+        -1.8,
+        4.5,
+        17.5
       ],
       "target": [
-        0,
-        1,
-        -0.5
+        -1.8,
+        1.8,
+        3.2
       ],
-      "fov": 76,
+      "fov": 72,
       "far": 180
     }
   },
   "camera": {
     "position": [
-      26,
-      16,
-      29
+      -1.8,
+      4.5,
+      17.5
     ],
     "target": [
-      0,
-      1,
-      -0.5
+      -1.8,
+      1.8,
+      3.2
     ],
-    "fov": 76,
+    "fov": 72,
     "near": 0.05,
     "far": 180
   },
@@ -399,7 +399,8 @@
     "securityAppearanceOnly": true,
     "roadClearanceRevision": "R210-site-frontage-only",
     "geometryReuse": "Existing site meshes and PBR retained; distant geometry removed.",
-    "outsideScopeBackgroundOnly": true
+    "outsideScopeBackgroundOnly": true,
+    "defaultCameraView": "warehouse south front from the street"
   },
   "animationCount": 0,
   "meshBatchCount": 59,
@@ -408,10 +409,10 @@
   "previews": [
     {
       "url": "preview.webp",
-      "width": 1100,
-      "height": 820,
-      "bytes": 14650,
-      "sha256": "d41a733fb3a6c36122d18e92df127f987e4f6407b955bd9ea8825f2705b4fb8d",
+      "width": 960,
+      "height": 960,
+      "bytes": 17634,
+      "sha256": "affedf68feabfd4dcae38bb3f60978371be1887d9551ab149c372c4e150fa8e9",
       "camera": "Outdoor Entry Camera"
     }
   ],
@@ -456,7 +457,9 @@
       1940,
       76
     ],
-    "shared2DLayoutUnchanged": true,
-    "dimensionsAreArtProductionValues": true
-  }
+    "shared2DLayoutUnchanged": false,
+    "dimensionsAreArtProductionValues": true,
+    "mapViewRevision": "R212"
+  },
+  "cameraRevision": "R212"
 }

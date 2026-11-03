@@ -1,13 +1,13 @@
 /** Shared visual layout for the ground-level map and exported 3D exterior. */
 export const OUTDOOR_LAYOUT=Object.freeze({
-  "revision": "R208",
+  "revision": "R212",
   "units": "meters",
   "dimensionsAreArtProductionValues": true,
   "mapViewBox": [
-    -800,
-    -650,
-    3600,
-    2550
+    -10,
+    0,
+    2020,
+    1160
   ],
   "mapUnitsToMeters": 0.02,
   "mapOrigin": [
@@ -181,15 +181,15 @@ export const OUTDOOR_LAYOUT=Object.freeze({
   ],
   "street": {
     "rect": [
-      -800,
+      30,
       960,
-      3600,
+      1940,
       160
     ],
     "sidewalk": [
-      -800,
+      30,
       884,
-      3600,
+      1940,
       76
     ]
   },
@@ -234,152 +234,19 @@ export const OUTDOOR_LAYOUT=Object.freeze({
       115
     ]
   },
-  "neighbors": [
-    {
-      "id": "neighbor-north-1",
-      "direction": "north",
-      "rect": [
-        100,
-        -575,
-        400,
-        350
-      ],
-      "roofColor": "#59616a"
-    },
-    {
-      "id": "neighbor-north-2",
-      "direction": "north",
-      "rect": [
-        800,
-        -575,
-        400,
-        350
-      ],
-      "roofColor": "#6f6359"
-    },
-    {
-      "id": "neighbor-north-3",
-      "direction": "north",
-      "rect": [
-        1500,
-        -575,
-        400,
-        350
-      ],
-      "roofColor": "#626a60"
-    },
-    {
-      "id": "neighbor-south-1",
-      "direction": "south",
-      "rect": [
-        100,
-        1475,
-        400,
-        350
-      ],
-      "roofColor": "#59616a"
-    },
-    {
-      "id": "neighbor-south-2",
-      "direction": "south",
-      "rect": [
-        800,
-        1475,
-        400,
-        350
-      ],
-      "roofColor": "#6f6359"
-    },
-    {
-      "id": "neighbor-south-3",
-      "direction": "south",
-      "rect": [
-        1500,
-        1475,
-        400,
-        350
-      ],
-      "roofColor": "#626a60"
-    },
-    {
-      "id": "neighbor-east-1",
-      "direction": "east",
-      "rect": [
-        2350,
-        -25,
-        400,
-        350
-      ],
-      "roofColor": "#59616a"
-    },
-    {
-      "id": "neighbor-east-2",
-      "direction": "east",
-      "rect": [
-        2350,
-        475,
-        400,
-        350
-      ],
-      "roofColor": "#6f6359"
-    },
-    {
-      "id": "neighbor-east-3",
-      "direction": "east",
-      "rect": [
-        2350,
-        1225,
-        400,
-        350
-      ],
-      "roofColor": "#626a60"
-    },
-    {
-      "id": "neighbor-west-1",
-      "direction": "west",
-      "rect": [
-        -750,
-        -25,
-        400,
-        350
-      ],
-      "roofColor": "#59616a"
-    },
-    {
-      "id": "neighbor-west-2",
-      "direction": "west",
-      "rect": [
-        -750,
-        475,
-        400,
-        350
-      ],
-      "roofColor": "#6f6359"
-    },
-    {
-      "id": "neighbor-west-3",
-      "direction": "west",
-      "rect": [
-        -750,
-        1225,
-        400,
-        350
-      ],
-      "roofColor": "#626a60"
-    }
-  ],
+  "neighbors": [],
   "camera": {
     "position": [
-      26,
-      16,
-      29
+      -1.8,
+      4.5,
+      17.5
     ],
     "target": [
-      0,
-      1,
-      -0.5
+      -1.8,
+      1.8,
+      3.2
     ],
-    "fov": 76,
+    "fov": 72,
     "far": 180
   },
   "windowAlignmentReference": {
