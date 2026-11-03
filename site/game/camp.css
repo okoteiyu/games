@@ -29,7 +29,7 @@
 .camp-slots button span { margin-inline-start:auto;font-size:9px; }
 .camp-slots button[data-selected=true] { border-color:#9ba974;background:#e3e9ce;box-shadow:inset 0 0 0 1px #aeba89; }
 .camp-packing { display:grid;grid-template-columns:minmax(0,1fr) 108px;gap:13px;align-items:start; }
-.camp-grid { display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));gap:3px;inline-size:100%;aspect-ratio:6/5;padding:6px;border:2px solid #a9b48c;border-radius:12px 5px;background:#d8dfc3;box-shadow:inset 0 0 0 3px #f0f2dd;isolation:isolate; }
+.camp-grid { display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:3px;inline-size:100%;aspect-ratio:1;padding:6px;border:2px solid #a9b48c;border-radius:12px 5px;background:#d8dfc3;box-shadow:inset 0 0 0 3px #f0f2dd;isolation:isolate; }
 .camp-cell { z-index:0;display:block;min-inline-size:0;min-block-size:0;padding:0;border:1px solid #bac5a2;border-radius:4px;background:#f7f7e8;box-shadow:inset 0 1px 3px #8b997b0a; }
 .camp-cell:hover { border-color:#a49567;background:#fffdf0; }
 .camp-packed { z-index:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;min-inline-size:0;min-block-size:0;overflow:hidden;padding:3px;border:1px solid color-mix(in srgb,var(--supply-color),#5f6545 25%);border-radius:7px 3px;background:color-mix(in srgb,var(--supply-color),#fffbed 66%);color:#616a4d;box-shadow:inset 0 1px 0 #fff9,0 1px 2px #67754c15; }
@@ -100,10 +100,10 @@
 .camp-world-dialog__footer .camp-button { flex:none;font-size:11px; }
 .camp-map { position:relative;inline-size:100%;block-size:100%;min-block-size:0;isolation:isolate;overflow:hidden;background:#dfe6ce; }
 .camp-map__canvas { display:block;inline-size:100%;block-size:100%;touch-action:none; }
-.camp-map__controls { position:absolute;inset-inline-end:10px;inset-block-end:35px;z-index:2;display:flex;align-items:center;gap:3px;padding:4px;border:1px solid #acb98b;border-radius:9px 3px;background:#fffff1e8;box-shadow:0 3px 10px #41533712; }
+.camp-map__controls { position:absolute;inset-inline-end:10px;inset-block-end:66px;z-index:2;display:flex;align-items:center;gap:3px;padding:4px;border:1px solid #acb98b;border-radius:9px 3px;background:#fffff1e8;box-shadow:0 3px 10px #41533712; }
 .camp-map__controls button { display:grid;place-items:center;inline-size:30px;block-size:30px;padding:0;border:0;border-radius:5px;background:transparent;color:#697d50;font:inherit;font-size:18px;cursor:pointer;touch-action:manipulation; }
 .camp-map__controls button:last-child { inline-size:36px;font-size:10px; }.camp-map__controls button:hover { background:#e6edcf; }
-.camp-map__legend { display:flex;align-items:center;justify-content:center;gap:9px;position:absolute;inset-inline:0;inset-block-end:10px;z-index:1;pointer-events:none;color:#64734f;text-shadow:0 1px 3px #fff;font-size:9px; }
+.camp-map__legend { display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px 10px;position:absolute;inset-inline:10px;inset-block-end:9px;z-index:1;padding:6px 8px;border:1px solid #b5c29c;border-radius:8px 3px;background:#ffffeff0;pointer-events:none;color:#536749;font-size:10px;line-height:1.4; }
 .camp-map__legend span { display:flex;align-items:center;gap:3px; }.camp-map__legend i { inline-size:7px;block-size:7px;border:1px solid #fff8;border-radius:50%;background:var(--terrain); }
 .camp-map__place { position:absolute;inset-block-start:12px;inset-inline-start:12px;z-index:1;max-inline-size:70%;padding:6px 10px;border:1px solid #b9c59f;border-radius:8px 3px;background:#ffffefe0;color:#6f8058;font-size:11px;pointer-events:none; }
 .camp-map[data-interactive=false] .camp-map__controls { display:none; }
@@ -139,20 +139,14 @@
 
 .camp-progress-panel{min-height:0;align-self:stretch;padding:12px 9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;border:1px solid #bac69b;border-radius:9px;background:linear-gradient(145deg,#eef2dc,#fbf7e9);text-align:center;color:#63734f}.camp-progress-panel[hidden]{display:none}.camp-progress-panel__icon{font-size:28px;color:#97a76c}.camp-progress-panel strong{font-size:clamp(11px,3vw,15px)}.camp-progress-panel p{margin:0;font-size:11px;line-height:1.7}.camp-progress-panel button{min-height:34px;border:1px solid #b9c49d;border-radius:7px;background:#fffdf3;color:#6f795b;font:600 11px system-ui;padding:5px 8px}
 
-/* One persistent HP card stays above travel, camping and battle controls. */
-.camp-actions{display:grid;grid-template-rows:auto minmax(0,1fr);gap:6px;min-inline-size:0;min-block-size:0;padding:8px;overflow:hidden;container:camp-actions/size;}
+/* Camp controls use the full action slot; HP belongs to normal battle HUDs. */
+.camp-actions{display:grid;grid-template-rows:minmax(0,1fr);gap:0;min-inline-size:0;min-block-size:0;padding:8px;overflow:hidden;container:camp-actions/size;}
 .camp-actions[hidden]{display:none;}
-.camp-health{align-self:start;padding:5px 7px;border-radius:8px 3px;background:#f8f4e9;box-shadow:0 1px 3px #394b4312;}
-.camp-health header strong{font-size:clamp(9px,6.6cqi,12px);line-height:1.2;}
-.camp-health header>span,.camp-health footer{font-size:clamp(8px,5.8cqi,10px);}
-.camp-health footer small{font-size:clamp(7px,5.2cqi,9px);letter-spacing:0;}
 .camp-actions>.camp-progress-panel{min-inline-size:0;overflow:auto;padding:8px 5px;gap:7px;}
 .camp-actions>.battle-actions{inline-size:100%;block-size:100%;min-inline-size:0;min-block-size:0;}
 .camp-actions>.battle-actions--camp{grid-template-rows:minmax(0,1fr);padding:0;border:0;background:none;}
 .camp-actions .battle-hud--camp{display:none!important;}
-.battle-hud[data-camp-player-hp-external=true]>.battle-hp--player{display:none;}
-.battle-hud[data-camp-player-hp-external=true]>.battle-hud__opponents{grid-column:2;}
-@container camp-actions (max-height:180px){.camp-actions>.camp-progress-panel{gap:3px;padding:4px}.camp-progress-panel__icon{display:none}.camp-actions>.camp-progress-panel p{font-size:10px;line-height:1.4}.camp-actions>.camp-progress-panel strong{font-size:10px}.camp-actions>.camp-progress-panel button{min-height:27px}.camp-health{padding:3px 5px}.camp-health header strong,.camp-health header>span,.camp-health footer{font-size:8px}.camp-health .battle-hp__meter{height:4px;margin-top:2px}.camp-health footer{margin-top:2px}}
+@container camp-actions (max-height:180px){.camp-actions>.camp-progress-panel{gap:3px;padding:4px}.camp-progress-panel__icon{display:none}.camp-actions>.camp-progress-panel p{font-size:10px;line-height:1.4}.camp-actions>.camp-progress-panel strong{font-size:10px}.camp-actions>.camp-progress-panel button{min-height:27px}}
 
 /* Keep the live atlas clear of the game's persistent message-replay button.
    Full atlas controls stay in its dialog; pinch/wheel remain available here. */
@@ -167,3 +161,22 @@
 .camp-live[data-phase=failed] .camp-live__footer>span,
 .camp-live[data-phase=complete] .camp-live__footer>span { display:none; }
 @media(max-height:620px) { .camp-live__map .camp-map__legend { inset-block-start:121px; }.camp-live__supplies { max-block-size:calc(100% - 140px); } }
+
+/* A destination estimate is separate from the player's registered backpack. */
+.camp-destination-plan { display:grid;gap:10px;min-inline-size:0;margin-top:10px;padding:12px;border:1px solid #c3c9a9;border-radius:11px 4px;background:linear-gradient(135deg,#f8faee,#f8f2e5);color:#647451; }
+.camp-destination-plan__heading { display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap; }
+.camp-destination-plan__heading h3 { margin:0;font-size:12px;font-weight:600;line-height:1.5; }
+.camp-destination-plan__heading>span { color:#8a8f70;font-size:10px;white-space:nowrap; }
+.camp-destination-plan__items { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;margin:0;padding:0;list-style:none; }
+.camp-destination-plan__items li { display:flex;align-items:center;gap:5px;min-inline-size:0;font-size:11px;line-height:1.45; }
+.camp-destination-plan__items svg { inline-size:16px;block-size:19px;flex:none;fill:#faf8ec;stroke:#8a9873;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round; }
+.camp-destination-plan__items li>span { min-inline-size:0;overflow-wrap:anywhere; }
+.camp-destination-plan__items strong { margin-inline-start:auto;flex:none;color:#677a4c;font-size:12px;font-variant-numeric:tabular-nums; }
+.camp-destination-plan__totals { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0;padding-top:9px;border-top:1px dashed #ccd1b9; }
+.camp-destination-plan__totals div { display:grid;gap:3px;min-inline-size:0; }
+.camp-destination-plan__totals dt { color:#899474;font-size:10px; }
+.camp-destination-plan__totals dd { margin:0;color:#62754b;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums; }
+.camp-destination-plan__totals small { margin-inline-start:4px;font-size:10px;font-weight:400; }
+.camp-destination-plan .camp-destination-plan__note,.camp-destination-plan .camp-destination-plan__status { margin:0;color:#8a9076;font-size:10.5px;line-height:1.7; }
+.camp-destination-plan__option { white-space:pre-line; }
+.camp-destination-plan__summary[hidden],.camp-destination-plan__option[hidden] { display:none; }

@@ -2,10 +2,10 @@ import {CampExpedition} from './camp-engine.js';
 import {CampUI} from './camp-ui.js';
 import {CampNightView} from './camp-night.js';
 import {chooseCampEncounter} from './camp-encounters.js';
-import {CAMP_WORLD,CAMP_DESTINATIONS} from './camp-world.js';
+import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode} from './camp-world.js';
+import {getCampRegion,getCampRegionAt} from './camp-regions.js';
 import {CREATURES,playerStats} from './game-session.js';
 import {isBuildingVisitScene} from './interior-rules.js';
-import {setPaintedText,releasePaintedLabels} from './painted-label.js';
 
 const done=new Set(['failed','finished']);
 const finalExplorationMessages={
@@ -23,25 +23,22 @@ export class CampRuntime{
    onSelectBag:slot=>{const ok=game.session.selectCampBag(slot);game.sync();return ok;}});
   this.night=new CampNightView({container:game.view.surface,isPaused:()=>game.isPaused(),onComplete:()=>this.wake(),onError:()=>game.toast('夜の3D表示を再試行してください。探索の時計は止まっています。')});
   this.actionArea=document.createElement('section');this.actionArea.id='campActionArea';this.actionArea.className='lower-right camp-actions';this.actionArea.hidden=true;this.actionArea.setAttribute('aria-label','キャンプ中のおこていゆ');
-  this.health=document.createElement('section');this.health.className='battle-hp camp-health';this.health.dataset.campPlayerHp='';this.health.innerHTML='<header><strong>おこていゆ</strong><span></span></header><div class="battle-hp__meter" role="progressbar" aria-label="おこていゆのHP" aria-valuemin="0" aria-valuemax="100"><i></i></div><footer><span class="battle-hp__value"></span><small>HP</small></footer>';
-  this.statusPanel=document.createElement('section');this.statusPanel.className='camp-progress-panel';this.statusPanel.hidden=true;this.statusPanel.innerHTML='<span class="camp-progress-panel__icon" aria-hidden="true">⌁</span><strong>ふたりの探索を見守る</strong><p>物資を使いながら、未開の地を進んでいます。</p><button type="button">ワールドマップ</button>';this.actionArea.append(this.health,this.statusPanel);game.homeElement.after(this.actionArea);this.statusPanel.querySelector('button').addEventListener('click',event=>this.ui.openWorldMap(event.currentTarget));
+  this.statusPanel=document.createElement('section');this.statusPanel.className='camp-progress-panel';this.statusPanel.hidden=true;this.statusPanel.innerHTML='<span class="camp-progress-panel__icon" aria-hidden="true">⌁</span><strong>ふたりの探索を見守る</strong><p>物資を使いながら、未開の地を進んでいます。</p><button type="button">ワールドマップ</button>';this.actionArea.append(this.statusPanel);game.homeElement.after(this.actionArea);this.statusPanel.querySelector('button').addEventListener('click',event=>this.ui.openWorldMap(event.currentTarget));
  }
  canBrowse(){const g=this.game;return Boolean(!g.story?.active&&g.session.state.visitorName&&g.isHouseReady()&&!g.session.state.pendingAngerEvent&&!g.pendingCutin&&!g.isMessageVisible()&&(g.scene==='house'||isBuildingVisitScene(g.scene)||['camp','camp-night'].includes(g.scene)));}
  canDepart(){const g=this.game;return Boolean(g.scene==='house'&&g.session.state.location==='home'&&g.session.state.visitorName&&g.isHouseReady()&&!g.story?.active&&!g.session.state.pendingAngerEvent&&!g.pendingCutin&&!g.isMessageVisible());}
  open(opener){return this.ui.open(opener);}
  openWorldMap(opener){return this.ui.openWorldMap(opener);}
- refresh(){this.updateHealth();const g=this.game,key=JSON.stringify([g.scene,g.house.getConsecutiveRelaxActions(),g.session.state.camp,g.session.state.pendingAngerEvent]);if(this.preparationKey!==key){this.preparationKey=key;this.ui.refresh();}}
- mountActionArea(){this.actionArea.append(this.game.battleUI.panel);this.game.battleUI.hud.dataset.campPlayerHpExternal='true';this.actionArea.hidden=false;this.updateHealth();}
- updateHealth(){
-  if(!this.active||this.actionArea.hidden)return;
-  const battle=['camp','camp-final'].includes(this.game.session.state.battle?.kind)?this.game.session.snapshotBattle():null;
-  const player=battle?.player,max=Math.max(.1,player?.maxHp??this.maxHp??1),hp=Math.max(0,Math.min(max,player?.hp??this.hp??max)),level=player?.level??this.game.session.player.level;
-  const key=JSON.stringify([hp,max,level]);if(key===this.healthKey)return;this.healthKey=key;
-  const format=value=>value.toLocaleString('ja-JP',{maximumFractionDigits:1}),ratio=hp/max;
-  setPaintedText(this.health.querySelector('header>span'),'Lv.'+level,{background:'#f8f4e9'});setPaintedText(this.health.querySelector('.battle-hp__value'),format(hp)+' / '+format(max),{background:'#f8f4e9'});
-  this.health.dataset.hp=String(hp);this.health.dataset.maxHp=String(max);this.health.classList.toggle('is-low',ratio<=.25);
-  const meter=this.health.querySelector('[role="progressbar"]');meter.setAttribute('aria-valuenow',String(Math.round(ratio*100)));meter.setAttribute('aria-label','おこていゆのHP '+format(hp)+' / '+format(max));meter.querySelector('i').style.width=ratio*100+'%';
+ nodeContext(nodeId=this.engine?.snapshot().nodeId){
+  const currentId=this.engine?.snapshot().nodeId,node=this.engine?.nodeIndex?.get(nodeId)||getCampNode(nodeId)||this.engine?.nodeIndex?.get(currentId)||getCampNode(currentId)||getCampNode(CAMP_WORLD.startId);
+  const region=getCampRegion(node?.regionId)||(Number.isFinite(node?.x)&&Number.isFinite(node?.y)?getCampRegionAt(node):null)||getCampRegion('wilds');
+  const destination=typeof node?.locationId==='string'&&Object.hasOwn(CAMP_DESTINATIONS,node.locationId)&&CAMP_DESTINATIONS[node.locationId].nodeId?CAMP_DESTINATIONS[node.locationId]:Object.values(CAMP_DESTINATIONS).find(value=>value.nodeId&&value.nodeId===node?.id);
+  return {nodeId:node.id,regionId:region.id,regionName:region.name,terrainId:Object.hasOwn(CAMP_TERRAINS,node.terrain)?node.terrain:'normal',destinationId:destination?.id??null};
  }
+ battleContext(nodeId){const context=this.nodeContext(nodeId);return {region:'camp',campRegionId:context.regionId,campRegionName:context.regionName,campTerrainId:context.terrainId,campNodeId:context.nodeId,campDestinationId:context.destinationId,timeOfDay:'day'};}
+ setCampLocation(nodeId){this.game.setLocation(this.nodeContext(nodeId).regionName);}
+ refresh(){const g=this.game,key=JSON.stringify([g.scene,g.house.getConsecutiveRelaxActions(),g.session.state.camp,g.session.state.pendingAngerEvent]);if(this.preparationKey!==key){this.preparationKey=key;this.ui.refresh();}}
+ mountActionArea(){this.actionArea.append(this.game.battleUI.panel);this.actionArea.hidden=false;}
  setStatus(phase='travel'){
   const night=phase==='night',ended=done.has(phase);
   this.statusPanel.querySelector('strong').textContent=ended?'今回の探索を終える':night?'ふたりで、ひと休み':'ふたりの探索を見守る';
@@ -58,12 +55,12 @@ export class CampRuntime{
   this.emit({type:'departure',day:1,activityHours:0,nodeId:CAMP_WORLD.startId,cost:result.calmPointsCost,destination});
   g.pendingEncounter=null;g.departureDestination={kind:'camp'};g.sync();g.startSceneCutin('departure');return result;
  }
- begin(){const g=this.game;if(!this.active||!this.engine)return false;g.scene='camp';g.setLocation('未開の地');g.house.leaveHouse();g.homeElement.hidden=true;this.mountActionArea();g.view.clear();this.ui.show(this.engine.snapshot());this.setStatus();this.statusPanel.hidden=false;g.onCampStarted?.(this.entries);g.sync();return true;}
+ begin(){const g=this.game;if(!this.active||!this.engine)return false;g.scene='camp';this.setCampLocation();g.house.leaveHouse();g.homeElement.hidden=true;this.mountActionArea();g.view.clear();this.ui.show(this.engine.snapshot());this.setStatus();this.statusPanel.hidden=false;g.onCampStarted?.(this.entries);g.sync();return true;}
  checkpoint(){if(!this.engine)return;this.game.session.updateCampProgress({discovered:this.engine.snapshot().visited});this.game.onCampCheckpoint?.();}
  onEvent(event){
   if(!this.active)return;this.emit(event);
   if(event.type==='heal'){this.hp=event.hp;this.maxHp=event.maxHp;}
-  if(event.type==='arrive')this.checkpoint();
+  if(event.type==='arrive'){this.setCampLocation(event.nodeId);this.checkpoint();}
   else if(event.type==='encounter')this.startEncounter(event);
   else if(event.type==='night')this.startNight();
   else if(event.type==='final')this.startFinal();
@@ -77,11 +74,11 @@ export class CampRuntime{
   const state=this.engine.tick(dt,{hp:this.hp,maxHp:this.maxHp});this.hp=state.hp;this.maxHp=state.maxHp;this.ui.update(state);return true;
  }
  startNight(){const g=this.game;if(!this.engine||g.scene!=='camp')return;g.scene='camp-night';this.setStatus('night');this.ui.hide();g.view.clear();this.night.start({player:g.session.player});g.sync();this.checkpoint();}
- wake(){const g=this.game;if(!this.active||g.scene!=='camp-night'||this.engine?.snapshot().phase!=='night')return;this.night.hide();g.view.clear();g.scene='camp';this.setStatus();this.ui.show(this.engine.snapshot());this.engine.resumeAfterNight();this.ui.update(this.engine.snapshot());this.checkpoint();g.sync();}
+ wake(){const g=this.game;if(!this.active||g.scene!=='camp-night'||this.engine?.snapshot().phase!=='night')return;this.night.hide();g.view.clear();g.scene='camp';this.setCampLocation();this.setStatus();this.ui.show(this.engine.snapshot());this.engine.resumeAfterNight();this.ui.update(this.engine.snapshot());this.checkpoint();g.sync();}
  startEncounter(event){
-  const g=this.game,enemy=chooseCampEncounter(g.session.player.level,CREATURES,()=>g.session.random());
+  const g=this.game,context=this.nodeContext(event?.nodeId),enemy=chooseCampEncounter(g.session.player.level,CREATURES,()=>g.session.random(),context);
   if(!enemy){this.engine.resolveEncounter({won:true,hp:this.hp,maxHp:this.maxHp});return;}
-  this.statusPanel.hidden=true;this.ui.update(this.engine.snapshot());g.startBattle(enemy,{encounterType:'camp',campEmbedded:true,region:'forest',timeOfDay:'day',playerHp:this.hp});
+  this.statusPanel.hidden=true;this.ui.update(this.engine.snapshot());g.startBattle(enemy,{encounterType:'camp',campEmbedded:true,...this.battleContext(context.nodeId),playerHp:this.hp});
  }
  startFinal(){
   const g=this.game;if(!this.active||this.finalStarted||this.finalIntro||!this.engine)return false;
@@ -107,7 +104,7 @@ export class CampRuntime{
   const level=Math.max(species.levelBand?.min||1,Math.min(species.levelBand?.max||106,g.session.player.level+3));
   this.emit({type:'guardian',name:species.name,nodeId:s.nodeId,day:s.day,activityHours:s.activityHours});
   this.ui.hide();this.night.hide();this.statusPanel.hidden=true;
-  g.startBattle({speciesId:id,level,id:'camp-guardian'},{encounterType:'camp-final',region:'forest',timeOfDay:'day',playerHp:this.hp});return true;
+  g.startBattle({speciesId:id,level,id:'camp-guardian'},{encounterType:'camp-final',...this.battleContext(s.nodeId),playerHp:this.hp});return true;
  }
  onMessageClosed(payload){
   const pending=this.finalIntro,token=payload?.campFinalIntro;
@@ -120,7 +117,7 @@ export class CampRuntime{
   this.maxHp=playerStats(g.session.player).hp;this.hp=Math.min(snapshot.player.hp,this.maxHp);
   if(!g.session.finishCampBattle()){this.settling=false;return false;}
   for(const unlock of snapshot.rewards?.superUnlocks||[])g.session.acknowledgeSuperUnlock(unlock.id);
-  g.battleUI.deactivate();g.scene='camp';g.setLocation('未開の地');g.resultDelay=null;this.statusPanel.hidden=false;
+  g.battleUI.deactivate();g.scene='camp';this.setCampLocation();g.resultDelay=null;this.statusPanel.hidden=false;
   // Commit real rewards while no battle exists: resolving the journey may
   // synchronously start its final battle and close the checkpoint window.
   this.checkpoint();
@@ -133,6 +130,6 @@ export class CampRuntime{
   const afterBattle=this.hadBattle;if(!g.session.endCamp({afterBattle}))return false;
   this.deactivate();g.scene='house';g.setLocation('おこていゆハウス');g.house.arriveFromOutside({afterBattle});g.view.setHouse();g.messages=[];g.clearMessage();g.sync();return true;
  }
- deactivate(){this.active=false;this.serial++;this.finalIntro=null;this.ui.hide();this.night.hide();this.statusPanel.hidden=true;this.actionArea.hidden=true;delete this.game.battleUI.hud.dataset.campPlayerHpExternal;this.game.homeElement.after(this.game.battleUI.panel);}
- destroy(){this.deactivate();this.ui.destroy();this.night.destroy();releasePaintedLabels(this.actionArea);this.actionArea.remove();}
+ deactivate(){this.active=false;this.serial++;this.finalIntro=null;this.ui.hide();this.night.hide();this.statusPanel.hidden=true;this.actionArea.hidden=true;this.game.homeElement.after(this.game.battleUI.panel);}
+ destroy(){this.deactivate();this.ui.destroy();this.night.destroy();this.actionArea.remove();}
 }

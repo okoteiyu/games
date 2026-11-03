@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちものと共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 165,
-  "totalBytes": 159428168,
+  "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形と共通UI画像。専用確認ページだけの素材は除外。",
+  "fileCount": 172,
+  "totalBytes": 159822009,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -1323,6 +1323,62 @@
       "bytes": 4896,
       "priority": 3,
       "sha256": "03a97963449c861be543bcbf09656259540b291ecd9d465d197c830c2ba72f68"
+    },
+    {
+      "url": "assets/camp/r225-world-atlas.webp",
+      "label": "キャンプ探索地の背景",
+      "type": "image",
+      "bytes": 385314,
+      "priority": 3,
+      "sha256": "6fb7ef52ca511660de41e30a6e38242d3cd6073c66ae4ba613a3222a151c5a1c"
+    },
+    {
+      "url": "assets/camp/terrain-normal.svg",
+      "label": "通常エリアの地形",
+      "type": "image",
+      "bytes": 1264,
+      "priority": 3,
+      "sha256": "f9cedbc80c059f0efd73b68a51dd406da9a696c0d443c05821ac342c0eb3f2c7"
+    },
+    {
+      "url": "assets/camp/terrain-rough.svg",
+      "label": "悪路エリアの地形",
+      "type": "image",
+      "bytes": 1378,
+      "priority": 3,
+      "sha256": "642de4291831923346c00e7a86b0bcc294eb06ef807bfd77906974a5ab29df32"
+    },
+    {
+      "url": "assets/camp/terrain-cliff.svg",
+      "label": "崖の地形",
+      "type": "image",
+      "bytes": 1415,
+      "priority": 3,
+      "sha256": "a65771fea186448353d511b2d11c8046bb85f9a0dd8e70c2b4a678e5213c38a9"
+    },
+    {
+      "url": "assets/camp/terrain-gas.svg",
+      "label": "毒ガスの地形",
+      "type": "image",
+      "bytes": 1495,
+      "priority": 3,
+      "sha256": "8af02f751a53787ffdfbbc0467abb0dda5da71159273ded3b1ec20915db38b0c"
+    },
+    {
+      "url": "assets/camp/terrain-cave.svg",
+      "label": "洞窟の地形",
+      "type": "image",
+      "bytes": 1539,
+      "priority": 3,
+      "sha256": "c2f6c739889215913a73c958764bc2ed13fce2703ad0d9094c6bce857bf4dec0"
+    },
+    {
+      "url": "assets/camp/terrain-poor_visibility.svg",
+      "label": "見通し不良の地形",
+      "type": "image",
+      "bytes": 1436,
+      "priority": 3,
+      "sha256": "78fb74ff0ce77687099466110f26ca65957879c261447bd98b320d5893284358"
     }
   ]
 }

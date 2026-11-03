@@ -1,6 +1,7 @@
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode} from './camp-world.js';
 import {createPatrolMap} from './patrol-map.js';
 import {CampMapRenderer} from './camp-map-renderer.js';
+import {getCampRegion} from './camp-regions.js';
 const PATROL_MAP=createPatrolMap();
 const PATROL_BY_ID=new Map(PATROL_MAP.nodes.map(node=>[node.id,node]));
 
@@ -17,7 +18,7 @@ export class CampMap{
   Object.assign(this,{element,onCamp,onNodeSelect,interactive,follow});this.discovered=new Set();this.pointers=new Map();this.zoom=1;this.pan={x:0,y:0};this.state={};this.dirty=true;this.pendingDraw=true;this.visible=false;this.autoFollow=follow;this.destroyed=false;
   this.root=document.createElement('div');this.root.className='camp-map';this.root.dataset.interactive=String(interactive);
   this.canvas=document.createElement('canvas');this.canvas.className='camp-map__canvas';this.canvas.tabIndex=interactive?0:-1;this.canvas.setAttribute('role','img');this.canvas.setAttribute('aria-label','森林の奥へ続くワールドマップ。未到達の土地には黒い雲がかかっています。');
-  this.root.append(this.canvas);element.append(this.root);this.context=this.canvas.getContext('2d');this.staticCanvas=document.createElement('canvas');this.staticContext=this.staticCanvas.getContext('2d');this.renderer=new CampMapRenderer();
+  this.root.append(this.canvas);element.append(this.root);this.context=this.canvas.getContext('2d');this.staticCanvas=document.createElement('canvas');this.staticContext=this.staticCanvas.getContext('2d');this.renderer=new CampMapRenderer({onInvalidate:()=>{if(!this.destroyed)this.invalidate();}});
   this.patrolBackground=new Image();this.patrolBackground.onload=()=>{if(!this.destroyed)this.invalidate();};this.patrolBackground.src=new URL(PATROL_MAP.backgroundUrl,import.meta.url).href;
   this.controls=document.createElement('div');this.controls.className='camp-map__controls';this.controls.innerHTML='<button type="button" data-camp-zoom="in" aria-label="マップを拡大">＋</button><button type="button" data-camp-zoom="out" aria-label="マップを縮小">−</button><button type="button" data-camp-zoom="current" aria-label="現在位置を表示">◎</button><button type="button" data-camp-zoom="all" aria-label="マップ全体を表示">全体</button>';this.root.append(this.controls);
   this.legend=document.createElement('div');this.legend.className='camp-map__legend';this.legend.innerHTML=Object.entries(TERRAINS).map(([id,t])=>'<span><i style="--terrain:'+t.color+'"></i>'+t.label+'</span>').join('');this.root.append(this.legend);
@@ -34,6 +35,7 @@ export class CampMap{
    const values=visited instanceof Set?[...visited]:Array.isArray(visited)?visited:Object.keys(visited),next=new Set(values);
    if(next.size!==this.discovered.size||[...next].some(id=>!this.discovered.has(id))){this.discovered=next;this.discoveryKey=values.join('|');this.renderer.setDiscovered(next);this.dirty=true;}
   }
+  if(Object.hasOwn(state,'nodeId')){const current=nodeAt(state.nodeId),region=getCampRegion(current?.regionId);if(region)this.note.textContent=region.name;}
   const s=this.state;this.drawStateKey=[s.nodeId||CAMP_WORLD.startId,s.nextNodeId||'',clamp(Number(s.travelProgress)||0,0,1),s.phase||'',s.day??'',s.targetId||''].join('|');
   if(before===this.drawStateKey&&!this.dirty)return;
   if((this.follow||this.autoFollow)&&this.width)this.ensureVisible();this.requestDraw();
@@ -75,12 +77,12 @@ export class CampMap{
   event.preventDefault();event.stopPropagation();const candidate=this.tapCandidate;this.tapCandidate=null;
   if(this.interactive&&candidate&&!this.pointers.size&&!this.destroyed)this.tap(candidate);
  }
- tap(point){const start=nodeAt(CAMP_WORLD.startId)||nodes[0],s=this.project(start),rect=this.patrolRect();if(Math.hypot(point.x-s.x,point.y-s.y)<24||point.x>=rect.x&&point.x<=rect.x+rect.w&&point.y>=rect.y&&point.y<=rect.y+rect.h){this.onCamp({nodeId:CAMP_WORLD.startId});return;}let best=null,bestD=20;for(const node of nodes){const p=this.project(node),d=Math.hypot(p.x-point.x,p.y-point.y);if(d<bestD){bestD=d;best=node;}}if(best){this.onNodeSelect(best);this.note.textContent=best.id===CAMP_DESTINATIONS.moai_village?.nodeId?'モアイ郷':this.discovered.has(best.id)?TERRAINS[best.terrain]?.label||'未開の地':'まだ訪れていない土地';}this.onCamp({nodeId:best?.id??null,source:best?'node':'terrain'});}
+ tap(point){const start=nodeAt(CAMP_WORLD.startId)||nodes[0],s=this.project(start),rect=this.patrolRect();if(Math.hypot(point.x-s.x,point.y-s.y)<24||point.x>=rect.x&&point.x<=rect.x+rect.w&&point.y>=rect.y&&point.y<=rect.y+rect.h){this.onCamp({nodeId:CAMP_WORLD.startId});return;}let best=null,bestD=20;for(const node of nodes){const p=this.project(node),d=Math.hypot(p.x-point.x,p.y-point.y);if(d<bestD){bestD=d;best=node;}}if(best){this.onNodeSelect(best);this.note.textContent=best.id===CAMP_DESTINATIONS.moai_village?.nodeId?'モアイ郷':this.discovered.has(best.id)?(getCampRegion(best.regionId)?.name||'未開の地')+' · '+(TERRAINS[best.terrain]?.label||'通常'):'まだ訪れていない土地';}this.onCamp({nodeId:best?.id??null,source:best?'node':'terrain'});}
  patrolRect(){const start=nodeAt(CAMP_WORLD.startId)||nodes[0],p=this.project({x:start.x-210,y:start.y+85});return{x:p.x,y:p.y,w:420*this.zoom,h:300*this.zoom};}
  drawStatic(){
   const c=this.staticContext;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);
   if(!this.backgroundGradient){const bg=c.createLinearGradient(0,0,this.width,this.height);bg.addColorStop(0,'#e8edda');bg.addColorStop(1,'#d7e0c7');this.backgroundGradient=bg;}
-  c.fillStyle=this.backgroundGradient;c.fillRect(0,0,this.width,this.height);this.renderer.drawNetwork(c,this);this.drawFog(c);this.drawPatrol(c);
+  c.fillStyle=this.backgroundGradient;c.fillRect(0,0,this.width,this.height);this.renderer.drawBackground(c,this);this.renderer.drawNetwork(c,this);this.renderer.drawRegionLabels(c,this);this.drawFog(c);this.drawPatrol(c);
   const destination=CAMP_DESTINATIONS.moai_village,moai=nodeAt(destination?.nodeId);
   if(moai){const p=this.project(moai);if(p.x>-100&&p.x<this.width+100&&p.y>-50&&p.y<this.height+50){c.fillStyle='#fdf5d8';c.strokeStyle='#9d8259';c.lineWidth=1;c.beginPath();c.roundRect(p.x-34,p.y-30,68,23,6);c.fill();c.stroke();c.font='600 11px sans-serif';c.textAlign='center';c.fillStyle='#6d583d';c.fillText('モアイ郷',p.x,p.y-14);c.beginPath();c.moveTo(p.x,p.y-7);c.lineTo(p.x,p.y);c.stroke();}}
   this.dirty=false;

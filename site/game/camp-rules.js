@@ -1,5 +1,5 @@
 import {CAMP_WORLD,getCampNode} from './camp-world.js';
-export const BAG_WIDTH=6,BAG_HEIGHT=5,CAMP_MAX_DAYS=15;
+export const BAG_WIDTH=6,BAG_HEIGHT=6,CAMP_MAX_DAYS=15;
 const supply=(id,name,width,height,repeatable,description,color,icon)=>Object.freeze({id,name,width,height,repeatable,description,color,icon});
 export const CAMP_SUPPLIES=Object.freeze({
  food:supply('food','携帯食料',1,2,true,'1個で1日分の行動ができる。「あなた」の分は消費しない。何個でも持ち込める。','#d4ab67','▣'),
@@ -53,12 +53,12 @@ export function normalizeCampProgress(value){
 }
 /** One copy protects the party; multiple goggles do not stack the multiplier. */
 export function canTraverseCampNode(node,counts){
- if(!node||!counts||!['normal','rough','cliff','gas'].includes(node.terrain))return false;
- if(node.cave&&!counts.flashlight)return false;
- if(node.poorVisibility&&!counts.goggles)return false;
+ if(!node||!counts||!['normal','rough','cliff','gas','cave','poor_visibility'].includes(node.terrain))return false;
+ if((node.terrain==='cave'||node.cave)&&!counts.flashlight)return false;
+ if((node.terrain==='poor_visibility'||node.poorVisibility)&&!counts.goggles)return false;
  if(node.terrain==='rough'&&!counts.gloves)return false;
  if(node.terrain==='cliff'&&!counts.rope)return false;
  if(node.terrain==='gas'&&!counts.mask)return false;
  return true;
 }
-export function campTraversalConsumption(node){return {rope:node?.terrain==='cliff'?1:0,mask:node?.terrain==='gas'?1:0,goggles:node?.poorVisibility?1:0};}
+export function campTraversalConsumption(node){return {rope:node?.terrain==='cliff'?1:0,mask:node?.terrain==='gas'?1:0,goggles:node?.terrain==='poor_visibility'||node?.poorVisibility?1:0};}

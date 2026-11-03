@@ -260,7 +260,7 @@ export class GameRuntime {
  }
  startBattle(enemy,stage={}){
   if(this.story?.active&&!this.story.battlePending)return false;
-  this.patrol.suspendForBattle();this.scene='battle';this.setLocation(stage.encounterType==='camp'?'未開の地':stage.encounterType==='training'?(TRAINING_COURSES[stage.trainingTier]?.label||'訓練（易）'):'戦闘');
+  this.patrol.suspendForBattle();this.scene='battle';this.setLocation(['camp','camp-final'].includes(stage.encounterType)?stage.campRegionName||'未開の地':stage.encounterType==='training'?(TRAINING_COURSES[stage.trainingTier]?.label||'訓練（易）'):'戦闘');
   this.resultCutinComplete=false;this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;const snapshot=this.session.startBattle(enemy,{kind:['camp','camp-final','story','training'].includes(stage.encounterType)?stage.encounterType:'patrol',...(Number.isFinite(stage.playerHp)?{playerHp:stage.playerHp}:{})});this.resultDelay=null;this.battleUI.start(snapshot,{...stage,presentationId:'battle-'+(++this.battlePresentationSerial)});this.sync();return snapshot;
  }
  requestBattleAction(id){if(this.scene!=='battle'||this.isPaused()||document.hidden||!this.battleUI.ready)return {ok:false,reason:'paused'};const result=this.session.requestBattleAction(id);this.battleUI.setSnapshot(this.session.snapshotBattle());return result;}
