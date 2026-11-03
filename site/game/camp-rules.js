@@ -2,7 +2,7 @@ import {CAMP_WORLD,getCampNode} from './camp-world.js';
 export const BAG_WIDTH=6,BAG_HEIGHT=5,CAMP_MAX_DAYS=15;
 const supply=(id,name,width,height,repeatable,description,color,icon)=>Object.freeze({id,name,width,height,repeatable,description,color,icon});
 export const CAMP_SUPPLIES=Object.freeze({
- food:supply('food','携帯食料',1,2,true,'1個で1日分の行動ができる。何個でも持ち込める。','#d4ab67','▣'),
+ food:supply('food','携帯食料',1,2,true,'1個で1日分の行動ができる。「あなた」の分は消費しない。何個でも持ち込める。','#d4ab67','▣'),
  flashlight:supply('flashlight','懐中電灯',1,2,false,'洞窟のルートを進める。1日の活動時間が16時間になる。','#dfc770','☼'),
  phone:supply('phone','スマホ',1,1,false,'出発時に使う穏やかポイントを2減らす。','#8da9bb','▯'),
  battery:supply('battery','バッテリー',1,1,false,'出発時に使う穏やかポイントをさらに1減らす。','#7f9c8f','▰'),

@@ -5,6 +5,7 @@ import {chooseCampEncounter} from './camp-encounters.js';
 import {CAMP_WORLD,CAMP_DESTINATIONS} from './camp-world.js';
 import {CREATURES,playerStats} from './game-session.js';
 import {isBuildingVisitScene} from './interior-rules.js';
+import {setPaintedText,releasePaintedLabels} from './painted-label.js';
 
 const done=new Set(['failed','finished']);
 /** Keeps exploration presentation separate from ordinary battles and saves. */
@@ -16,13 +17,26 @@ export class CampRuntime{
    onSaveBag:(slot,bag)=>{const ok=game.session.setCampBag(slot,bag);game.sync();return ok;},
    onSelectBag:slot=>{const ok=game.session.selectCampBag(slot);game.sync();return ok;}});
   this.night=new CampNightView({container:game.view.surface,isPaused:()=>game.isPaused(),onComplete:()=>this.wake(),onError:()=>game.toast('夜の3D表示を再試行してください。探索の時計は止まっています。')});
-  this.statusPanel=document.createElement('section');this.statusPanel.className='camp-progress-panel';this.statusPanel.hidden=true;this.statusPanel.innerHTML='<span class="camp-progress-panel__icon" aria-hidden="true">⌁</span><strong>ふたりの探索を見守る</strong><p>物資を使いながら、未開の地を進んでいます。</p><button type="button">ワールドマップ</button>';game.homeElement.after(this.statusPanel);this.statusPanel.querySelector('button').addEventListener('click',event=>this.ui.openWorldMap(event.currentTarget));
+  this.actionArea=document.createElement('section');this.actionArea.id='campActionArea';this.actionArea.className='lower-right camp-actions';this.actionArea.hidden=true;this.actionArea.setAttribute('aria-label','キャンプ中のおこていゆ');
+  this.health=document.createElement('section');this.health.className='battle-hp camp-health';this.health.dataset.campPlayerHp='';this.health.innerHTML='<header><strong>おこていゆ</strong><span></span></header><div class="battle-hp__meter" role="progressbar" aria-label="おこていゆのHP" aria-valuemin="0" aria-valuemax="100"><i></i></div><footer><span class="battle-hp__value"></span><small>HP</small></footer>';
+  this.statusPanel=document.createElement('section');this.statusPanel.className='camp-progress-panel';this.statusPanel.hidden=true;this.statusPanel.innerHTML='<span class="camp-progress-panel__icon" aria-hidden="true">⌁</span><strong>ふたりの探索を見守る</strong><p>物資を使いながら、未開の地を進んでいます。</p><button type="button">ワールドマップ</button>';this.actionArea.append(this.health,this.statusPanel);game.homeElement.after(this.actionArea);this.statusPanel.querySelector('button').addEventListener('click',event=>this.ui.openWorldMap(event.currentTarget));
  }
  canBrowse(){const g=this.game;return Boolean(!g.story?.active&&g.session.state.visitorName&&g.isHouseReady()&&!g.session.state.pendingAngerEvent&&!g.pendingCutin&&!g.isMessageVisible()&&(g.scene==='house'||isBuildingVisitScene(g.scene)||['camp','camp-night'].includes(g.scene)));}
  canDepart(){const g=this.game;return Boolean(g.scene==='house'&&g.session.state.location==='home'&&g.session.state.visitorName&&g.isHouseReady()&&!g.story?.active&&!g.session.state.pendingAngerEvent&&!g.pendingCutin&&!g.isMessageVisible());}
  open(opener){return this.ui.open(opener);}
  openWorldMap(opener){return this.ui.openWorldMap(opener);}
- refresh(){const g=this.game,key=JSON.stringify([g.scene,g.house.getConsecutiveRelaxActions(),g.session.state.camp,g.session.state.pendingAngerEvent]);if(this.preparationKey!==key){this.preparationKey=key;this.ui.refresh();}}
+ refresh(){this.updateHealth();const g=this.game,key=JSON.stringify([g.scene,g.house.getConsecutiveRelaxActions(),g.session.state.camp,g.session.state.pendingAngerEvent]);if(this.preparationKey!==key){this.preparationKey=key;this.ui.refresh();}}
+ mountActionArea(){this.actionArea.append(this.game.battleUI.panel);this.game.battleUI.hud.dataset.campPlayerHpExternal='true';this.actionArea.hidden=false;this.updateHealth();}
+ updateHealth(){
+  if(!this.active||this.actionArea.hidden)return;
+  const battle=['camp','camp-final'].includes(this.game.session.state.battle?.kind)?this.game.session.snapshotBattle():null;
+  const player=battle?.player,max=Math.max(.1,player?.maxHp??this.maxHp??1),hp=Math.max(0,Math.min(max,player?.hp??this.hp??max)),level=player?.level??this.game.session.player.level;
+  const key=JSON.stringify([hp,max,level]);if(key===this.healthKey)return;this.healthKey=key;
+  const format=value=>value.toLocaleString('ja-JP',{maximumFractionDigits:1}),ratio=hp/max;
+  setPaintedText(this.health.querySelector('header>span'),'Lv.'+level,{background:'#f8f4e9'});setPaintedText(this.health.querySelector('.battle-hp__value'),format(hp)+' / '+format(max),{background:'#f8f4e9'});
+  this.health.dataset.hp=String(hp);this.health.dataset.maxHp=String(max);this.health.classList.toggle('is-low',ratio<=.25);
+  const meter=this.health.querySelector('[role="progressbar"]');meter.setAttribute('aria-valuenow',String(Math.round(ratio*100)));meter.setAttribute('aria-label','おこていゆのHP '+format(hp)+' / '+format(max));meter.querySelector('i').style.width=ratio*100+'%';
+ }
  setStatus(phase='travel'){
   const night=phase==='night',ended=done.has(phase);
   this.statusPanel.querySelector('strong').textContent=ended?'今回の探索を終える':night?'ふたりで、ひと休み':'ふたりの探索を見守る';
@@ -39,7 +53,7 @@ export class CampRuntime{
   this.emit({type:'departure',day:1,activityHours:0,nodeId:CAMP_WORLD.startId,cost:result.calmPointsCost,destination});
   g.pendingEncounter=null;g.departureDestination={kind:'camp'};g.sync();g.startSceneCutin('departure');return result;
  }
- begin(){const g=this.game;if(!this.active||!this.engine)return false;g.scene='camp';g.setLocation('未開の地');g.house.leaveHouse();g.homeElement.hidden=true;g.view.clear();this.ui.show(this.engine.snapshot());this.setStatus();this.statusPanel.hidden=false;g.onCampStarted?.(this.entries);g.sync();return true;}
+ begin(){const g=this.game;if(!this.active||!this.engine)return false;g.scene='camp';g.setLocation('未開の地');g.house.leaveHouse();g.homeElement.hidden=true;this.mountActionArea();g.view.clear();this.ui.show(this.engine.snapshot());this.setStatus();this.statusPanel.hidden=false;g.onCampStarted?.(this.entries);g.sync();return true;}
  checkpoint(){if(!this.engine)return;this.game.session.updateCampProgress({discovered:this.engine.snapshot().visited});this.game.onCampCheckpoint?.();}
  onEvent(event){
   if(!this.active)return;this.emit(event);
@@ -91,6 +105,6 @@ export class CampRuntime{
   const afterBattle=this.hadBattle;if(!g.session.endCamp({afterBattle}))return false;
   this.deactivate();g.scene='house';g.setLocation('おこていゆハウス');g.house.arriveFromOutside({afterBattle});g.view.setHouse();g.messages=[];g.clearMessage();g.sync();return true;
  }
- deactivate(){this.active=false;this.serial++;this.ui.hide();this.night.hide();this.statusPanel.hidden=true;}
- destroy(){this.deactivate();this.ui.destroy();this.night.destroy();this.statusPanel.remove();}
+ deactivate(){this.active=false;this.serial++;this.ui.hide();this.night.hide();this.statusPanel.hidden=true;this.actionArea.hidden=true;delete this.game.battleUI.hud.dataset.campPlayerHpExternal;this.game.homeElement.after(this.game.battleUI.panel);}
+ destroy(){this.deactivate();this.ui.destroy();this.night.destroy();releasePaintedLabels(this.actionArea);this.actionArea.remove();}
 }

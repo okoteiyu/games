@@ -114,6 +114,21 @@
 
 .camp-progress-panel{min-height:0;align-self:stretch;padding:12px 9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;border:1px solid #bac69b;border-radius:9px;background:linear-gradient(145deg,#eef2dc,#fbf7e9);text-align:center;color:#63734f}.camp-progress-panel[hidden]{display:none}.camp-progress-panel__icon{font-size:28px;color:#97a76c}.camp-progress-panel strong{font-size:clamp(11px,3vw,15px)}.camp-progress-panel p{margin:0;font-size:11px;line-height:1.7}.camp-progress-panel button{min-height:34px;border:1px solid #b9c49d;border-radius:7px;background:#fffdf3;color:#6f795b;font:600 11px system-ui;padding:5px 8px}
 
+/* One persistent HP card stays above travel, camping and battle controls. */
+.camp-actions{display:grid;grid-template-rows:auto minmax(0,1fr);gap:6px;min-inline-size:0;min-block-size:0;padding:8px;overflow:hidden;container:camp-actions/size;}
+.camp-actions[hidden]{display:none;}
+.camp-health{align-self:start;padding:5px 7px;border-radius:8px 3px;background:#f8f4e9;box-shadow:0 1px 3px #394b4312;}
+.camp-health header strong{font-size:clamp(9px,6.6cqi,12px);line-height:1.2;}
+.camp-health header>span,.camp-health footer{font-size:clamp(8px,5.8cqi,10px);}
+.camp-health footer small{font-size:clamp(7px,5.2cqi,9px);letter-spacing:0;}
+.camp-actions>.camp-progress-panel{min-inline-size:0;overflow:auto;padding:8px 5px;gap:7px;}
+.camp-actions>.battle-actions{inline-size:100%;block-size:100%;min-inline-size:0;min-block-size:0;}
+.camp-actions>.battle-actions--camp{grid-template-rows:minmax(0,1fr);padding:0;border:0;background:none;}
+.camp-actions .battle-hud--camp{display:none!important;}
+.battle-hud[data-camp-player-hp-external=true]>.battle-hp--player{display:none;}
+.battle-hud[data-camp-player-hp-external=true]>.battle-hud__opponents{grid-column:2;}
+@container camp-actions (max-height:180px){.camp-actions>.camp-progress-panel{gap:3px;padding:4px}.camp-progress-panel__icon{display:none}.camp-actions>.camp-progress-panel p{font-size:10px;line-height:1.4}.camp-actions>.camp-progress-panel strong{font-size:10px}.camp-actions>.camp-progress-panel button{min-height:27px}.camp-health{padding:3px 5px}.camp-health header strong,.camp-health header>span,.camp-health footer{font-size:8px}.camp-health .battle-hp__meter{height:4px;margin-top:2px}.camp-health footer{margin-top:2px}}
+
 /* Keep the live atlas clear of the game's persistent message-replay button.
    Full atlas controls stay in its dialog; pinch/wheel remain available here. */
 .camp-live__map .camp-map__controls { display:none; }

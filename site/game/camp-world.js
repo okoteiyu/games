@@ -1,5 +1,5 @@
-/** A deterministic prototype world; its art coordinates do not consume gameplay RNG. */
-const COLS=25,ROWS=28,SPACING=140;
+import {CAMP_WORLD_POINTS,CAMP_WORLD_CONNECTIONS} from './camp-world-data.js';
+/** Authored wilderness geometry is stable and never consumes the game's RNG. */
 const terrainIds=['normal','rough','cliff','gas'];
 export const CAMP_TERRAINS=Object.freeze({
  normal:Object.freeze({id:'normal',name:'通常エリア',label:'通常',hours:6,color:'#79ad8a'}),
@@ -7,37 +7,19 @@ export const CAMP_TERRAINS=Object.freeze({
  cliff:Object.freeze({id:'cliff',name:'崖の険しいエリア',label:'崖',hours:8,color:'#9289b6'}),
  gas:Object.freeze({id:'gas',name:'毒ガスエリア',label:'毒ガス',hours:8,color:'#bc83a5'})
 });
-const idAt=(row,col)=>'wild-'+String(row*COLS+col).padStart(3,'0');
-const hash=(a,b)=>{let n=Math.imul(a+41,374761393)^Math.imul(b+73,668265263);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967296;};
+const nodeId=index=>'wild-'+String(index).padStart(3,'0');
 function buildWorld(){
- const nodes=[],edges=[],startId=idAt(ROWS-1,Math.floor(COLS/2));
- for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++){
-  const group=Math.floor(col/3),terrain=terrainIds[(row*3+group)%terrainIds.length],zone=(row*9+group)%23;
-  nodes.push({id:idAt(row,col),x:col*SPACING+42+(hash(row,col)-.5)*34,y:row*SPACING+42+(hash(col+87,row)-.5)*34,terrain,depth:-1,neighbors:[],cave:zone===5,poorVisibility:zone===12});
- }
+ const startId='wild-687',goalId='wild-413';
+ const nodes=CAMP_WORLD_POINTS.map(([x,y,terrain,cave,poorVisibility],index)=>({id:nodeId(index),x,y,terrain:terrainIds[terrain],depth:-1,neighbors:[],cave:Boolean(cave),poorVisibility:Boolean(poorVisibility)}));
  const byId=new Map(nodes.map(node=>[node.id,node]));
- const connect=(a,b)=>{byId.get(a).neighbors.push(b);byId.get(b).neighbors.push(a);edges.push([a,b]);};
- for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++){
-  if(col+1<COLS)connect(idAt(row,col),idAt(row,col+1));
-  if(row+1<ROWS)connect(idAt(row,col),idAt(row+1,col));
- }
- // A small ordinary approach lets an expedition enter the wilderness without
- // requiring every specialist supply on its first move.
- for(const [row,col]of [[27,12],[27,11],[27,10],[26,12],[25,12],[26,11]]){
-  Object.assign(byId.get(idAt(row,col)),{terrain:'normal',cave:false,poorVisibility:false});
- }
+ const edges=CAMP_WORLD_CONNECTIONS.map(([a,b])=>{nodes[a].neighbors.push(nodes[b].id);nodes[b].neighbors.push(nodes[a].id);return Object.freeze([nodes[a].id,nodes[b].id]);});
+ // A future starting point can have its own reachable component. Missing depths
+ // stay -1 rather than inventing a route through currently disconnected land.
  byId.get(startId).depth=0;const queue=[startId];
  for(let i=0;i<queue.length;i++)for(const nextId of byId.get(queue[i]).neighbors){const next=byId.get(nextId);if(next.depth>=0)continue;next.depth=byId.get(queue[i]).depth+1;queue.push(nextId);}
- // Locate the first named destination near eighty ordinary activity-hours away.
- // This value describes the prototype map, not a guaranteed selected route.
- const costs=new Map([[startId,0]]),unsettled=new Set(nodes.map(n=>n.id));
- while(unsettled.size){let current=null,best=Infinity;for(const id of unsettled){const v=costs.get(id)??Infinity;if(v<best){best=v;current=id;}}if(current===null)break;unsettled.delete(current);
-  for(const id of byId.get(current).neighbors){if(!unsettled.has(id))continue;const next=byId.get(id),v=best+CAMP_TERRAINS[next.terrain].hours;if(v<(costs.get(id)??Infinity))costs.set(id,v);}
- }
- const goal=nodes.filter(n=>n.id!==startId&&n.depth>=10&&n.depth<=15&&n.terrain==='normal'&&!n.cave&&!n.poorVisibility).sort((a,b)=>Math.abs(costs.get(a.id)-80)-Math.abs(costs.get(b.id)-80)||Math.abs(a.x-byId.get(startId).x)-Math.abs(b.x-byId.get(startId).x)||a.id.localeCompare(b.id))[0];
- goal.locationId='moai_village';goal.name='モアイ郷';
- const bounds={minX:-40,minY:-40,maxX:(COLS-1)*SPACING+130,maxY:(ROWS-1)*SPACING+130};
- return Object.freeze({id:'camp-world-01',schemaVersion:1,temporary:true,startId,origin:startId,nodes:Object.freeze(nodes.map(n=>Object.freeze({...n,neighbors:Object.freeze(n.neighbors)}))),edges:Object.freeze(edges.map(e=>Object.freeze(e))),bounds:Object.freeze(bounds),maxDegree:4,patrolAttachment:Object.freeze({x:byId.get(startId).x,y:bounds.maxY+330,width:730,height:480,name:'おこていゆハウス周辺',region:'forest'}),moaiVillageId:goal.id,moaiVillageBaseHours:costs.get(goal.id)});
+ Object.assign(byId.get(goalId),{locationId:'moai_village',name:'モアイ郷'});
+ const bounds={minX:Math.min(...nodes.map(n=>n.x))-120,minY:Math.min(...nodes.map(n=>n.y))-120,maxX:Math.max(...nodes.map(n=>n.x))+120,maxY:Math.max(...nodes.map(n=>n.y))+120};
+ return Object.freeze({id:'camp-world-01',schemaVersion:1,revision:'R215',temporary:true,startId,origin:startId,nodes:Object.freeze(nodes.map(node=>Object.freeze({...node,neighbors:Object.freeze(node.neighbors)}))),edges:Object.freeze(edges),bounds:Object.freeze(bounds),maxDegree:6,patrolAttachment:Object.freeze({x:byId.get(startId).x,y:byId.get(startId).y+330,width:730,height:480,name:'おこていゆハウス周辺',region:'forest'}),moaiVillageId:goalId,moaiVillageBaseHours:80});
 }
 export const CAMP_WORLD=buildWorld();
 const nodeIndex=new Map(CAMP_WORLD.nodes.map(node=>[node.id,node]));
