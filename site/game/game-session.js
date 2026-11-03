@@ -6,6 +6,8 @@ import {createStoryProgress,normalizeStoryProgress,hasStoryBattleReward,markStor
 import {createFacilityStaff,normalizeFacilityStaff,advanceFacilityStaffShift,setFacilityStaffPlacements,clearFacilityStaffPlacements} from './facility-staff.js';
 import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superConfigurationAcquisition,superConfigurationLevel,superConfigurationMaxLevel,superPrefixDamageMultipliers} from './super-prefix-rules.js';
 import {currentTimeOfDay} from './world-time.js';
+import {createCampProgress,normalizeCampProgress,validateCampBag,campDepartureCost} from './camp-rules.js';
+import {CAMP_DESTINATIONS} from './camp-world.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,validateSupportSelection,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 export {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,supportSelectionChange,validateSupportSelection,SUPPORT_SLOT_LIMIT,SUPPORT_TAG_LABELS,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 import {getRegionAt} from './patrol-map.js';
@@ -201,7 +203,7 @@ export function validateSessionState(saved){
  const interferenceUsedSinceBattle=saved.interferenceUsedSinceBattle===undefined?false:saved.interferenceUsedSinceBattle;
  if(typeof interferenceUsedSinceBattle!=='boolean')throw new TypeError('Interference lock must be boolean.');
  const patrolUsedSinceRecovery=saved.patrolUsedSinceRecovery??false;if(typeof patrolUsedSinceRecovery!=='boolean')throw new TypeError('Patrol cooldown must be boolean.');
- return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),story:normalizeStoryProgress(saved.story,{legacyInitial:legacyInitialStorySeed(saved)}),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount,facilityStaff:normalizeFacilityStaff(saved.facilityStaff)});
+ return clone({schemaVersion:1,visitorName:normalizeVisitorName(saved.visitorName),story:normalizeStoryProgress(saved.story,{legacyInitial:legacyInitialStorySeed(saved)}),player,angerPoints,...(pending?{pendingAngerEvent:true}:{}),commandsLocked:saved.commandsLocked,interferenceUsedSinceBattle,patrolUsedSinceRecovery,angerEvents,patrolCount,facilityStaff:normalizeFacilityStaff(saved.facilityStaff),camp:saved.camp===undefined?createCampProgress():normalizeCampProgress(saved.camp)});
 }
 
 /** Settle a preset story encounter into the real profile exactly once. A replay
@@ -241,7 +243,8 @@ export class GameSession{
  constructor({rng=Math.random,staffRng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
   if(typeof rng!=='function'||typeof staffRng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
   this.rng=rng;this.staffRng=staffRng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
-  this.state={schemaVersion:1,visitorName:null,location:'home',story:createStoryProgress(),player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined};
+  this.campHadBattle=false;
+  this.state={schemaVersion:1,visitorName:null,location:'home',story:createStoryProgress(),player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined,camp:createCampProgress()};
   if(state!==null)this.importState(state);
  }
  emit(type,detail={}){const event={type,...detail};this.eventLog.push(clone(event));if(this.eventLog.length>120)this.eventLog.shift();this.onEvent(event);return event;}
@@ -252,7 +255,45 @@ export class GameSession{
  commandAvailability(relaxStreak=0){
   const home=this.state.location==='home'&&!this.state.pendingAngerEvent,points=Number.isSafeInteger(relaxStreak)&&relaxStreak>=0?relaxStreak:0,interfereBonus=home&&this.state.interferenceBonusAvailable;
   const trainings=Object.fromEntries(Object.keys(TRAINING_COURSES).map(tier=>[tier,home&&points>=1&&eligibleTrainingCreatures(this.player,tier).length>0])),patrolAvailable=Object.values(CREATURES).some(c=>patrolSpeciesEligible(c,this.player.level,null,currentTimeOfDay(this.now())));
-  return {patrol:home&&points>=PATROL_CALM_COST&&patrolAvailable,patrolAvailable,training:trainings.easy,trainings,meal:home,research:home,rest:home,food:home,chair:home,bed:home,interfere:home&&(interfereBonus||points>=3),interfereBonus,commandsLocked:false,recovered:points>=3};
+  const campBag=this.state.camp.bags[this.state.camp.selectedBag],campCost=campDepartureCost(campBag),campPrepared=campBag.some(item=>item.supplyId==='food');
+  return {patrol:home&&points>=PATROL_CALM_COST&&patrolAvailable,patrolAvailable,camp:home&&Boolean(this.state.visitorName)&&campPrepared&&points>=campCost,campCost,campPrepared,training:trainings.easy,trainings,meal:home,research:home,rest:home,food:home,chair:home,bed:home,interfere:home&&(interfereBonus||points>=3),interfereBonus,commandsLocked:false,recovered:points>=3};
+ }
+ setCampBag(slot,placements){
+  if(this.state.location!=='home'||this.state.pendingAngerEvent||!Number.isInteger(slot)||slot<0||slot>2)return false;
+  let bag;try{bag=validateCampBag(placements);}catch{return false;}
+  const next=clone(this.state.camp);next.bags[slot]=bag;
+  try{this.state.camp=normalizeCampProgress(next);}catch{return false;}
+  this.emit('camp-bag-saved',{slot});return true;
+ }
+ selectCampBag(slot){
+  if(this.state.location!=='home'||this.state.pendingAngerEvent||!Number.isInteger(slot)||slot<0||slot>2)return false;
+  this.state.camp.selectedBag=slot;this.emit('camp-bag-selected',{slot});return true;
+ }
+ updateCampProgress({discovered,expeditions}={}){
+  if(!['home','camp'].includes(this.state.location)&&!(['camp','camp-final'].includes(this.state.battle?.kind)))return false;
+  if(discovered!==undefined&&!Array.isArray(discovered))return false;
+  if(expeditions!==undefined&&(!Number.isSafeInteger(expeditions)||expeditions<this.state.camp.expeditions))return false;
+  const next={...this.state.camp,discovered:discovered===undefined?this.state.camp.discovered:[...new Set([...this.state.camp.discovered,...discovered])],expeditions:expeditions??this.state.camp.expeditions};
+  try{this.state.camp=normalizeCampProgress(next);}catch{return false;}
+  this.emit('camp-progress');return true;
+ }
+ requestCamp({bag=this.state.camp.bags[this.state.camp.selectedBag],destination='none',relaxStreak=0,spendCalmPoints=null}={}){
+  if(this.state.location!=='home')return {ok:false,reason:'not-home'};
+  if(!this.state.visitorName)return {ok:false,reason:'visitor-name-required'};
+  if(this.state.pendingAngerEvent)return {ok:false,reason:'anger-event-pending'};
+  if(!Object.hasOwn(CAMP_DESTINATIONS,destination))return {ok:false,reason:'unknown-destination'};
+  let normalized;try{normalized=validateCampBag(bag);}catch{return {ok:false,reason:'invalid-bag'};}
+  if(!normalized.some(item=>item.supplyId==='food'))return {ok:false,reason:'food-required'};
+  const calmPointsCost=campDepartureCost(normalized);
+  if(!Number.isSafeInteger(relaxStreak)||relaxStreak<calmPointsCost)return {ok:false,reason:'not-enough-calm'};
+  let progress;try{progress=normalizeCampProgress({...this.state.camp,expeditions:this.state.camp.expeditions+1});}catch{return {ok:false,reason:'invalid-camp-progress'};}
+  // Unlike a UI-only reservation, a camp departure must commit the host's
+  // balance before changing scene or expedition history. No callback means no trip.
+  if(typeof spendCalmPoints!=='function')return {ok:false,reason:'calm-payment-required'};
+  if(spendCalmPoints(calmPointsCost)!==true)return {ok:false,reason:'not-enough-calm'};
+  this.state.location='camp';this.campHadBattle=false;this.state.camp=progress;
+  this.emit('camp-start',{calmPointsCost,calmCostCommitted:true,destination,expeditions:this.state.camp.expeditions});
+  return {ok:true,calmPointsCost,calmCostCommitted:true,bag:clone(normalized),destination};
  }
  requestInterference({relaxStreak=0,spendCalmPoints=null}={}){
   if(!this.commandAvailability(relaxStreak).interfere)return {ok:false,reason:'interference-unavailable'};
@@ -305,9 +346,10 @@ export class GameSession{
  advanceFacilityStaff(){this.state.facilityStaff=advanceFacilityStaffShift(this.state.facilityStaff,{rng:this.staffRng});this.emit('facility-staff-shift',{shiftIndex:this.state.facilityStaff.shiftIndex});return this.state.facilityStaff;}
  setFacilityStaffPlacements(placements){this.state.facilityStaff=setFacilityStaffPlacements(this.state.facilityStaff,placements);this.emit('facility-staff-placement');return this.state.facilityStaff;}
  clearFacilityStaffPlacements(ids=null){this.state.facilityStaff=clearFacilityStaffPlacements(this.state.facilityStaff,ids);this.emit('facility-staff-placement');return this.state.facilityStaff;}
- startBattle(encounter,{kind=this.state.location==='training'?'training':'patrol'}={}){
-  if(!['patrol','training','story'].includes(kind))throw new RangeError('Unsupported battle kind.');
+ startBattle(encounter,{kind=this.state.location==='training'?'training':this.state.location==='camp'?'camp':'patrol',playerHp}={}){
+  if(!['patrol','training','story','camp','camp-final'].includes(kind))throw new RangeError('Unsupported battle kind.');
   if(this.state.location==='battle')throw new Error('A battle is already open.');if(this.state.pendingAngerEvent)throw new Error('Finish the anger event first.');
+  if(playerHp!==undefined&&(typeof playerHp!=='number'||!Number.isFinite(playerHp)||playerHp<=0))throw new RangeError('A carried battle HP value must be positive and finite.');
   const members=Array.isArray(encounter)?encounter:encounter?.members||[encounter];integer(members.length,'opponent count',1,3);
   const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0,nextAttackDamageMultiplier:1});
   const enemies=members.map((enemy,index)=>{const speciesId=enemy?.speciesId||enemy?.creatureId;if(!Object.hasOwn(CREATURES,speciesId)||!Object.hasOwn(CREATURE_CATEGORIES,CREATURES[speciesId].category))throw new RangeError('Unsupported prototype opponent.');const level=integer(enemy.level,'opponent level',1,106);return {...actor(index?'enemy-'+(index+1):'enemy',speciesId,level,creatureStats(speciesId,level)),techniqueLevels:Object.fromEntries(CREATURES[speciesId].techniques.map(id=>[id,clampTechniqueLevel(id,level)])),sourceId:enemy.id||null};});
@@ -315,6 +357,7 @@ export class GameSession{
   const completedAttacks=Object.fromEntries(['player',...enemies.map(enemy=>enemy.id)].map(id=>[id,0]));
   const supports=createBattleSupports(this.player.equipment,this.player);
   const battle={kind,phase:'active',status:'active',time:0,player:actor('player','okoteiyu',this.player.level,applySuperStats(playerStatBase)),playerStatBase,completedAttacks,supports,support:supports.find(item=>item.id==='moai_kun')||null,enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
+  if(playerHp!==undefined)battle.player.hp=Math.min(battle.player.maxHp,playerHp);
   this.state.battle=battle;this.state.location='battle';
   for(const id of this.actorIds())this.combatant(id).nextActionAt=this.nextInterval(id);
   if(kind==='patrol')for(const enemy of enemies)recordJournalEncounter(this.player,enemy);
@@ -332,6 +375,7 @@ export class GameSession{
  }
  requestBattleTarget(id){
   const b=this.state.battle;if(!b||b.phase!=='active'||b.player.hp<=0)return {ok:false,reason:'not-battling'};
+  if(b.kind==='camp')return {ok:false,reason:'automatic-camp-battle'};
   if(this.isSuperAwakening())return {ok:false,reason:'awakening'};
   const target=b.enemies.find(enemy=>enemy.id===id);if(!target)return {ok:false,reason:'unknown-target'};
   if(target.hp<=0)return {ok:false,reason:'target-fatigued'};
@@ -349,6 +393,7 @@ export class GameSession{
 
  requestBattleAction(technique){
   const battle=this.state.battle;if(!battle||battle.phase!=='active')return {ok:false,reason:'not-battling'};
+  if(battle.kind==='camp')return {ok:false,reason:'automatic-camp-battle'};
   if(technique==='auto'){battle.player.requestedTechnique=null;this.emit('battle-call',{actor:'player',technique:'auto',time:battle.time});return {ok:true,queued:false};}
   if(technique==='super'){
    if(battle.super.used)return {ok:false,reason:'super-already-used'};
@@ -503,7 +548,7 @@ export class GameSession{
   // Aura draws occur only on a full win, once for every opponent.
   if(result==='win'){
    this.player.battlesWon++;let experience=0;const drops=[],opponents=[];
-   for(const enemy of b.enemies){if(b.kind==='training'||b.kind==='story')recordJournalEncounter(this.player,enemy);this.player.journal[enemy.speciesId].defeats++;if(b.kind==='patrol')this.player.journal[enemy.speciesId].patrolDefeats=(this.player.journal[enemy.speciesId].patrolDefeats||0)+1;const xp=defeatedEnemyExperience(enemy.speciesId,enemy.level),dropPercent=auraDropPercent(enemy.level),draw=this.random(),aura=draw<dropPercent/100?this.acquireAura(enemy.speciesId):null;experience+=xp;if(aura)drops.push(aura);opponents.push({speciesId:enemy.speciesId,level:enemy.level,experience:xp,dropPercent,dropDraw:draw,aura});}
+   for(const enemy of b.enemies){if(['training','story','camp','camp-final'].includes(b.kind))recordJournalEncounter(this.player,enemy);this.player.journal[enemy.speciesId].defeats++;if(b.kind==='patrol')this.player.journal[enemy.speciesId].patrolDefeats=(this.player.journal[enemy.speciesId].patrolDefeats||0)+1;const xp=defeatedEnemyExperience(enemy.speciesId,enemy.level),dropPercent=auraDropPercent(enemy.level),draw=this.random(),aura=draw<dropPercent/100?this.acquireAura(enemy.speciesId):null;experience+=xp;if(aura)drops.push(aura);opponents.push({speciesId:enemy.speciesId,level:enemy.level,experience:xp,dropPercent,dropDraw:draw,aura});}
    const levels=this.addExperience(experience);b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:drops[0]||null,auras:drops,opponents,dropPercent:opponents[0].dropPercent,dropDraw:opponents[0].dropDraw};
   }else{this.player.battlesLost++;const opponents=b.enemies.filter(enemy=>enemy.hp<=0).map(enemy=>({speciesId:enemy.speciesId,level:enemy.level,experience:defeatedEnemyExperience(enemy.speciesId,enemy.level)})),experience=opponents.reduce((sum,enemy)=>sum+enemy.experience,0),levels=experience>0?this.addExperience(experience):0;b.rewards={experience,levelsGained:levels,level:this.player.level,xp:this.player.xp,aura:null,auras:[],opponents};}
   const currentBeamLevel=this.player.unlockedTechniques.includes('okoteiyu_beam')?playerTechniqueLevel(this.player,'okoteiyu_beam'):0;
@@ -538,7 +583,27 @@ export class GameSession{
   this.player.equipment.defense=id;this.emit('item-equipped',{kind,id});return true;
  }
  returnHomeAfterBattle(){
+  if(['camp','camp-final'].includes(this.state.battle?.kind))return this.endCamp({afterBattle:true});
   const b=this.state.battle;if(!b||b.phase!=='ended')return false;this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};this.state.battle=null;this.state.location='home';this.state.commandsLocked=false;this.state.interferenceUsedSinceBattle=false;this.state.interferenceBonusAvailable=true;this.state.patrolUsedSinceRecovery=false;if(b.kind==='patrol')this.advanceFacilityStaff();this.emit('home-return',{afterBattle:true,resetRelaxStreak:false});return true;
+ }
+ finishCampBattle({resume=true}={}){
+  const b=this.state.battle;if(!b||b.phase!=='ended'||!['camp','camp-final'].includes(b.kind))return false;
+  this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};
+  this.state.battle=null;this.state.location='camp';this.campHadBattle=true;
+  this.emit('camp-battle-settled',{result:b.result,rewards:clone(b.rewards),hp:b.player.hp,maxHp:b.player.maxHp});
+  return resume?true:this.endCamp({afterBattle:true});
+ }
+ endCamp({afterBattle=false}={}){
+  if(this.state.battle){
+   if(!['camp','camp-final'].includes(this.state.battle.kind)||this.state.battle.phase!=='ended')return false;
+   if(!this.finishCampBattle())return false;
+  }
+  if(this.state.location!=='camp')return false;
+  const completedBattle=this.campHadBattle;
+  this.state.location='home';this.state.commandsLocked=false;
+  if(completedBattle){this.state.interferenceUsedSinceBattle=false;this.state.interferenceBonusAvailable=true;this.state.patrolUsedSinceRecovery=false;}
+  this.campHadBattle=false;
+  this.emit('home-return',{afterBattle:completedBattle,resetRelaxStreak:false,camp:true});return true;
  }
  snapshotBattle(){
   const b=this.state.battle;if(!b)return null;
@@ -550,14 +615,15 @@ export class GameSession{
  exportState({allowPending=false,allowDepartureCheckpoint=false}={}){
   // The accepted departure still has a brief home phase: checkpoint its cost
   // before the cut-in. Loading this checkpoint resumes at home, not on a route.
-  const departing=allowDepartureCheckpoint&&['patrol','training'].includes(this.state.location);
+  const departing=allowDepartureCheckpoint&&['patrol','training','camp'].includes(this.state.location);
   if((this.state.location!=='home'&&!departing)||this.state.battle||this.state.pendingAngerEvent&&!allowPending)throw new Error('Save only at home, outside patrol, battle, and the anger cut-in.');
   this.player.superConfigurationLevels.none=superConfigurationLevel(this.player,'none');
-  return clone({schemaVersion:1,visitorName:this.state.visitorName,story:this.state.story,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount,facilityStaff:this.state.facilityStaff});
+  return clone({schemaVersion:1,visitorName:this.state.visitorName,story:this.state.story,player:this.player,angerPoints:this.state.angerPoints,...(this.state.pendingAngerEvent?{pendingAngerEvent:true}:{}),commandsLocked:this.state.commandsLocked,interferenceUsedSinceBattle:this.state.interferenceUsedSinceBattle,patrolUsedSinceRecovery:this.state.patrolUsedSinceRecovery,angerEvents:this.state.angerEvents,patrolCount:this.state.patrolCount,facilityStaff:this.state.facilityStaff,camp:normalizeCampProgress(this.state.camp)});
  }
  importState(saved){
   if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)throw new Error('Load only at home, outside an event.');
   const normalized=validateSessionState(saved);
+  this.campHadBattle=false;
   this.state={...normalized,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,angerPoints:normalized.angerPoints,location:'home',pendingAngerEvent:normalized.pendingAngerEvent??false,battle:null,lastBattle:null};return this.snapshot();
  }
 }

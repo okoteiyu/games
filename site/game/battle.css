@@ -91,3 +91,19 @@
  .battle-calls button{padding:2px 4px}
  .battle-calls button>span{font-size:clamp(7.5px,6.8cqi,11px);line-height:1.15}
 }
+
+/* Camp keeps the route map in the square view and watches automatic encounters here. */
+.battle-actions--camp{grid-template-rows:auto minmax(0,1fr);gap:6px;padding:8px;position:relative;background:linear-gradient(155deg,#f6f3e7,#e9eddb);border:1px solid #bdc6a0;border-radius:12px 4px 12px 4px;}
+.battle-actions--camp>.battle-actions__heading,.battle-actions--camp>.battle-calls,.battle-actions--camp>.battle-call-status,.battle-actions--camp>.battle-return{display:none!important;}
+.battle-actions--camp>.battle-hud--camp{position:relative;inset:auto;display:block;inline-size:100%;min-inline-size:0;z-index:1;}
+.battle-hud--camp>.battle-hud__opponents{display:none!important;}
+.battle-hud--camp .battle-hp--player{padding:5px 7px;border-radius:8px 3px;background:#f8f4e9;box-shadow:0 1px 3px #394b4312;}
+.battle-hud--camp .battle-hp header strong{font-size:clamp(9px,6.6cqi,12px);line-height:1.2;}
+.battle-hud--camp .battle-hp header>span{font-size:clamp(8px,5.8cqi,10px);}
+.battle-hud--camp .battle-hp footer{font-size:clamp(8px,5.8cqi,10px);line-height:1.25;}
+.battle-hud--camp .battle-hp footer small{font-size:clamp(7px,5.2cqi,9px);letter-spacing:0;overflow-wrap:anywhere;}
+.battle-scene--camp{position:relative;inset:auto;min-inline-size:0;min-block-size:0;inline-size:100%;block-size:100%;border:1px solid #bfc5ac;border-radius:8px 3px;background:#e4edf0;}
+.battle-scene--camp .battle-render-status{inset-inline:5%;top:25%;padding:6px 5px;border-radius:8px 3px;font-size:clamp(8px,6cqi,11px);line-height:1.5;}
+.battle-scene--camp .battle-render-status button{padding:4px 6px;margin-top:5px;}
+.battle-scene--camp .battle-webgl{touch-action:manipulation;cursor:default;}
+@container battle-actions (max-height:140px){.battle-actions--camp{gap:3px;padding:4px}.battle-hud--camp .battle-hp--player{padding:3px 5px}.battle-hud--camp .battle-hp header strong,.battle-hud--camp .battle-hp header>span,.battle-hud--camp .battle-hp footer{font-size:8px}.battle-hud--camp .battle-hp footer small{display:none}.battle-hud--camp .battle-hp__meter{height:4px;margin-top:2px}.battle-scene--camp .battle-render-status{top:8%;font-size:8px}}

@@ -44,3 +44,5 @@
 
 .building-map-staff-counts{pointer-events:none;}
 .building-map-staff-counts text{font-variant-numeric:tabular-nums;}
+
+.building-map__world{margin-inline-start:auto;flex:none;min-block-size:36px;padding:6px 10px;border:1px solid #a6b48a;border-radius:7px;background:#f5f6e5;color:#5f7048;font:600 12px/1.3 system-ui;cursor:pointer}.building-map__world:disabled{opacity:.4;cursor:default}

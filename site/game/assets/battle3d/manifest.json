@@ -938,6 +938,29 @@
       "geometryFingerprintCount": 58,
       "appearanceReuse": "moai_king",
       "revision": "R110"
+    },
+    "great_fairy": {
+      "id": "great_fairy",
+      "name": "大妖精",
+      "url": "great_fairy.glb",
+      "height": 0.5,
+      "height_m": 0.5,
+      "canonical_height_m": 0.5,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R214",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 649872,
+      "sha256": "595665cfb125e5511d677b701b16677148f10fcc2013a175ecca4d298cf9c6a7",
+      "idle_description": "A small guardian gently hovers while four leaf-shaped wings breathe in a1.5second loop."
     }
   },
   "commonMotion": {

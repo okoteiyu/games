@@ -1,3 +1,4 @@
+import {CampRuntime} from './camp-runtime.js';
 import {TECHNIQUES} from './technique-rules.js';
 import {validateVisitorProgress} from './visitor-profile.js';
 import {battleResultMessages,superUnlockMessage} from './battle-result.js';
@@ -28,11 +29,13 @@ export class GameRuntime {
   });
   this.sceneCutin=new SceneCutin({view,onComplete:kind=>this.finishSceneCutin(kind),onError:()=>this.toast('カットインの読み込みを再試行してください。')});
   this.recovery=new CutinRecovery({game:document.querySelector('#game')||view.element,getContext:()=>this.recoveryContext(),onSuspend:()=>this.angerPlayer.suspendForInterruption?.(),onContinue:context=>this.recoverInterruptedView(context),onResumed:()=>{this.restartFrameLoop();this.angerPlayer.synchronizePause();this.battleUI.updateControls();},onWake:()=>this.restartFrameLoop()});
+  this.campController=new CampRuntime(this);
   this.restartFrameLoop();this.sync();
  }
  recoveryContext(){
   if(this.destroyed)return null;
   if(this.scene==='story'&&this.story?.active)return {key:'story:'+this.story.serial,scene:'story',title:'物語に復帰します',message:'しおりを挟んだ場面から、続きを再開します。'};
+  if(this.scene==='camp-night'&&this.campController?.active)return {key:'camp-night:'+this.campController.serial,scene:'camp-night',title:'キャンプに復帰します',message:'野営の場面から、続きを再開します。'};
   if(this.scene==='battle'&&this.session.snapshotBattle())return {key:'battle:'+this.battlePresentationSerial,scene:'battle',title:'戦闘に復帰します',message:'戦闘の状態を保って、続きを再開します。'};
   if(this.scene==='scene-cutin')return {key:'scene:'+this.battlePresentationSerial+':'+this.sceneCutin.kind,scene:'scene-cutin',title:'ゲームに復帰します',message:['win','loss'].includes(this.sceneCutin.kind)?'戦闘の結果表示から再開します。':'出発の場面から再開します。'};
   if(this.scene==='analysis-room')return {key:'analysis:'+this.analysisVisitSerial,scene:'analysis-room',title:'ゲームに復帰します',message:'コンピュータ室の表示を再開します。'};
@@ -42,6 +45,7 @@ export class GameRuntime {
  }
  async recoverInterruptedView(context){
   if(this.destroyed||this.recoveryContext()?.key!==context.key)return true;
+  if(context.scene==='camp-night')return this.campController.night.recoverAfterInterruption();
   if(context.scene==='battle')return this.battleUI.recoverAfterInterruption();
   if(context.scene==='scene-cutin')return this.sceneCutin.recoverAfterInterruption();
   if(context.scene==='analysis-room')return this.analysisRoom.recoverAfterInterruption();
@@ -51,7 +55,7 @@ export class GameRuntime {
   return true;
  }
  serviceRecovery(){
-  const lost=this.scene==='story'?this.story?.contextLost:this.scene==='battle'?this.battleUI.controller?.contextLost:this.scene==='scene-cutin'?this.sceneCutin.contextLost:isInteriorScene(this.scene)?this.roomVisits[this.scene]?.controller?.contextLost:false;
+  const lost=this.scene==='camp-night'?this.campController?.night?.contextLost:this.scene==='story'?this.story?.contextLost:this.scene==='battle'?this.battleUI.controller?.contextLost:this.scene==='scene-cutin'?this.sceneCutin.contextLost:isInteriorScene(this.scene)?this.roomVisits[this.scene]?.controller?.contextLost:false;
   if(lost&&!this.recovery?.blocked)this.recovery?.request('context-lost');
   this.recovery?.pump();
  }
@@ -105,17 +109,17 @@ export class GameRuntime {
  }
  homeCommands(){
   const commands=this.session.commandAvailability(this.house.getConsecutiveRelaxActions(),{isRelaxing:this.isRelaxing()});
-  if(isBuildingVisitScene(this.scene))for(const key of ['patrol','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
+  if(isBuildingVisitScene(this.scene))for(const key of ['camp','patrol','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
   if(!this.isHouseReady()||!this.session.state.visitorName){
-   for(const key of ['patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
+   for(const key of ['camp','patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
    commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));
   }
   if(isInteriorScene(this.scene)){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   if(this.scene==='training-hall'&&!this.trainingHall?.ready){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
-  if(this.story?.active){for(const key of ['patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
+  if(this.story?.active){for(const key of ['camp','patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   return commands;
  }
- snapshot(){return {...this.session.snapshot(),...(isBuildingVisitScene(this.scene)||this.scene==='story'?{location:this.scene}:{}),scene:this.scene,storyActive:Boolean(this.story?.active),canVisitTrainingHall:!this.story?.active&&(this.scene==='house'||isInteriorScene(this.scene))&&this.isHouseReady()&&Boolean(this.session.state.visitorName)&&!this.session.state.pendingAngerEvent&&!this.pendingCutin,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
+ snapshot(){return {...this.session.snapshot(),...(isBuildingVisitScene(this.scene)||this.scene==='story'?{location:this.scene}:{}),scene:this.scene,storyActive:Boolean(this.story?.active),canVisitTrainingHall:!this.story?.active&&(this.scene==='house'||isInteriorScene(this.scene))&&this.isHouseReady()&&Boolean(this.session.state.visitorName)&&!this.session.state.pendingAngerEvent&&!this.pendingCutin,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),canCamp:this.campController?.canDepart()??false,campExpedition:this.campController?.active?this.campController.engine?.snapshot():null,messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
  canExecuteHouseAction(kind){const key={meal:'meal',fridge_meal:'food',computer:'research',bed:'bed',chair:'chair'}[kind];return this.scene==='house'&&Boolean(this.homeCommands()[key]);}
  onHouseEvent(){this.sync();}
  sync(){
@@ -219,17 +223,19 @@ export class GameRuntime {
   if(this.recovery?.blocked){this.recovery.pump();return false;}
   if(this.story?.isExploring||this.scene==='story'&&this.story?.active){this.story.tick(dt);this.sync();return true;}
   if(this.scene==='scene-cutin'){if(!this.isModalPaused()&&!document.hidden)this.sceneCutin.advance(dt);this.sync();return true;}
-  this.sync();if(this.scene==='battle')this.battleUI.updateControls();if(this.scene==='battle')this.battleUI.controller?.setTimeOfDay(currentTimeOfDay());this.enqueuePendingSuperUnlocks();if(this.isPaused()||document.hidden)return false;
+  this.sync();if(this.scene==='battle')this.battleUI.updateControls();if(this.scene==='battle')this.battleUI.controller?.setTimeOfDay(['camp','camp-final'].includes(this.session.state.battle?.kind)?'day':currentTimeOfDay());this.enqueuePendingSuperUnlocks();if(this.isPaused()||document.hidden)return false;
   if(this.showNextMessage())return true;
+  if(this.scene==='camp'||this.scene==='camp-night'){this.campController.tick(dt);this.sync();return true;}
   if(this.scene==='training-hall'){this.trainingHall.advance(dt);return true;}
   if(isInteriorScene(this.scene)){this.roomVisits[this.scene]?.advance(dt);return true;}
   if(this.pendingCutin&&this.scene==='house'){this.startCutin();return true;}
   if(this.pendingEncounter&&this.scene==='patrol'){const {enemy,stage}=this.pendingEncounter;this.pendingEncounter=null;this.startBattle(enemy,stage);return true;}
   if(this.scene==='battle'&&this.battleUI.ready){
-   if(this.battleUI.controller?.cutin||this.session.isSuperAwakening()){this.advanceSuperAwakening(dt);return true;}
+   if(this.battleUI.controller?.cutin||this.session.isSuperAwakening()){this.advanceSuperAwakening(dt*(this.session.snapshotBattle()?.kind==='camp'?2.5:1));return true;}
    const wasEnded=this.session.snapshotBattle()?.phase==='ended';
    const resultReadyBeforeAdvance=this.battleUI.resultReady;
    const battleTimeBefore=this.session.snapshotBattle()?.time||0;
+   if(this.session.snapshotBattle()?.kind==='camp')dt*=2.5;
    this.session.update(dt,{pauseOnSuperAwakening:true});const snapshot=this.session.snapshotBattle();this.battleUI.setSnapshot(snapshot);
    if(this.session.isSuperAwakening()){
     // Automatic/queued awakening may start halfway through this frame.
@@ -239,7 +245,7 @@ export class GameRuntime {
    if(wasEnded&&this.resultDelay!==null&&!this.battleUI.controller?.cutin){
     this.resultDelay=Math.max(0,this.resultDelay-dt);
     // Keep the final fatigue pose visible for a frame before replacing the view.
-    if(this.resultDelay===0&&resultReadyBeforeAdvance&&this.battleUI.resultReady){this.resultDelay=null;this.startSceneCutin(this.session.snapshotBattle().result);}
+    if(this.resultDelay===0&&resultReadyBeforeAdvance&&this.battleUI.resultReady){this.resultDelay=null;if(this.session.snapshotBattle().kind==='camp')this.campController.settled(this.session.snapshotBattle());else this.startSceneCutin(this.session.snapshotBattle().result);}
    }
   }
   return true;
@@ -252,8 +258,8 @@ export class GameRuntime {
  }
  startBattle(enemy,stage={}){
   if(this.story?.active&&!this.story.battlePending)return false;
-  this.patrol.suspendForBattle();this.scene='battle';this.setLocation(stage.encounterType==='training'?(TRAINING_COURSES[stage.trainingTier]?.label||'訓練（易）'):'戦闘');
-  this.resultCutinComplete=false;this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;const snapshot=this.session.startBattle(enemy,{kind:stage.encounterType==='story'?'story':stage.encounterType==='training'?'training':'patrol'});this.resultDelay=null;this.battleUI.start(snapshot,{...stage,presentationId:'battle-'+(++this.battlePresentationSerial)});this.sync();return snapshot;
+  this.patrol.suspendForBattle();this.scene='battle';this.setLocation(stage.encounterType==='camp'?'未開の地':stage.encounterType==='training'?(TRAINING_COURSES[stage.trainingTier]?.label||'訓練（易）'):'戦闘');
+  this.resultCutinComplete=false;this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;const snapshot=this.session.startBattle(enemy,{kind:['camp','camp-final','story','training'].includes(stage.encounterType)?stage.encounterType:'patrol',...(Number.isFinite(stage.playerHp)?{playerHp:stage.playerHp}:{})});this.resultDelay=null;this.battleUI.start(snapshot,{...stage,presentationId:'battle-'+(++this.battlePresentationSerial)});this.sync();return snapshot;
  }
  requestBattleAction(id){if(this.scene!=='battle'||this.isPaused()||document.hidden||!this.battleUI.ready)return {ok:false,reason:'paused'};const result=this.session.requestBattleAction(id);this.battleUI.setSnapshot(this.session.snapshotBattle());return result;}
  requestBattleTarget(id){
@@ -278,6 +284,7 @@ export class GameRuntime {
   this.sceneCutin.stop();this.messageLocked=false;this.clearMessage();
   if(kind==='departure'){
    const destination=this.departureDestination;this.departureDestination=null;
+   if(destination?.kind==='camp'){this.campController.begin();return true;}
    if(destination?.kind==='training'){this.startBattle(destination.enemy,{region:'training',timeOfDay:currentTimeOfDay(),encounterType:'training',trainingTier:destination.tier});this.sync();return;}
    this.scene='patrol';if(!this.patrol.start()){this.session.cancelPatrol();this.scene='house';this.view.setHouse();this.setLocation('おこていゆハウス');this.toast('道中の準備ができませんでした。もう一度お試しください。');}
   }
@@ -302,6 +309,7 @@ export class GameRuntime {
   if(this.story?.battlePending)return this.story.returnFromBattle();
   if(!this.canReturnHomeAfterBattle())return false;
   if(!this.session.returnHomeAfterBattle())return false;
+  if(this.campController.active)this.campController.deactivate();
   this.sceneCutin.stop();this.resultCutinComplete=false;this.messageLocked=false;this.battleUI.deactivate();this.setLocation('おこていゆハウス');this.scene='house';this.house.arriveFromOutside({afterBattle:true});this.view.setHouse();this.sync();
   this.messages=[];this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;this.clearMessage();return true;
  }
@@ -322,7 +330,7 @@ export class GameRuntime {
   }
   this.sync();
  }
- exportProgress({browser=false}={}){if(browser&&this.story?.active)return this.story.exportProgress();if(this.story?.active||this.scene!=='house'&&!(browser&&isBuildingVisitScene(this.scene)))throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
+ exportProgress({browser=false}={}){if(browser&&this.story?.active)return this.story.exportProgress();if(this.story?.active||this.scene!=='house'&&!(browser&&(isBuildingVisitScene(this.scene)||this.campController.canCheckpoint)))throw new Error('ハウスに戻り、演出が終わってから保存してください。');return {session:this.session.exportState({allowPending:browser,allowDepartureCheckpoint:browser}),relaxStreak:this.house.getConsecutiveRelaxActions()};}
  importProgress(progress){if(this.story?.active||this.scene!=='house'||this.session.state.pendingAngerEvent)throw new Error('ハウスで演出が終わってから読み込んでください。');validateVisitorProgress(progress?.session,progress?.relaxStreak);this.session.importState(progress.session);if(this.story){this.story.autoSuppressed=false;this.story.hadRewardBattle=false;}this.messages=[];this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;this.clearMessage();this.pendingCutin=this.session.state.pendingAngerEvent;this.house.leaveHouse();this.house.arriveFromOutside({afterBattle:false});this.house.restoreConsecutiveRelaxActions(progress.relaxStreak);this.session.state.interferenceUsedSinceBattle=false;this.sync();}
  assignTechnique(slot,id){if(this.story?.active||this.scene!=='house')return false;const accepted=this.session.assignTechnique(slot,id);this.sync();return accepted;}
  setSuperConfiguration(id){if(this.story?.active||this.scene!=='house')return false;const accepted=this.session.setSuperConfiguration(id);this.sync();return accepted;}
@@ -332,5 +340,5 @@ export class GameRuntime {
   if(!Number.isFinite(seconds)||seconds<0||seconds>300||this.story?.isExploring||this.isPaused()||document.hidden)return false;
   for(let remaining=seconds;remaining>1e-8;remaining-=.1){const dt=Math.min(.1,remaining);if(this.isPaused()||document.hidden)break;if(this.scene==='house')this.house.controller?.advanceForPreview(dt);else if(this.scene==='patrol'&&this.patrol.active)this.patrol.tick(dt);this.tick(dt);}return this.snapshot();
  }
- destroy(){if(this.destroyed)return;this.destroyed=true;this.frameEpoch++;cancelAnimationFrame(this.raf);this.story?.destroy();this.recovery?.destroy();this.trainingHall?.destroy();for(const room of new Set(Object.values(this.roomVisits)))room?.destroy();this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
+ destroy(){if(this.destroyed)return;this.destroyed=true;this.frameEpoch++;cancelAnimationFrame(this.raf);this.story?.destroy();this.campController?.destroy();this.recovery?.destroy();this.trainingHall?.destroy();for(const room of new Set(Object.values(this.roomVisits)))room?.destroy();this.battleUI.destroy();this.angerPlayer.destroy();this.sceneCutin.destroy();}
 }

@@ -127,11 +127,12 @@ export function buildingFloorSvg(floorId,selected){
 }
 
 export class BuildingMapDialog{
- constructor({canOpen=()=>true,getRoomSvg=()=>null,getCurrentArea=()=>({floorId:'1f',areaId:'home'}),canTravel=()=>false,onTravel=()=>false,readStaff=()=>null}={}){
-  Object.assign(this,{canOpen,getRoomSvg,getCurrentArea,canTravel,onTravel,readStaff});this.floorId='1f';this.areaId='home';this.opener=null;
+ constructor({canOpen=()=>true,getRoomSvg=()=>null,getCurrentArea=()=>({floorId:'1f',areaId:'home'}),canTravel=()=>false,onTravel=()=>false,readStaff=()=>null,onWorldMap=()=>false,canOpenWorldMap=()=>false}={}){
+  Object.assign(this,{canOpen,getRoomSvg,getCurrentArea,canTravel,onTravel,readStaff,onWorldMap,canOpenWorldMap});this.floorId='1f';this.areaId='home';this.opener=null;
   const dialog=this.dialog=document.createElement('dialog');dialog.id='buildingMapDialog';dialog.className='building-map-dialog';dialog.setAttribute('aria-labelledby','buildingMapTitle');dialog.setAttribute('aria-modal','true');
-  dialog.innerHTML=`<header class="building-map__header"><h2 id="buildingMapTitle">建物マップ</h2><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階・屋外" style="--building-floor-count:${BUILDING_FLOORS.length}">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><figure class="building-map__figure"><div class="building-map__drawing"></div></figure><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div>`;
+  dialog.innerHTML=`<header class="building-map__header"><h2 id="buildingMapTitle">建物マップ</h2><button type="button" class="building-map__world" aria-label="ワールドマップを開く">世界地図 ↗</button><button type="button" class="building-map__close" aria-label="建物マップを閉じる">×</button></header><div class="building-map__floors" role="tablist" aria-label="表示する階・屋外" style="--building-floor-count:${BUILDING_FLOORS.length}">${BUILDING_FLOORS.map(f=>`<button type="button" role="tab" id="buildingFloor-${f.id}" data-building-floor="${f.id}" aria-controls="buildingMapPanel">${f.label}</button>`).join('')}</div><div class="building-map__body" id="buildingMapPanel" role="tabpanel"><figure class="building-map__figure"><div class="building-map__drawing"></div></figure><section class="building-map__description" aria-live="polite" aria-atomic="true"></section></div>`;
   document.body.append(dialog);
+  dialog.querySelector('.building-map__world').addEventListener('click',event=>{if(this.confirmation||!this.canOpenWorldMap())return;const opener=this.opener||event.currentTarget;dialog.addEventListener('close',()=>this.onWorldMap(opener),{once:true});this.close();});
   this.confirmation=null;
   this.confirmOverlay=document.createElement('div');this.confirmOverlay.className='building-map-confirm';this.confirmOverlay.hidden=true;
   this.confirmOverlay.innerHTML='<section class="building-map-confirm__card"><h3 id="buildingTravelTitle">ここへ移動しますか？</h3><p class="building-map-confirm__destination" id="buildingTravelBody"></p><div class="building-map-confirm__actions"><button type="button" data-building-confirm="cancel">地図に戻る</button><button type="button" data-building-confirm="move">移動する<span aria-hidden="true"> ↗</span></button></div></section>';dialog.append(this.confirmOverlay);
@@ -157,6 +158,7 @@ export class BuildingMapDialog{
  }
  open(opener){
   if(!this.canOpen()||isModalBlocked())return false;
+  this.dialog.querySelector('.building-map__world').disabled=!this.canOpenWorldMap();
   this.opener=opener||document.activeElement;const current=this.getCurrentArea();this.selectFloor(current.floorId||'1f');if(current.areaId)this.selectArea(current.areaId);
   if(!tryOpenModal(this.dialog))return false;
   this.opener?.setAttribute('aria-expanded','true');return true;

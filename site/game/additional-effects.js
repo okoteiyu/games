@@ -38,5 +38,5 @@ export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS,{oppone
 }
 /** One qualifying ally enables the effect; further allies do not multiply it. */
 export function additionalDamageReceivedMultiplier(effects=NO_ADDITIONAL_EFFECTS,{actor=null,allies=[],actorHeight=null,attackerHeight=null}={}){
- return effects.reduce((value,effect)=>effect?.type==='taller_attacker_damage_received'&&Number.isFinite(actorHeight)&&Number.isFinite(attackerHeight)&&attackerHeight>actorHeight?value*factor(effect.multiplier):effect?.type==='living_same_species_ally_damage_received'&&actor?.hp>0&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&ally.speciesId===actor.speciesId)?value*factor(effect.multiplier):value,1);
+ return effects.reduce((value,effect)=>effect?.type==='damage_received_multiplier'?value*factor(effect.multiplier):effect?.type==='taller_attacker_damage_received'&&Number.isFinite(actorHeight)&&Number.isFinite(attackerHeight)&&attackerHeight>actorHeight?value*factor(effect.multiplier):effect?.type==='living_same_species_ally_damage_received'&&actor?.hp>0&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&ally.speciesId===actor.speciesId)?value*factor(effect.multiplier):value,1);
 }

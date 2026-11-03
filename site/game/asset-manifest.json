@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちものと共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 162,
-  "totalBytes": 158768030,
+  "fileCount": 165,
+  "totalBytes": 159428168,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=c11ec545ea93c9f43f48c2bf01bb5b3aab236cc6f8cb1b0696947b54253b3796",
+      "url": "assets/battle3d/manifest.json?v=63d93b31440d5d019e70c565c2af781d6988ba19c5734789bb005914014a7d35",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 27044,
+      "bytes": 27756,
       "priority": 2,
-      "sha256": "c11ec545ea93c9f43f48c2bf01bb5b3aab236cc6f8cb1b0696947b54253b3796"
+      "sha256": "63d93b31440d5d019e70c565c2af781d6988ba19c5734789bb005914014a7d35"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1299,6 +1299,30 @@
       "bytes": 14928,
       "priority": 3,
       "sha256": "a312640bf94be29e570d5310c82f76d932c775d7c4627b054614059c47c8e739"
+    },
+    {
+      "url": "assets/battle3d/great_fairy.glb?v=595665cfb125e5511d677b701b16677148f10fcc2013a175ecca4d298cf9c6a7",
+      "label": "大妖精",
+      "type": "binary",
+      "bytes": 649872,
+      "priority": 2,
+      "sha256": "595665cfb125e5511d677b701b16677148f10fcc2013a175ecca4d298cf9c6a7"
+    },
+    {
+      "url": "assets/collection/great_fairy.webp",
+      "label": "大妖精の記録画像",
+      "type": "image",
+      "bytes": 4658,
+      "priority": 3,
+      "sha256": "21a5130f5e0764e80fb6dc82610b928b346e7e564187ad34083f2447dad0720c"
+    },
+    {
+      "url": "assets/collection/aura-great_fairy.webp",
+      "label": "大妖精のオーラの装備画像",
+      "type": "image",
+      "bytes": 4896,
+      "priority": 3,
+      "sha256": "03a97963449c861be543bcbf09656259540b291ecd9d465d197c830c2ba72f68"
     }
   ]
 }

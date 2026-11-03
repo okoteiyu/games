@@ -45,6 +45,7 @@ function clock(seconds){
  const ticks=Math.floor(seconds*10+1e-6),minutes=Math.floor(ticks/600),rest=Math.floor(ticks/10)%60;
  return String(minutes).padStart(2,'0')+':'+String(rest).padStart(2,'0')+'.'+ticks%10;
 }
+export {clock as formatBattleLogTime};
 
 export class BattleLog{
  constructor(container,battle){

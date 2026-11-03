@@ -1,5 +1,6 @@
 import {trainingMapSvg} from './training-map.js';
 import {analysisMapSvg} from './analysis-map.js';
+import {CampLog} from './camp-log.js';
 import {BattleLog} from './battle-log.js';
 import {interiorMapSvg,staffCountDrawing} from './interior-map.js';
 import {getFacilityStaffCounts} from './facility-staff.js';
@@ -73,7 +74,10 @@ export class AreaMap {
   }
   return true;
  }
+ showCamp(events=[]){this.clearBattleLog();this.mode='camp';this.element.dataset.area='camp';this.title.textContent='キャンプログ';this.hint.textContent='';this.battleLog=new CampLog(this.content);for(const event of events)this.battleLog.appendEvent(event);}
+ handleCampEvent(event){return this.mode==='camp'?this.battleLog?.appendEvent(event)??false:false;}
  handleBattleEvent(event){
+  if(this.mode==='camp'&&(event?.battle?.kind==='camp'||event?.battle?.kind==='camp-final'||event?.type!=='battle-start'))return this.battleLog?.appendEvent(event)??false;
   if(event?.type==='battle-start'){
    this.clearBattleLog();this.mode='battle';this.element.dataset.area='battle';this.title.textContent='行動ログ';this.hint.textContent='';this.battleLog=new BattleLog(this.content,event.battle);
   }
