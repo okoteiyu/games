@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "R212",
+  "revision": "R213",
   "id": "outdoor",
   "title": "おこていゆハウスの敷地",
   "floor": "outdoor",
@@ -326,8 +326,8 @@
   ],
   "model": {
     "url": "room.glb",
-    "bytes": 4515068,
-    "sha256": "4c3703f3979e0bc69d46fee07bb55010dab5d681dc08640c12f3cdf2196159ec"
+    "bytes": 5374304,
+    "sha256": "a0d832b0dbfd0f16e68720caf178624b12efa2db9d70f59098fd92d0475a8735"
   },
   "appearance": {
     "surfaces": "embedded original image PBR color/normal/roughness-metallic",
@@ -398,12 +398,44 @@
     "parcelLocker": true,
     "securityAppearanceOnly": true,
     "roadClearanceRevision": "R210-site-frontage-only",
-    "geometryReuse": "Existing site meshes and PBR retained; distant geometry removed.",
+    "geometryReuse": "Existing R210 site meshes and PBR retained; R213 front-wall Japanese lettering added.",
     "outsideScopeBackgroundOnly": true,
-    "defaultCameraView": "warehouse south front from the street"
+    "defaultCameraView": "warehouse south front from the street",
+    "houseFrontLettering": {
+      "revision": "R213",
+      "text": "おこていゆハウス",
+      "meshNode": "Outdoor.house.FrontNameLettering",
+      "parentNode": "Outdoor.house",
+      "wall": "south/front",
+      "fontFamily": "M PLUS Rounded 1c",
+      "fontWeight": "Bold",
+      "fontExport": "glyph outline mesh; no runtime font dependency",
+      "material": "House name warm terracotta",
+      "sRGBColor": "#995f52",
+      "width": 7.2,
+      "center": [
+        12.8,
+        4.6,
+        5.745993137359619
+      ],
+      "backClearance": 0.01,
+      "actualBounds": {
+        "min": [
+          9.200000762939453,
+          4.219318866729736,
+          5.730000019073486
+        ],
+        "max": [
+          16.399999618530273,
+          4.9806809425354,
+          5.761986255645752
+        ]
+      },
+      "dimensionsAreArtProductionValues": true
+    }
   },
   "animationCount": 0,
-  "meshBatchCount": 59,
+  "meshBatchCount": 60,
   "source": "private editable Blender scene and original procedural PBR texture source",
   "status": "ready",
   "previews": [
@@ -411,16 +443,16 @@
       "url": "preview.webp",
       "width": 960,
       "height": 960,
-      "bytes": 17634,
-      "sha256": "affedf68feabfd4dcae38bb3f60978371be1887d9551ab149c372c4e150fa8e9",
+      "bytes": 14928,
+      "sha256": "a312640bf94be29e570d5310c82f76d932c775d7c4627b054614059c47c8e739",
       "camera": "Outdoor Entry Camera"
     }
   ],
   "geometryDiagnostics": {
-    "uniqueGltfMeshes": 59,
-    "meshInstances": 59,
-    "uniqueVertices": 95606,
-    "uniqueTriangles": 50394,
+    "uniqueGltfMeshes": 60,
+    "meshInstances": 60,
+    "uniqueVertices": 116266,
+    "uniqueTriangles": 83170,
     "embeddedImageCount": 24,
     "embeddedImageBytes": 1100809,
     "dimensionsAreArtProductionValues": true
