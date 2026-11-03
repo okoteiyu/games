@@ -163,7 +163,7 @@ export class StoryDirector {
   // The stage is already mounted during same-set shot changes.
   if(!this.stage.container.isConnected){this.view.clear();this.view.surface.append(this.stage.container);}
   try{
-   const ready=await this.stage.show(visual);if(!this.active||serial!==this.serial)return false;
+   const ready=await this.stage.show(visual,{hold:scene.type==='choice'});if(!this.active||serial!==this.serial)return false;
    if(ready===false)throw new Error('物語の3D画面を準備できませんでした。');
    this.loading=false;
    if(scene.type==='choice'){this.paint('choice',{choices:scene.options,prompt:scene.prompt});return true;}

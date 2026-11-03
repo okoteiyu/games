@@ -127,8 +127,11 @@ export class StoryStage {
   // source buffers, so revisiting an evicted room needs no second download.
   while(this.environments.size>2){const key=[...this.environments.keys()].find(id=>id!==this.stageName),environment=this.environments.get(key);this.environments.delete(key);environment.root.removeFromParent();disposeTrees([environment.root]);if(environment.templateKey)this.templates.delete(environment.templateKey);}
  }
- async show(scene){
+ async show(scene,{hold=false}={}){
   if(this.destroyed)return false;
+  // A choice keeps the completed visual behind it; do not restart a silent
+  // entrance, its camera tween, or its actor poses when the prompt appears.
+  if(hold&&this.ready&&!this.contextLost&&this.currentScene?.id===scene.id&&this.stageName===scene.stage){this.active=true;this.render();this.onReady(scene);return true;}
   // The director advances a transition just like a silent animation. Retain
   // the preceding pose underneath it, then load the next set under full black.
   if(scene.type==='transition'&&scene.stage==='black'&&this.ready){
@@ -143,14 +146,14 @@ export class StoryStage {
     const road=scene.stage==='road',outdoor=scene.stage==='outdoor',black=scene.stage==='black',background=black?'#000000':outdoor?'#c8d9df':road?'#dce9eb':'#e7e8df';this.scene.background=new THREE.Color(background);this.scene.fog=outdoor?new THREE.Fog(background,75,150):road?new THREE.Fog(background,14,37):null;this.camera.far=outdoor?180:80;
     if(environment.door)environment.door.position.x=environment.doorClosed+(scene.stage==='house'&&scene.animation!=='door'?environment.doorTravel:0);this.trimEnvironments();
    }
-   this.elapsed=0;this.sceneStartPosition=this.actor.anchor.position.clone();this.actorTarget=this.sceneStartPosition.clone();
+   const holdElapsed=hold&&scene.auto?Math.max(0,Number(scene.duration)||0):0;this.elapsed=holdElapsed;this.totalTime+=holdElapsed;this.sceneStartPosition=this.actor.anchor.position.clone();this.actorTarget=this.sceneStartPosition.clone();
    if(scene.animation==='sit'&&scene.stage==='house')this.actorTarget.set(.05,environment.seatTop-this.actor.bodyRestBottom+.028,-1.33);
    else if(scene.stage==='house'&&this.sceneStartPosition.y>.03)this.actorTarget.y=environment.seatTop+.002;
    const visible=scene.stage!=='black';this.actor.anchor.visible=visible;this.moai.visible=visible;this.moaiShadow.visible=visible;
    this.actor.book.visible=Boolean(visible&&scene.prop!=='map'&&(scene.prop==='book'||scene.prop==='paper'||/記録帳|案内の紙/.test(scene.text||'')));this.actor.map.visible=Boolean(visible&&scene.prop==='map');
    this.actor.bodyMaterial.map=this.actor.faces[scene.expression]||this.actor.faces.neutral;this.actor.bodyMaterial.needsUpdate=true;
    this.punim.visible=scene.stage==='road'&&scene.punimVisible===true;this.punimShadow.visible=this.punim.visible;
-   this.setCamera(scene,newStage);this.ready=true;this.status.hidden=true;this.status.style.display='none';if(scene.stage==='black')this.effects.setBlack(1);else if(fadeIn){this.effects.setBlack(1);this.effects.fadeTo(0,.45);}else this.effects.setBlack(0);this.sample();this.render();this.onReady(scene);return true;
+   this.setCamera(scene,newStage||hold);this.ready=true;this.status.hidden=true;this.status.style.display='none';if(scene.stage==='black')this.effects.setBlack(1);else if(fadeIn){this.effects.setBlack(1);this.effects.fadeTo(0,.45);}else this.effects.setBlack(0);this.sample();this.render();this.onReady(scene);return true;
   }catch(error){
    if(this.destroyed||generation!==this.generation)return false;this.effects.setBlack(0);this.lastError=error?.message||String(error);this.status.hidden=false;this.status.style.display='grid';this.status.querySelector('span').textContent='物語の場面を表示できませんでした。';this.status.querySelector('button').hidden=false;this.onError(error);return false;
   }
