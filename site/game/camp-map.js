@@ -24,7 +24,7 @@ export class CampMap{
   this.note=document.createElement('div');this.note.className='camp-map__place';this.note.textContent='未開の地';this.root.append(this.note);
   this.clickControls=event=>{const action=event.target.closest('[data-camp-zoom]')?.dataset.campZoom;if(!action)return;event.stopPropagation();if(action==='all')this.fitAll();else if(action==='current')this.centerCurrent();else this.scaleAt(action==='in'?1.4:1/1.4);};this.controls.addEventListener('click',this.clickControls);
   this.pointerDown=event=>this.onPointerDown(event);this.pointerMove=event=>this.onPointerMove(event);this.pointerUp=event=>this.onPointerUp(event);this.canvasClick=event=>this.onCanvasClick(event);this.wheel=event=>{this.tapCandidate=null;if(!this.interactive)return;event.preventDefault();const r=this.canvas.getBoundingClientRect();this.scaleAt(Math.exp(-clamp(event.deltaY,-100,100)*.005),{x:event.clientX-r.left,y:event.clientY-r.top});};
-  this.keyDown=event=>{this.tapCandidate=null;if(!this.interactive)return;const delta={ArrowLeft:[45,0],ArrowRight:[-45,0],ArrowUp:[0,45],ArrowDown:[0,-45]}[event.key];if(delta){event.preventDefault();this.autoFollow=false;this.pan.x+=delta[0];this.pan.y+=delta[1];this.invalidate();}else if(['+','=','-','Home'].includes(event.key)){event.preventDefault();if(event.key==='Home')this.centerCurrent();else this.scaleAt(event.key==='-'?1/1.3:1.3);}};
+  this.keyDown=event=>{this.tapCandidate=null;if(!this.interactive)return;const delta={ArrowLeft:[45,0],ArrowRight:[-45,0],ArrowUp:[0,45],ArrowDown:[0,-45]}[event.key];if(delta){event.preventDefault();this.autoFollow=false;this.pan.x+=delta[0];this.pan.y+=delta[1];if(this.follow)this.ensureVisible();this.invalidate();}else if(['+','=','-','Home'].includes(event.key)){event.preventDefault();if(event.key==='Home')this.centerCurrent();else this.scaleAt(event.key==='-'?1/1.3:1.3);}};
   for(const [name,handler]of [['pointerdown',this.pointerDown],['pointermove',this.pointerMove],['pointerup',this.pointerUp],['pointercancel',this.pointerUp],['click',this.canvasClick],['keydown',this.keyDown]])this.canvas.addEventListener(name,handler);
   this.canvas.addEventListener('wheel',this.wheel,{passive:false});this.visibilityChange=()=>{if(!document.hidden&&(this.pendingDraw||this.dirty))this.requestDraw();};document.addEventListener('visibilitychange',this.visibilityChange);this.observer=new ResizeObserver(()=>this.resize());this.observer.observe(element);this.resize();
  }
@@ -36,7 +36,7 @@ export class CampMap{
   }
   const s=this.state;this.drawStateKey=[s.nodeId||CAMP_WORLD.startId,s.nextNodeId||'',clamp(Number(s.travelProgress)||0,0,1),s.phase||'',s.day??'',s.targetId||''].join('|');
   if(before===this.drawStateKey&&!this.dirty)return;
-  if(this.autoFollow&&this.width)this.ensureVisible();this.requestDraw();
+  if((this.follow||this.autoFollow)&&this.width)this.ensureVisible();this.requestDraw();
  }
  resize(){
   const r=this.element.getBoundingClientRect();this.visible=r.width>0&&r.height>0&&this.element.isConnected;
@@ -44,13 +44,13 @@ export class CampMap{
   const width=Math.max(1,r.width),height=Math.max(1,r.height),dpr=Math.min(2,window.devicePixelRatio||1),changed=this.width!==width||this.height!==height||this.dpr!==dpr;
   this.width=width;this.height=height;this.dpr=dpr;
   if(changed){for(const canvas of [this.canvas,this.staticCanvas]){canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);}this.backgroundGradient=null;}
-  if(!this.initialized){this.initialized=true;this.centerCurrent();}this.invalidate();
+  if(!this.initialized){this.initialized=true;this.centerCurrent();}else if(this.follow)this.ensureVisible();this.invalidate();
  }
  currentPoint(){const a=nodeAt(this.state.nodeId||CAMP_WORLD.startId)||nodes[0],b=nodeAt(this.state.nextNodeId),t=clamp(Number(this.state.travelProgress)||0,0,1);return b?{x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t}:a;}
  centerCurrent(){this.autoFollow=this.follow;const point=this.currentPoint();this.zoom=clamp(Math.min(this.width,this.height)/620,.16,1.4);this.pan={x:this.width*.54-point.x*this.zoom,y:this.height*.56-point.y*this.zoom};this.invalidate();}
  fitAll(){this.autoFollow=false;const patrolDepth=430;this.zoom=Math.min((this.width-36)/(bounds.maxX-bounds.minX+180),(this.height-54)/(bounds.maxY-bounds.minY+patrolDepth));this.zoom=clamp(this.zoom,.025,2.4);this.pan={x:(this.width-(bounds.maxX-bounds.minX)*this.zoom)/2-bounds.minX*this.zoom,y:25-bounds.minY*this.zoom};this.invalidate();}
- scaleAt(factor,position={x:this.width/2,y:this.height/2}){this.autoFollow=false;const old=this.zoom,next=clamp(old*factor,.025,2.4);this.pan.x=position.x-(position.x-this.pan.x)*next/old;this.pan.y=position.y-(position.y-this.pan.y)*next/old;this.zoom=next;this.invalidate();}
- ensureVisible(){const point=this.currentPoint(),p=this.project(point),marginX=Math.min(125,this.width*.30),marginY=Math.min(100,this.height*.25);let moved=false;if(p.x<marginX){this.pan.x+=marginX-p.x;moved=true;}if(p.x>this.width-marginX){this.pan.x+=this.width-marginX-p.x;moved=true;}if(p.y<marginY){this.pan.y+=marginY-p.y;moved=true;}if(p.y>this.height-marginY){this.pan.y+=this.height-marginY-p.y;moved=true;}if(moved)this.dirty=true;}
+ scaleAt(factor,position={x:this.width/2,y:this.height/2}){this.autoFollow=false;const old=this.zoom,next=clamp(old*factor,.025,2.4);this.pan.x=position.x-(position.x-this.pan.x)*next/old;this.pan.y=position.y-(position.y-this.pan.y)*next/old;this.zoom=next;if(this.follow)this.ensureVisible();this.invalidate();}
+ ensureVisible(){const point=this.currentPoint();if(this.follow){const x=this.width*.54-point.x*this.zoom,y=this.height*.56-point.y*this.zoom;if(Math.abs(this.pan.x-x)>.01||Math.abs(this.pan.y-y)>.01){this.pan={x,y};this.dirty=true;}this.autoFollow=true;return;}const p=this.project(point),marginX=Math.min(125,this.width*.30),marginY=Math.min(100,this.height*.25);let moved=false;if(p.x<marginX){this.pan.x+=marginX-p.x;moved=true;}if(p.x>this.width-marginX){this.pan.x+=this.width-marginX-p.x;moved=true;}if(p.y<marginY){this.pan.y+=marginY-p.y;moved=true;}if(p.y>this.height-marginY){this.pan.y+=this.height-marginY-p.y;moved=true;}if(moved)this.dirty=true;}
  project(point){return{x:point.x*this.zoom+this.pan.x,y:point.y*this.zoom+this.pan.y};}
  unproject(point){return{x:(point.x-this.pan.x)/this.zoom,y:(point.y-this.pan.y)/this.zoom};}
  invalidate(){this.dirty=true;this.requestDraw();}
@@ -61,7 +61,7 @@ export class CampMap{
   if(this.pointers.size>1){this.moved=true;if(this.pointers.size===2){const p=[...this.pointers.values()];this.pinchDistance=distance(p[0],p[1]);}}
   event.preventDefault();
  }
- onPointerMove(event){if(!this.pointers.has(event.pointerId))return;this.pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});this.autoFollow=false;if(this.pointers.size===2){const p=[...this.pointers.values()],d=distance(p[0],p[1]);if(this.pinchDistance>0){const r=this.canvas.getBoundingClientRect();this.scaleAt(d/this.pinchDistance,{x:(p[0].x+p[1].x)/2-r.left,y:(p[0].y+p[1].y)/2-r.top});}this.pinchDistance=d;this.moved=true;}else{this.pan.x+=event.clientX-this.lastPointer.x;this.pan.y+=event.clientY-this.lastPointer.y;this.moved ||=Math.hypot(event.clientX-this.startPointer.x,event.clientY-this.startPointer.y)>6;this.invalidate();}if(this.moved)this.tapCandidate=null;this.lastPointer={x:event.clientX,y:event.clientY};}
+ onPointerMove(event){if(!this.pointers.has(event.pointerId))return;this.pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});this.autoFollow=false;if(this.pointers.size===2){const p=[...this.pointers.values()],d=distance(p[0],p[1]);if(this.pinchDistance>0){const r=this.canvas.getBoundingClientRect();this.scaleAt(d/this.pinchDistance,{x:(p[0].x+p[1].x)/2-r.left,y:(p[0].y+p[1].y)/2-r.top});}this.pinchDistance=d;this.moved=true;}else{this.pan.x+=event.clientX-this.lastPointer.x;this.pan.y+=event.clientY-this.lastPointer.y;this.moved ||=Math.hypot(event.clientX-this.startPointer.x,event.clientY-this.startPointer.y)>6;this.invalidate();}if(this.follow)this.ensureVisible();if(this.moved)this.tapCandidate=null;this.lastPointer={x:event.clientX,y:event.clientY};}
  onPointerUp(event){
   if(!this.pointers.has(event.pointerId))return;
   const wasSingle=this.pointers.size===1;this.pointers.delete(event.pointerId);this.tapCandidate=null;
