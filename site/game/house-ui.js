@@ -55,7 +55,7 @@ export class HouseUI {
   this.detailPointers=new Set();this.consumeDetailClick=false;
   this.view.element.addEventListener('pointerdown',event=>{
    this.consumeDetailClick=false;const c=this.controller;
-   if(event.target.closest?.('.growth-guide-trigger'))return;
+   if(event.target.closest?.('.growth-guide-trigger,.story-trigger'))return;
    if(!c||!['interaction','inspection'].includes(c.sceneMode)||!c.canTapScene()||(event.pointerType==='mouse'&&event.button!==0))return;
    c.pointerDown(event);this.detailPointers.add(event.pointerId);event.stopImmediatePropagation();
   },true);
