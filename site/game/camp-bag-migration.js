@@ -84,7 +84,8 @@ export function migrateLegacyCampBag(placements,options){
 /** Unpacked records retain their original coordinates only as a reference. */
 export function normalizeUnpackedCampBag(placements,bag,options){
  const unpacked=records(placements,options),ids=new Set(bag.map(item=>item.id)),counts=new Map();
- for(const item of [...bag,...unpacked]){const supply=options.supplies[item.supplyId],count=(counts.get(item.supplyId)||0)+1,limit=supply.maxCount??(supply.repeatable?Infinity:1);if(count>limit)throw fail();counts.set(item.supplyId,count);}
+ let guidanceCount=0;
+ for(const item of [...bag,...unpacked]){if(options.supplies[item.supplyId]?.category==='route_guidance'&&++guidanceCount>1)throw fail();const supply=options.supplies[item.supplyId],count=(counts.get(item.supplyId)||0)+1,limit=supply.maxCount??(supply.repeatable?Infinity:1);if(count>limit)throw fail();counts.set(item.supplyId,count);}
  for(const item of unpacked){if(ids.has(item.id))throw fail();ids.add(item.id);}
  return unpacked;
 }

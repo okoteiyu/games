@@ -36,6 +36,7 @@ export class GameRuntime {
   if(this.destroyed)return null;
   if(this.scene==='story'&&this.story?.active)return {key:'story:'+this.story.serial,scene:'story',title:'物語に復帰します',message:'しおりを挟んだ場面から、続きを再開します。'};
   if(this.scene==='camp-night'&&this.campController?.active)return {key:'camp-night:'+this.campController.serial,scene:'camp-night',title:'キャンプに復帰します',message:'野営の場面から、続きを再開します。'};
+  if(this.scene==='camp-base')return {key:'camp-base:'+this.campController.baseVisitSerial,scene:'camp-base',title:'キャンプ拠点に復帰します',message:'拠点の表示を再開します。'};
   if(this.scene==='battle'&&this.session.snapshotBattle())return {key:'battle:'+this.battlePresentationSerial,scene:'battle',title:'戦闘に復帰します',message:'戦闘の状態を保って、続きを再開します。'};
   if(this.scene==='scene-cutin')return {key:'scene:'+this.battlePresentationSerial+':'+this.sceneCutin.kind,scene:'scene-cutin',title:'ゲームに復帰します',message:['win','loss'].includes(this.sceneCutin.kind)?'戦闘の結果表示から再開します。':'出発の場面から再開します。'};
   if(this.scene==='analysis-room')return {key:'analysis:'+this.analysisVisitSerial,scene:'analysis-room',title:'ゲームに復帰します',message:'コンピュータ室の表示を再開します。'};
@@ -46,6 +47,7 @@ export class GameRuntime {
  async recoverInterruptedView(context){
   if(this.destroyed||this.recoveryContext()?.key!==context.key)return true;
   if(context.scene==='camp-night')return this.campController.night.recoverAfterInterruption();
+  if(context.scene==='camp-base')return this.campController.baseView?.recoverAfterInterruption?.()??true;
   if(context.scene==='battle')return this.battleUI.recoverAfterInterruption();
   if(context.scene==='scene-cutin')return this.sceneCutin.recoverAfterInterruption();
   if(context.scene==='analysis-room')return this.analysisRoom.recoverAfterInterruption();
@@ -55,7 +57,7 @@ export class GameRuntime {
   return true;
  }
  serviceRecovery(){
-  const lost=this.scene==='camp-night'?this.campController?.night?.contextLost:this.scene==='story'?this.story?.contextLost:this.scene==='battle'?this.battleUI.controller?.contextLost:this.scene==='scene-cutin'?this.sceneCutin.contextLost:isInteriorScene(this.scene)?this.roomVisits[this.scene]?.controller?.contextLost:false;
+  const lost=this.scene==='camp-base'?this.campController?.baseView?.contextLost:this.scene==='camp-night'?this.campController?.night?.contextLost:this.scene==='story'?this.story?.contextLost:this.scene==='battle'?this.battleUI.controller?.contextLost:this.scene==='scene-cutin'?this.sceneCutin.contextLost:isInteriorScene(this.scene)?this.roomVisits[this.scene]?.controller?.contextLost:false;
   if(lost&&!this.recovery?.blocked)this.recovery?.request('context-lost');
   this.recovery?.pump();
  }
@@ -109,17 +111,17 @@ export class GameRuntime {
  }
  homeCommands(){
   const commands=this.session.commandAvailability(this.house.getConsecutiveRelaxActions(),{isRelaxing:this.isRelaxing()});
-  if(isBuildingVisitScene(this.scene))for(const key of ['camp','patrol','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
+  if(isBuildingVisitScene(this.scene)||this.scene==='camp-base')for(const key of ['camp','patrol','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
   if(!this.isHouseReady()||!this.session.state.visitorName){
    for(const key of ['camp','patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;
    commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));
   }
-  if(isInteriorScene(this.scene)){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
+  if(isInteriorScene(this.scene)||this.scene==='camp-base'){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   if(this.scene==='training-hall'&&!this.trainingHall?.ready){commands.training=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   if(this.story?.active){for(const key of ['camp','patrol','training','meal','research','rest','food','chair','bed','interfere'])commands[key]=false;commands.trainings=Object.fromEntries(Object.keys(commands.trainings).map(id=>[id,false]));}
   return commands;
  }
- snapshot(){return {...this.session.snapshot(),...(isBuildingVisitScene(this.scene)||this.scene==='story'?{location:this.scene}:{}),scene:this.scene,storyActive:Boolean(this.story?.active),canVisitTrainingHall:!this.story?.active&&(this.scene==='house'||isInteriorScene(this.scene))&&this.isHouseReady()&&Boolean(this.session.state.visitorName)&&!this.session.state.pendingAngerEvent&&!this.pendingCutin,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),canCamp:this.campController?.canDepart()??false,campExpedition:this.campController?.active?this.campController.engine?.snapshot():null,messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
+ snapshot(){return {...this.session.snapshot(),...(isBuildingVisitScene(this.scene)||this.scene==='story'||this.scene==='camp-base'?{location:this.scene}:{}),scene:this.scene,storyActive:Boolean(this.story?.active),canVisitTrainingHall:!this.story?.active&&(this.scene==='house'||isInteriorScene(this.scene))&&this.isHouseReady()&&Boolean(this.session.state.visitorName)&&!this.session.state.pendingAngerEvent&&!this.pendingCutin,calmPoints:this.house.getConsecutiveRelaxActions(),relaxStreak:this.house.getConsecutiveRelaxActions(),homeCommands:this.homeCommands(),canCamp:this.campController?.canDepart()??false,campExpedition:this.campController?.active?this.campController.engine?.snapshot():null,messageVisible:this.isMessageVisible(),messageLocked:this.messageLocked,lastAngerResult:this.lastAngerResult};}
  canExecuteHouseAction(kind){const key={meal:'meal',fridge_meal:'food',computer:'research',bed:'bed',chair:'chair'}[kind];return this.scene==='house'&&Boolean(this.homeCommands()[key]);}
  onHouseEvent(){this.sync();}
  sync(){
@@ -227,7 +229,7 @@ export class GameRuntime {
   if(this.scene==='scene-cutin'){if(!this.isModalPaused()&&!document.hidden)this.sceneCutin.advance(dt);this.sync();return true;}
   this.sync();if(this.scene==='battle')this.battleUI.updateControls();if(this.scene==='battle')this.battleUI.controller?.setTimeOfDay(['camp','camp-final'].includes(this.session.state.battle?.kind)?'day':currentTimeOfDay());this.enqueuePendingSuperUnlocks();if(this.isPaused()||document.hidden)return false;
   if(this.showNextMessage())return true;
-  if(this.scene==='camp'||this.scene==='camp-night'){this.campController.tick(dt);this.sync();return true;}
+  if(['camp','camp-night','camp-base'].includes(this.scene)){this.campController.tick(dt);this.sync();return true;}
   if(this.scene==='training-hall'){this.trainingHall.advance(dt);return true;}
   if(isInteriorScene(this.scene)){this.roomVisits[this.scene]?.advance(dt);return true;}
   if(this.pendingCutin&&this.scene==='house'){this.startCutin();return true;}
@@ -310,12 +312,13 @@ export class GameRuntime {
  returnHomeAfterBattle(){
   if(this.story?.battlePending)return this.story.returnFromBattle();
   if(!this.canReturnHomeAfterBattle())return false;
+  if(this.session.state.battle?.kind==='camp-final'&&this.campController.active)return this.campController.finishFinalBattle();
   if(!this.session.returnHomeAfterBattle())return false;
   if(this.campController.active)this.campController.deactivate();
   this.sceneCutin.stop();this.resultCutinComplete=false;this.messageLocked=false;this.battleUI.deactivate();this.setLocation('おこていゆハウス');this.scene='house';this.house.arriveFromOutside({afterBattle:true});this.view.setHouse();this.sync();
   this.messages=[];this.resultMessages=[];this.resultMessageActive=false;this.resultMessagesComplete=true;this.clearMessage();return true;
  }
- cancelPatrol(){if(this.story?.active)return false;if(isInteriorScene(this.scene))return this.returnFromInteriorRoom();if(this.scene==='training-hall')return this.returnFromTrainingHall();if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol({rotateStaff:true});this.patrol.returnHome();this.scene='house';}this.sync();return true;}
+ cancelPatrol(){if(this.story?.active)return false;if(this.scene==='camp-base')return this.campController.visitBase('house');if(isInteriorScene(this.scene))return this.returnFromInteriorRoom();if(this.scene==='training-hall')return this.returnFromTrainingHall();if(['battle','cutin','scene-cutin'].includes(this.scene)){this.toast('この場面が終わるまで、移動できません。');return false;}this.pendingEncounter=null;if(this.scene==='patrol'){this.session.cancelPatrol({rotateStaff:true});this.patrol.returnHome();this.scene='house';}this.sync();return true;}
  startCutin(){
   this.pendingCutin=false;this.scene='cutin';this.messageLocked=true;this.clearMessage();this.homeElement.hidden=true;this.house.leaveHouse();this.angerPlayer.play();this.sync();
  }

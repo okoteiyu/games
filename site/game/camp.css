@@ -223,3 +223,33 @@
 .camp-live__battle-status>svg{inline-size:25px;block-size:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 .camp-live__battle-status small,.camp-live__battle-status p{margin:0;font-size:10px;line-height:1.6;color:#8b8064;}
 @media(max-height:480px){.camp-live__battle-status{padding:9px 13px;gap:4px}.camp-live__battle-status>svg{inline-size:21px;block-size:21px}}
+
+/* Supplies keep their role visible before packing; names are never squeezed into tags. */
+.camp-supplies { grid-template-columns:minmax(0,1fr);gap:12px; }
+.camp-supply-group { min-inline-size:0; }
+.camp-supply-group h4 { display:flex;align-items:center;gap:8px;margin:0 0 6px;color:#7a8666;font-size:11px;font-weight:600;letter-spacing:.06em; }
+.camp-supply-group h4::after { content:"";flex:1;block-size:1px;background:#cbd2b7; }
+.camp-supply-group__items { display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px; }
+.camp-selection>[data-camp-selected-category] { display:block;margin-top:5px;padding:3px 7px;border:1px solid #ccd1b7;border-radius:10px;background:#f7f5e6;color:#84906d;font-size:10px;line-height:1.2; }
+.camp-base-back { display:grid;place-items:center;flex:none;inline-size:38px;block-size:38px;border:1px solid #b9c29f;border-radius:10px 4px;background:#fffdf3;color:#6c7a58;font:26px/1 sans-serif; }
+.camp-world-dialog__map[hidden],.camp-world-dialog__footer[hidden],.camp-base-detail[hidden],.camp-base-back[hidden] { display:none!important; }
+.camp-base-detail { flex:1;min-block-size:0;overflow:auto;overscroll-behavior:contain;padding:22px max(22px,env(safe-area-inset-right,0px)) 30px max(22px,env(safe-area-inset-left,0px));text-align:center;background:radial-gradient(ellipse at 50% 20%,#e7ebd5 0,transparent 63%),#f7f7e9; }
+.camp-base-detail__illustration { display:grid;place-items:center;inline-size:min(250px,70vw);aspect-ratio:1;margin:0 auto 3px;border-bottom:1px solid #c3cbb0;border-radius:50%;background:radial-gradient(ellipse at 50% 75%,#b4bfa153,transparent 64%); }
+.camp-base-detail__illustration img { display:block;inline-size:100%;block-size:100%;object-fit:contain; }
+.camp-base-detail__kind { margin:7px 0;color:#9b875d;font-size:11px;letter-spacing:.12em; }
+.camp-base-detail h3 { margin:0;color:#556c4c;font-size:22px;line-height:1.5;overflow-wrap:anywhere; }
+.camp-base-detail__copy { max-inline-size:420px;margin:12px auto 22px;color:#838a72;font-size:12px;line-height:1.9; }
+.camp-base-detail__actions { display:grid;gap:9px;max-inline-size:340px;margin:auto; }
+.camp-base-detail__actions .camp-button { min-block-size:46px;justify-content:space-between;padding-inline:17px;font-size:13px; }
+.camp-base-detail__actions .camp-button--withdraw { border-color:#ccb3a5;background:#f7eee7;color:#a17f70; }
+.camp-base-detail__note,.camp-base-detail__status { max-inline-size:400px;margin:12px auto 0;color:#98917e;font-size:11px;line-height:1.7; }
+.camp-base-detail__status { color:#a57861; }.camp-base-detail__status:empty { display:none; }
+@media(max-width:420px) { .camp-supply-group__items { grid-template-columns:repeat(4,minmax(0,1fr)); }.camp-base-detail { padding-block-start:12px; }.camp-base-detail__illustration { inline-size:min(210px,62vw); } }
+@media(min-width:900px) { .camp-supply-group__items { grid-template-columns:repeat(6,minmax(0,1fr)); }.camp-supplies { grid-template-columns:1fr 1fr;gap:15px 24px; } }
+.camp-destination-plan .camp-destination-plan__objective { margin:0;color:#75815e;font-size:11px;line-height:1.6; }
+.camp-map__legend-base { display:block;inline-size:13px;block-size:13px;object-fit:contain; }
+.camp-map__legend-route { color:#577f80;font-size:13px;line-height:1; }
+/* Owned stock and one-bag limits are separate: today's stock is unlimited. */
+.camp-supplies .camp-supply-meta { display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px 5px;max-inline-size:100%;font-size:9px;line-height:1.45; }
+.camp-supplies .camp-supply-meta>span { color:#919c7d;font:inherit;white-space:nowrap; }
+.camp-supplies .camp-supply-meta>[data-camp-owned] { color:#83916d; }

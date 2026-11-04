@@ -5,6 +5,9 @@ const EPS=1e-9,CACHE_LIMIT=64,graphs=new WeakMap(),plans=new WeakMap();
 const toolIds=CAMP_DURABLE_TOOL_IDS,consumables=['food',...toolIds];
 const fixedTools=['flashlight','compass'];
 const copiesForUses=(id,uses)=>Math.ceil(uses/(CAMP_SUPPLIES[id].maxUses??1));
+// A previously opened two-use item is already charged to this expedition.
+// Replanning can use its remaining charge without counting that item twice.
+const additionalCopies=(id,uses,previous)=>copiesForUses(id,previous+uses)-copiesForUses(id,previous);
 
 class MinHeap{
  constructor(compare){this.values=[];this.compare=compare;}
@@ -33,6 +36,7 @@ function normalize(options){
  if(!world||!Array.isArray(world.nodes)||!world.nodes.length||typeof startId!=='string'||typeof currentNodeId!=='string'||typeof goalId!=='string')throw new TypeError('コンパスの地図が正しくありません。');
  const graph=graphFor(world);if(!graph.index.has(startId)||!graph.index.has(currentNodeId)||!graph.index.has(goalId))throw new TypeError('コンパスの地点が見つかりません。');
  const counts=Object.fromEntries([...consumables,...fixedTools].map(id=>{const value=options.counts?.[id]??0;if(!Number.isSafeInteger(value)||value<0)throw new TypeError('コンパスの物資が正しくありません。');return [id,value];}));
+ const usedToolUses=Object.fromEntries(toolIds.map(id=>{const value=options.usedToolUses?.[id]??0;if(!Number.isSafeInteger(value)||value<0)throw new TypeError('コンパスの道具使用記録が正しくありません。');return [id,value];}));
  const day=options.day??1,dayHours=options.dayHours??(counts.flashlight?16:14),dayHoursRemaining=options.dayHoursRemaining??dayHours;
  if(!Number.isInteger(day)||day<1||day>CAMP_MAX_DAYS||!Number.isFinite(dayHours)||dayHours<=0||!Number.isFinite(dayHoursRemaining)||dayHoursRemaining<0||dayHoursRemaining>dayHours+EPS)throw new TypeError('コンパスの活動時間が正しくありません。');
  const activePath=Array.from(options.activePath??[currentNodeId]);
@@ -41,22 +45,23 @@ function normalize(options){
  const tripReached=new Set(options.tripReached??activePath);for(const id of activePath)tripReached.add(id);tripReached.add(startId);
  if([...tripReached].some(id=>!graph.index.has(id)))throw new TypeError('コンパスの探索記録が正しくありません。');
  const rainNext=options.rainNext===true,maxHours=dayHoursRemaining+Math.min(counts.food,CAMP_MAX_DAYS-day)*dayHours;
- return {world,startId,currentNodeId,goalId,counts,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,graph};
+ return {world,startId,currentNodeId,goalId,counts,usedToolUses,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,graph};
 }
 
 function freezeResult(value){Object.freeze(value.path);Object.freeze(value.consumption);Object.freeze(value.diagnostics);return Object.freeze(value);}
-function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,...Object.fromEntries(toolIds.map(id=>[id,0]))},diagnostics:{labelsCreated:0,labelsExpanded:0,routeMode:'compass'}};}
+function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,explorationCost:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,...Object.fromEntries(toolIds.map(id=>[id,0]))},diagnostics:{labelsCreated:0,labelsExpanded:0,routeMode:'optimal'}};}
 
 /** Counts for durable tools are remaining uses, not physical copies. Minimize
- * needed two-use copies plus food, then time, among routes that get strictly
- * closer to the goal at every step. Unknown map nodes remain in the graph. */
+ * consumed exploration copies plus food, then time, across the entire graph.
+ * Unknown map nodes remain in the graph. Nonconsumed support tools are free
+ * in the objective, but still gate passage and modify actual activity time. */
 function calculate(o){
  if(o.currentNodeId===o.goalId||o.tripReached.has(o.goalId))return freezeResult(result(o,'reached'));
  const output=result(o,'unreachable'),{nodes,index,neighbors}=o.graph,current=index.get(o.currentNodeId),goal=index.get(o.goalId),factor=o.counts.compass?.6:1,goalDistances=distancesToGoal(o.graph,goal);
  if(goalDistances[current]<0)return freezeResult(output);
  const crossing=(node,first)=>CAMP_TERRAINS[node.terrain].hours*factor*(first&&o.rainNext?1.5:1);
  const foodFor=hours=>Math.max(0,Math.ceil((hours-o.dayHoursRemaining-EPS)/o.dayHours));
- const usedItems=label=>toolIds.reduce((sum,id)=>sum+copiesForUses(id,label[id]),0);
+ const usedItems=label=>toolIds.reduce((sum,id)=>sum+additionalCopies(id,label[id],o.usedToolUses[id]),0);
  const available=label=>({...o.counts,...Object.fromEntries(toolIds.map(id=>[id,o.counts[id]-label[id]]))});
  const fits=label=>label.hours<=o.maxHours+EPS&&toolIds.every(id=>label[id]<=o.counts[id]);
  const spend=(label,next)=>{if(!canTraverseCampNode(nodes[next],available(label)))return null;const consumed=campTraversalConsumption(nodes[next]),candidate={node:next,hours:label.hours+crossing(nodes[next],label.steps===0),...Object.fromEntries(toolIds.map(id=>[id,label[id]+consumed[id]])),steps:label.steps+1,parent:label};return fits(candidate)?candidate:null;};
@@ -64,9 +69,10 @@ function calculate(o){
  const initial={node:current,hours:0,...Object.fromEntries(toolIds.map(id=>[id,0])),steps:0,parent:null};
  const allowed=nodes.map(node=>!o.tripReached.has(node.id)&&canTraverseCampNode(node,o.counts)),forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
  if(!allowed[goal])return freezeResult(output);
- // The compass has its own goal-based rule. Neither start-distance nor a
- // retreat into the current trip may replace a strictly closer next step.
- for(let i=0;i<nodes.length;i++)if((allowed[i]||i===current)&&goalDistances[i]>=0)for(const next of neighbors[i])if(allowed[next]&&goalDistances[next]>=0&&goalDistances[next]<goalDistances[i]){forward[i].push(next);reverse[next].push(i);}
+ // Guidance optimizes consumption globally; a cheaper detour may temporarily
+ // increase hop distance. Current-trip revisits are still limited to the
+ // engine's explicit ancestry retreat rather than arbitrary loops.
+ for(let i=0;i<nodes.length;i++)if((allowed[i]||i===current)&&goalDistances[i]>=0)for(const next of neighbors[i])if(allowed[next]&&goalDistances[next]>=0){forward[i].push(next);reverse[next].push(i);}
  // A reverse time bound ignores consumption, but never overestimates the best
  // remaining time. It avoids exploring the far side of the entire world.
  const remaining=new Float64Array(nodes.length).fill(Infinity),timeHeap=new MinHeap((a,b)=>a.hours-b.hours);remaining[goal]=0;timeHeap.push({node:goal,hours:0});
@@ -89,7 +95,7 @@ function calculate(o){
    const food=foodFor(label.hours),requiredItems=usedItems(label)+food;
    if(!best||requiredItems<best.requiredItems||requiredItems===best.requiredItems&&label.hours<best.activityHours-EPS){
     const path=[];for(let previous=label;previous;previous=previous.parent)path.push(nodes[previous.node].id);path.reverse();
-    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:'forward',requiredItems,activityHours:label.hours,consumption:{food,...Object.fromEntries(toolIds.map(id=>[id,label[id]]))}};
+    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:'forward',requiredItems,explorationCost:requiredItems,activityHours:label.hours,consumption:{food,...Object.fromEntries(toolIds.map(id=>[id,label[id]]))}};
    }
   }else for(const next of forward[label.node]){const candidate=spend(label,next);if(candidate)consider(candidate);}
  }
@@ -100,7 +106,7 @@ function calculate(o){
 export function planCampNavigation(options={}){
  const o=normalize(options);let cache=plans.get(o.world);if(!cache){cache=new Map();plans.set(o.world,cache);}
  const ruleKey=toolIds.map(id=>id+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+CAMP_SUPPLIES[id].repeatable).join('|');
- const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,...consumables.map(id=>o.counts[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
+ const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,...consumables.map(id=>o.counts[id]),...toolIds.map(id=>o.usedToolUses[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
  if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}
  const value=calculate(o);while(cache.size>=CACHE_LIMIT)cache.delete(cache.keys().next().value);cache.set(key,value);return value;
 }

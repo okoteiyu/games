@@ -32,7 +32,7 @@ export class SquareSceneView {
   this.observer = new ResizeObserver(() => { const box=this.surface.getBoundingClientRect();element.dispatchEvent(new CustomEvent('viewresize',{detail:{width:box.width,height:box.height,aspect:1,pixelRatio:window.devicePixelRatio||1}})); });
   this.observer.observe(this.surface);
  }
- clear() { houseUI?.deactivate();trainingHallUI?.deactivate();analysisRoomUI?.deactivate();interiorUI?.deactivate();const video=this.surface.querySelector('video');if(video)video.pause();this.surface.replaceChildren();this.surface.classList.remove('is-video');if(this.objectURL){URL.revokeObjectURL(this.objectURL);this.objectURL=null;} }
+ clear() { houseUI?.deactivate();trainingHallUI?.deactivate();analysisRoomUI?.deactivate();interiorUI?.deactivate();gameRuntime?.campController?.baseView?.setActive(false);const video=this.surface.querySelector('video');if(video)video.pause();this.surface.replaceChildren();this.surface.classList.remove('is-video');if(this.objectURL){URL.revokeObjectURL(this.objectURL);this.objectURL=null;} }
  setDemo(dark=false) { this.clear();const scene=document.createElement('div');scene.className=`main-view__demo${dark?' is-dark':''}`;scene.setAttribute('role','img');scene.setAttribute('aria-label',dark?'暗い背景で枠の見え方を確認':'明るい背景で枠の見え方を確認');scene.innerHTML='<span class="demo-halo"></span><span class="demo-cloud"></span><span class="demo-cloud demo-cloud--right"></span><span class="demo-spark"></span><img class="demo-icon" src="assets/naruto-sticker.png" alt="">';this.surface.append(scene); }
  setHouse() { if(houseUI){this.clear();houseUI.show();return houseUI.container;}const image=this.setImage('assets/okoteiyu-house-workspace.png','研究中のおこていゆがいる、おこていゆハウスの一室');image.className='house-image';return image; }
  setImage(src,alt='メインビューの画像') { this.clear();const image=new Image();image.alt=alt;image.src=src;this.surface.append(image);return image; }
@@ -248,6 +248,7 @@ gameRuntime.onAnalysisRoomEntered=()=>areaMap.showAnalysis();
 gameRuntime.onInteriorEntered=id=>areaMap.showInterior(id);
 gameRuntime.onBattleEvent=event=>areaMap.handleBattleEvent(event);
 gameRuntime.onCampStarted=entries=>areaMap.showCamp(entries);
+gameRuntime.onCampBaseEntered=(map,base)=>areaMap.showCampBase(map,base.name);
 gameRuntime.onCampEvent=event=>areaMap.handleCampEvent(event);
 gameRuntime.onCampCheckpoint=()=>browserSave?.saveNow();
 browserSave=new BrowserSave({readState:()=>optionsUI.readState({browser:true}),applyState:state=>optionsUI.applyState(state),canSave:()=>!needsVisitorName()&&(Boolean(storyDirector?.active&&storyDirector.canCheckpoint)||((gameRuntime.scene==='house'||isBuildingVisitScene(gameRuntime.scene)||gameRuntime.campController.canCheckpoint)&&['home','patrol','training','camp'].includes(gameRuntime.session.state.location)&&Boolean(houseUI.controller?.ready))),

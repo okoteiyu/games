@@ -6,8 +6,7 @@ export const PROLOGUE_REVISION=2;
 export const PROLOGUE_EPISODE_IDS=Object.freeze(['ch0-01']);
 export const LEGACY_PROLOGUE_EPISODE_IDS=Object.freeze(['ch0-01','ch0-02','ch0-03']);
 export const DEFAULT_STORY_CATALOG=Object.freeze([
- Object.freeze({id:'chapter-0',arcId:DEFAULT_STORY_ARC_ID,number:0,nextChapter:1,episodeIds:PROLOGUE_EPISODE_IDS}),
- Object.freeze({id:'chapter-1',arcId:DEFAULT_STORY_ARC_ID,number:1,nextChapter:1,episodeIds:Object.freeze(['ch1-01','ch1-02'])})
+ Object.freeze({id:'chapter-0',arcId:DEFAULT_STORY_ARC_ID,number:0,nextChapter:1,episodeIds:PROLOGUE_EPISODE_IDS})
 ]);
 const own=(value,key)=>Object.hasOwn(value??{},key);
 const record=value=>Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&[Object.prototype,null].includes(Object.getPrototypeOf(value)));
@@ -80,6 +79,15 @@ function migrateLegacyPrologue(progress){
  return progress;
 }
 
+/** Retired Chapter 1 checkpoints cannot resume a deleted episode. Keep all
+ * unrelated chapters, arcs, and the battle reward ledger unchanged. */
+function removeRetiredChapterOne(progress){
+ const retired=id=>/^ch1-/.test(id);
+ progress.completedEpisodes=progress.completedEpisodes.filter(id=>!retired(id));
+ if(progress.activeEpisode&&retired(progress.activeEpisode.episodeId))progress.activeEpisode=null;
+ return progress;
+}
+
 /** Progress contains stable content IDs rather than a script or render state. */
 export function createStoryProgress({currentChapter=INITIAL_STORY_CHAPTER,legacyCompleted=false,arcChapters:arcs}={}){
  return {version:STORY_PROGRESS_VERSION,prologueRevision:PROLOGUE_REVISION,currentChapter:integer(currentChapter,'story chapter'),arcChapters:arcChapters(arcs,currentChapter),completedEpisodes:legacyCompleted?[...PROLOGUE_EPISODE_IDS]:[],activeEpisode:null,completedBattles:[]};
@@ -103,7 +111,7 @@ export function normalizeStoryProgress(saved,{legacyInitial=false}={}){
   activeEpisode={episodeId:identifier(saved.activeEpisode.episodeId),sceneId:saved.activeEpisode.sceneId===null?null:identifier(saved.activeEpisode.sceneId),sceneIndex:integer(saved.activeEpisode.sceneIndex,'story scene index')};
  }
  const progress={version:STORY_PROGRESS_VERSION,prologueRevision:PROLOGUE_REVISION,currentChapter,arcChapters:arcChapters(saved.arcChapters,currentChapter),completedEpisodes,activeEpisode,completedBattles};
- return saved.prologueRevision===PROLOGUE_REVISION?progress:migrateLegacyPrologue(progress);
+ return removeRetiredChapterOne(saved.prologueRevision===PROLOGUE_REVISION?progress:migrateLegacyPrologue(progress));
 }
 
 /** Hero saves retain currentChapter; every other arc has an independent cursor.

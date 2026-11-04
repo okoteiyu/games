@@ -1,0 +1,4 @@
+.camp-base-view[hidden]{display:none!important}
+.camp-base-view{isolation:isolate;contain:layout paint}
+.camp-base-webgl{outline:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.camp-base-webgl:focus-visible{outline:2px solid #e9d498;outline-offset:-3px}

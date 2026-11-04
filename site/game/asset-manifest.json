@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 174,
-  "totalBytes": 160874138,
+  "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
+  "fileCount": 177,
+  "totalBytes": 163207052,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -1395,6 +1395,30 @@
       "bytes": 3812,
       "priority": 3,
       "sha256": "a01af84990211cacfac36732f489fb4c6881b850ee54935623922439c1d8f52f"
+    },
+    {
+      "url": "assets/camp-base/camp-base-kit.glb?v=e6c860d6886691937873f8cd4a5efbf07131d8f57702e29c655e90dd8a8a04d1",
+      "label": "キャンプ拠点",
+      "type": "binary",
+      "bytes": 2142980,
+      "priority": 4,
+      "sha256": "e6c860d6886691937873f8cd4a5efbf07131d8f57702e29c655e90dd8a8a04d1"
+    },
+    {
+      "url": "assets/camp-base/camp-base.json",
+      "label": "キャンプ拠点の配置",
+      "type": "json",
+      "bytes": 36338,
+      "priority": 4,
+      "sha256": "76c843d3e8ef1f415a4981faa5e1558b2603d332ed6df805850aa521a33bf932"
+    },
+    {
+      "url": "assets/camp-base/base-icon.png",
+      "label": "キャンプ拠点の地図アイコン",
+      "type": "image",
+      "bytes": 153596,
+      "priority": 4,
+      "sha256": "94dc659fd05f042acdcd76ce454777cd301853ab737f81651b123947273cc72a"
     }
   ]
 }

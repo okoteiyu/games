@@ -8,6 +8,7 @@ import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superC
 import {currentTimeOfDay} from './world-time.js';
 import {createCampProgress,normalizeCampProgress,validateCampBag,campDepartureCost} from './camp-rules.js';
 import {CAMP_DESTINATIONS} from './camp-world.js';
+import {getCampBase,establishCampBase as createCampBase,moveCampBase as selectCampBase,withdrawCampBase as removeCampBase} from './camp-bases.js';
 import {isCampDestinationUnlocked} from './camp-destination-access.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,validateSupportSelection,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 export {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,supportSelectionChange,validateSupportSelection,SUPPORT_SLOT_LIMIT,SUPPORT_TAG_LABELS,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
@@ -278,10 +279,12 @@ export class GameSession{
   try{this.state.camp=normalizeCampProgress(next);}catch{return false;}
   this.emit('camp-progress');return true;
  }
- requestCamp({bag=this.state.camp.bags[this.state.camp.selectedBag],destination='none',relaxStreak=0,spendCalmPoints=null}={}){
+ requestCamp({bag=this.state.camp.bags[this.state.camp.selectedBag],destination='none',startBaseId=this.state.camp.currentBaseId,relaxStreak=0,spendCalmPoints=null}={}){
   if(this.state.location!=='home')return {ok:false,reason:'not-home'};
   if(!this.state.visitorName)return {ok:false,reason:'visitor-name-required'};
   if(this.state.pendingAngerEvent)return {ok:false,reason:'anger-event-pending'};
+  const base=getCampBase(this.state.camp,startBaseId);
+  if(!base||startBaseId!==this.state.camp.currentBaseId)return {ok:false,reason:'invalid-start-base'};
   if(!Object.hasOwn(CAMP_DESTINATIONS,destination))return {ok:false,reason:'unknown-destination'};
   if(!isCampDestinationUnlocked(destination,this.state.camp.discovered))return {ok:false,reason:'destination-unvisited'};
   let normalized;try{normalized=validateCampBag(bag);}catch{return {ok:false,reason:'invalid-bag'};}
@@ -294,8 +297,28 @@ export class GameSession{
   if(typeof spendCalmPoints!=='function')return {ok:false,reason:'calm-payment-required'};
   if(spendCalmPoints(calmPointsCost)!==true)return {ok:false,reason:'not-enough-calm'};
   this.state.location='camp';this.campHadBattle=false;this.state.camp=progress;
-  this.emit('camp-start',{calmPointsCost,calmCostCommitted:true,destination,expeditions:this.state.camp.expeditions});
-  return {ok:true,calmPointsCost,calmCostCommitted:true,bag:clone(normalized),destination};
+  this.emit('camp-start',{calmPointsCost,calmCostCommitted:true,destination,startBaseId,startId:base.nodeId,expeditions:this.state.camp.expeditions});
+  return {ok:true,calmPointsCost,calmCostCommitted:true,bag:clone(normalized),destination,startBaseId,startId:base.nodeId};
+ }
+ /** Base changes are checkpointed with camp progress; frontier flags are derived. */
+ establishCampBase({nodeId,startBaseId=this.state.camp.currentBaseId}={}){
+  const battle=this.state.battle;
+  if(this.state.pendingAngerEvent||this.state.location!=='battle'||battle?.kind!=='camp-final'||battle.phase!=='ended'||battle.result!=='win')return {ok:false,reason:'final-victory-required'};
+  try{
+   const fields=createCampBase(this.state.camp,{nodeId,startBaseId,rng:()=>this.random()});
+   this.state.camp=normalizeCampProgress({...this.state.camp,...fields,discovered:[...new Set([...this.state.camp.discovered,nodeId])]});
+   const base=getCampBase(this.state.camp,'base-'+nodeId);this.emit('camp-base-established',{base:clone(base),startBaseId});return {ok:true,base};
+  }catch(error){return {ok:false,reason:'cannot-establish',message:error.message};}
+ }
+ moveCampBase(id){
+  if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)return false;
+  try{this.state.camp=normalizeCampProgress({...this.state.camp,...selectCampBase(this.state.camp,id)});}catch{return false;}
+  this.emit('camp-base-moved',{id});return true;
+ }
+ withdrawCampBase(id){
+  if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)return false;
+  try{this.state.camp=normalizeCampProgress({...this.state.camp,...removeCampBase(this.state.camp,id)});}catch{return false;}
+  this.emit('camp-base-withdrawn',{id});return true;
  }
  requestInterference({relaxStreak=0,spendCalmPoints=null}={}){
   if(!this.commandAvailability(relaxStreak).interfere)return {ok:false,reason:'interference-unavailable'};

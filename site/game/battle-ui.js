@@ -107,9 +107,11 @@ export class BattleUI{
  advance(dt){if(!this.active)return;if(!this.isPaused()&&!isModalBlocked())this.controller?.advance(dt);this.updateControls();}
  showReturn({cutin=this.resultCutinVisible}={}){
   if(this.embedded){this.panel.dataset.mode='camp';this.returnView.hidden=true;this.returnButton.disabled=true;return;}
+  const campFinal=this.stage?.encounterType==='camp-final',returnLabel=campFinal?'探索を終える':'ホーム画面に帰る';
+  if(this.returnLabel!==returnLabel){this.returnLabel=returnLabel;this.returnButton.setAttribute('aria-label',returnLabel);this.returnButton.querySelector('span').innerHTML=campFinal?'探索を<br>終える':'ホーム画面に<br>帰る';}
   this.resultCutinVisible=Boolean(cutin);this.panel.dataset.mode='result';this.panel.hidden=!this.active;this.returnView.hidden=false;
   if(this.resultCutinVisible)this.hud.hidden=true;
-  this.returnButton.disabled=!this.active||!this.canReturn();this.returnButton.title=this.returnButton.disabled?'演出と結果メッセージを確認すると進めます。':this.stage?.encounterType==='story'?'物語の続きを読みます。':'ホーム画面へ戻ります。';
+  this.returnButton.disabled=!this.active||!this.canReturn();this.returnButton.title=this.returnButton.disabled?'演出と結果メッセージを確認すると進めます。':campFinal?'探索を終えます。':this.stage?.encounterType==='story'?'物語の続きを読みます。':'ホーム画面へ戻ります。';
  }
  updateControls(){
   const snapshot=this.snapshot;if(!snapshot)return;

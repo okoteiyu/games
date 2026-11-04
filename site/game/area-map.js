@@ -75,6 +75,7 @@ export class AreaMap {
   return true;
  }
  showCamp(events=[]){this.clearBattleLog();this.mode='camp';this.element.dataset.area='camp';this.title.textContent='キャンプログ';this.hint.textContent='';this.battleLog=new CampLog(this.content);for(const event of events)this.battleLog.appendEvent(event);}
+ showCampBase(map,name='キャンプ拠点'){this.clearBattleLog();this.mode='camp-base';this.element.dataset.area='camp-base';this.title.textContent=name;this.hint.textContent='タップで拡大';this.content.replaceChildren(map);addMapTapCue(map);}
  handleCampEvent(event){return this.mode==='camp'?this.battleLog?.appendEvent(event)??false:false;}
  handleBattleEvent(event){
   if(this.mode==='camp'&&(event?.battle?.kind==='camp'||event?.battle?.kind==='camp-final'||event?.type!=='battle-start'))return this.battleLog?.appendEvent(event)??false;

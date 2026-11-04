@@ -39,7 +39,7 @@ function randomValue(rng){
 export function campEncounterCandidates(playerLevel,creatures,context={}){
  validatePlayerLevel(playerLevel);
  const regionId=Object.hasOwn(CAMP_REGIONS,context.regionId)?context.regionId:'wilds',rawMin=playerLevel-5,rawMax=playerLevel+3;
- return Object.values(creatures).filter(creature=>(creature.category==='normal'||regionId!=='wilds'&&creature.category==='threat')&&campHabitatMatches(creature,context)).map(creature=>{const band=nativeBand(creature);return {creature,min:clampToBand(rawMin,band),max:clampToBand(rawMax,band),rawMin,rawMax};});
+ return Object.values(creatures).filter(creature=>creature.id!=='rookie_kun'&&(creature.category==='normal'||regionId!=='wilds'&&creature.category==='threat')&&campHabitatMatches(creature,context)).map(creature=>{const band=nativeBand(creature);return {creature,min:clampToBand(rawMin,band),max:clampToBand(rawMax,band),rawMin,rawMax};});
 }
 export function chooseCampEncounter(playerLevel,creatures,rng=Math.random,context={}){
  const candidates=campEncounterCandidates(playerLevel,creatures,context);if(!candidates.length)return null;

@@ -1,6 +1,5 @@
 /** Story data is separate from playback, progress and scene rendering. */
 const scene=(id,stage,text,options={})=>({id,type:'scene',stage,shot:'medium',animation:'idle',expression:'neutral',speaker:'ナレーション',...options,text});
-const manager=(id,stage,who,text,options={})=>scene(id,stage,text,{speaker:who==='a'?'管理人A':'管理人B',portrait:who==='a'?'manager_a':'manager_b',...options});
 
 export const STORY_CHAPTERS=Object.freeze([
  {
@@ -42,47 +41,6 @@ export const STORY_CHAPTERS=Object.freeze([
      scene("ch0-03-10","computer-room","あなたはおこていゆハウス 2F の住人になった。",{"sourceSceneId": "ch0-03-10"}),
      {"id":"ch0-register-name","sourceSceneId":"ch0-03-10","type":"registration","stage":"computer-room","text":""},
      scene("ch0-03-22","house","仕方ないから、協力してもらうか🍀🌀☺️",{"speaker": "", "sourceSceneId": "ch0-03-22", "category": "innerThought"})
-    ]
-   }
-  ]
- },
- {
-  id:'chapter-1',arcId:'hero',number:1,nextChapter:1,title:'知ること、強くなること',
-  description:'研究も、訓練も、ひとりきりではない。いつもの場所から、新しい発見へ。',
-  episodes:[
-   {
-    id:'ch1-01',title:'研究の前に、ごあいさつ',description:'地下のコンピュータ室へ。研究を支える人と、最初のご挨拶。',readingMinutes:1,
-    staffPlacements:{worker_008:'analysis-room'},
-    scenes:[
-     scene('ch1-01-01','house','暮らしが少し落ち着いた朝。おこていゆの研究ノートから、建物の案内がはらりと落ちた。地下には、まだ挨拶していない人たちがいる。',{animation:'thinking',prop:'book'}),
-     manager('ch1-01-02','house','a','研究を支えてくれる人にも、ご挨拶を。地下1階のコンピュータ室で、会員No.008がお待ちです。',{prop:'book'}),
-     scene('ch1-01-03','house','おこていゆは案内を確かめ、こくりとうなずいた。モアイくんも一度跳ねる。まずは建物の地図で、行き先を確かめよう。',{animation:'nod',expression:'determined',prop:'book'}),
-     {
-      id:'ch1-01-greet',type:'objective',
-      objective:{kind:'talk_staff',staffId:'worker_008',roomId:'analysis-room',floorId:'b1',areaId:'analysis',title:'会員No.008にご挨拶',description:'2DマップでB1のコンピュータ室へ向かい、会員No.008に話しかけよう。',roomLabel:'B1 · コンピュータ室',staffLabel:'会員No.008'},
-      lines:[
-       {speaker:'会員No.008',kind:'speech',category:'conversation',text:'はじめまして、会員No.008です。珍生物の記録を整理しています。お持ちのノート、少し見せてもらっても？'},
-       {speaker:'会員No.008',kind:'speech',category:'conversation',text:'なるほど、この空白を、これから埋めていくんですね。おや、と思ったことを教えてください。記録を残すのは、ここで手伝います。'},
-       {speaker:'会員No.008',kind:'speech',category:'conversation',text:'……「ベーコンが一番おいしく焼ける時間」。これも研究ですね。世界を護る研究者も、おなかは空きますから。'}
-      ]
-     },
-     scene('ch1-01-04','computer-room','今度は、もっとすごい研究を持ってこよう。ベーコン以外の。',{shot:'close',animation:'thinking',expression:'happy',prop:'book',category:'innerThought'}),
-     scene('ch1-01-05','computer-room','知らないことを、一緒に考えてくれる人がいる。今日の最初の発見は、珍生物のことではなかった。',{animation:'nod',expression:'happy',prop:'book'})
-    ]
-   },
-   {
-    id:'ch1-02',title:'大きな冷蔵庫、小さな発見',description:'倉庫の正面に並ぶ、大きな冷蔵庫。近づいて見ると、気づくことがある。',readingMinutes:1,
-    scenes:[
-     scene('ch1-02-01','house','挨拶を終えたおこていゆは、研究ノートを開いた。珍生物のことだけでなく、施設のことも知っておきたいらしい。余白には、まだ小さな疑問が残っている。',{animation:'thinking',prop:'book'}),
-     manager('ch1-02-02','house','b','次は倉庫を見てみる？　正面に並んだ大きな冷蔵庫も、暮らしを支える設備のひとつだよ。気になったものは、近くでじっくり観察してみよう。',{prop:'book'}),
-     scene('ch1-02-03','house','冷蔵庫、と聞いて、おこていゆの目が少しだけ開いた。研究者としての好奇心なのか、おなかの好奇心なのか。まずは、実物を見に行こう。',{animation:'nod',expression:'happy',prop:'book'}),
-     {
-      id:'ch1-02-inspect',type:'objective',
-      objective:{kind:'inspect_object',roomId:'warehouse',floorId:'outdoor',areaId:'warehouse',targetId:'warehouse_fridge',title:'冷蔵庫を詳しく観察',description:'倉庫の3Dビューで、正面に並ぶ大型冷蔵庫をひとつタップし、詳細観測してみよう。',roomLabel:'屋外 · 倉庫',targetLabel:'正面の大型冷蔵庫'},
-      inspectionMessage:'近づくと、厚い扉と丈夫な取っ手がよく分かった。ここで働く人や、招かれた珍生物の食事を支える、大きな備え。おこていゆは、しばらく真剣に見つめていた。'
-     },
-     scene('ch1-02-04','house','大きい。ベーコンも、たくさん入る。……すごく大事な設備だ。',{shot:'close',animation:'thinking',expression:'happy',prop:'book',category:'innerThought'}),
-     scene('ch1-02-05','house','部屋へ戻ると、おこていゆは「よく見てみる」とノートに書いた。遠くからでは分からないことが、近づくと見えてくる。研究の第一歩を、またひとつ見つけたようだ。',{animation:'nod',expression:'happy',prop:'book'})
     ]
    }
   ]

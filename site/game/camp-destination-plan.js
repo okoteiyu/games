@@ -19,17 +19,17 @@ class MinHeap{
 
 function normalizedOptions(options={}){
  const world=options.world??CAMP_WORLD,startId=options.startId??world.startId,destination=options.destination??'none',destinations=options.destinations??CAMP_DESTINATIONS;
- const maxDays=options.maxDays??CAMP_MAX_DAYS,width=options.capacityWidth??BAG_WIDTH,height=options.capacityHeight??BAG_HEIGHT,routeMode=options.routeMode??'target';
+ const network=options.network===true,maxDays=network?Number.MAX_SAFE_INTEGER:(options.maxDays??CAMP_MAX_DAYS),width=options.capacityWidth??BAG_WIDTH,height=options.capacityHeight??BAG_HEIGHT,routeMode=options.routeMode??'target';
  if(!world||!Array.isArray(world.nodes)||!world.nodes.length||typeof startId!=='string')throw new TypeError('キャンプの地図が正しくありません。');
  if(typeof destination!=='string'||!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が見つかりません。');
- if(!['target','compass'].includes(routeMode))throw new RangeError('キャンプの経路の種類が正しくありません。');
- if(!Number.isInteger(maxDays)||maxDays<1||maxDays>CAMP_MAX_DAYS||!Number.isInteger(width)||width<1||width>BAG_WIDTH||!Number.isInteger(height)||height<1||height>BAG_HEIGHT)throw new RangeError('キャンプの物資容量が正しくありません。');
- return {world,startId,destination,destinations,maxDays,width,height,routeMode,capacity:width*height};
+ if(!['target','compass','optimal'].includes(routeMode))throw new RangeError('キャンプの経路の種類が正しくありません。');
+ if(!Number.isInteger(maxDays)||maxDays<1||!network&&maxDays>CAMP_MAX_DAYS||!Number.isInteger(width)||width<1||width>BAG_WIDTH||!Number.isInteger(height)||height<1||height>BAG_HEIGHT)throw new RangeError('キャンプの物資容量が正しくありません。');
+ return {world,startId,destination,destinations,maxDays,width,height,routeMode,network,capacity:width*height};
 }
 function freezePlan(value){
  Object.freeze(value.counts);Object.freeze(value.path);for(const p of value.placements)Object.freeze(p);Object.freeze(value.placements);if(value.diagnostics)Object.freeze(value.diagnostics);return Object.freeze(value);
 }
-function baseResult(o,status){return {status,startId:o.startId,destination:o.destination,routeMode:o.routeMode,destinationNodeId:o.destinations[o.destination].nodeId??null,counts:emptyCounts(),totalItems:0,occupiedCells:0,activityHours:null,days:0,placements:[],path:[]};}
+function baseResult(o,status){return {status,startId:o.startId,destination:o.destination,routeMode:o.routeMode,network:o.network,destinationNodeId:o.destinations[o.destination].nodeId??null,counts:emptyCounts(),totalItems:0,explorationCost:0,occupiedCells:0,activityHours:null,days:0,placements:[],path:[]};}
 
 /** Verify the physical rectangles as well as their total area. No bag is filled. */
 function packCounts(counts,width,height){
@@ -59,7 +59,8 @@ function packCounts(counts,width,height){
 }
 
 const dominates=(a,b)=>a.units<=b.units&&consumedIds.every(id=>a[id]<=b[id]);
-const comparePlan=(a,b)=>a.totalItems-b.totalItems||a.activityHours-b.activityHours||a.occupiedCells-b.occupiedCells||a.days-b.days;
+const objective=plan=>plan.routeMode==='target'?plan.totalItems:plan.explorationCost;
+const comparePlan=(a,b)=>objective(a)-objective(b)||a.activityHours-b.activityHours||a.totalItems-b.totalItems||a.occupiedCells-b.occupiedCells||a.days-b.days;
 
 /** Exact positive-cost label search; each yield is an opportunity for UI work.
  * Random events and automatic branch choices are deliberately not simulated. */
@@ -78,20 +79,20 @@ function* calculate(options){
   neighbors[i]=nodes[i].neighbors.map(id=>{const j=index.get(id);if(j===undefined)throw new TypeError('キャンプの道が正しくありません。');return j;});if(++work%256===0)yield;
  }
  goalDistances[goal]=0;const queue=[goal];for(let i=0;i<queue.length;i++){for(const j of neighbors[queue[i]])if(goalDistances[j]<0){goalDistances[j]=goalDistances[queue[i]]+1;queue.push(j);}if(++work%256===0)yield;}
- if(goalDistances[start]<0||!fits('food',o.width,o.height))return freezePlan(result);
+ if(goalDistances[start]<0||!o.network&&!fits('food',o.width,o.height))return freezePlan(result);
  let best=null,created=0,expanded=0,configurations=0;
  const packingCache=new Map();
  for(const flashlight of [0,1])for(const compass of [1,0]){
-  if(flashlight&&!fits('flashlight',o.width,o.height)||compass&&!fits('compass',o.width,o.height))continue;
+  if(!o.network&&(flashlight&&!fits('flashlight',o.width,o.height)||compass&&!fits('compass',o.width,o.height)))continue;
   configurations++;
   const fixedItems=flashlight+compass,fixedCells=flashlight*area('flashlight')+compass*area('compass'),dayUnits=(flashlight?16:14)*5,unitFactor=compass?3:5;
   // The graph search counts terrain uses. Its objective and packing count the
   // physical copies needed to supply those uses, including a partially used one.
-  const available={flashlight,...Object.fromEntries(consumedIds.map(id=>[id,fits(id,o.width,o.height)?(CAMP_SUPPLIES[id].repeatable?Math.floor(o.capacity/area(id)):1)*(CAMP_SUPPLIES[id].maxUses??1):0]))};
+  const available={flashlight,...Object.fromEntries(consumedIds.map(id=>[id,o.network?nodes.length*2:fits(id,o.width,o.height)?(CAMP_SUPPLIES[id].repeatable?Math.floor(o.capacity/area(id)):1)*(CAMP_SUPPLIES[id].maxUses??1):0]))};
   const allowed=nodes.map((n,i)=>i===start||canTraverseCampNode(n,available)),forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
   if(!allowed[goal])continue;
   for(let i=0;i<nodes.length;i++){
-   if(allowed[i]&&goalDistances[i]>=0)for(const j of neighbors[i])if(j!==start&&allowed[j]&&goalDistances[j]>=0&&(o.routeMode==='compass'?goalDistances[j]<goalDistances[i]:goalDistances[j]<=goalDistances[i])){forward[i].push(j);reverse[j].push(i);}
+   if(allowed[i]&&goalDistances[i]>=0)for(const j of neighbors[i])if(j!==start&&allowed[j]&&goalDistances[j]>=0&&(o.routeMode==='optimal'||o.routeMode==='compass'||goalDistances[j]<=goalDistances[i])){forward[i].push(j);reverse[j].push(i);}
    if(++work%256===0)yield;
   }
   // A reverse shortest-time bound keeps distant side branches out of the search.
@@ -101,22 +102,22 @@ function* calculate(options){
   const frontier=nodes.map(()=>[]),heap=new MinHeap((a,b)=>a.boundItems-b.boundItems||a.boundUnits-b.boundUnits||a.cells-b.cells);
   function consider(label){
    const boundUnits=label.units+remaining[label.node]*unitFactor,food=Math.max(1,Math.ceil(boundUnits/dayUnits));
-   label.boundUnits=boundUnits;label.boundItems=fixedItems+usedCopies(label)+food;
+   label.boundUnits=boundUnits;label.boundItems=usedCopies(label)+food+(o.routeMode==='target'?fixedItems:0);
    label.cells=consumedIds.reduce((sum,id)=>sum+copiesForUses(id,label[id])*area(id),0);
-   if(!Number.isFinite(boundUnits)||food>o.maxDays||consumedIds.some(id=>label[id]>available[id])||fixedCells+label.cells+food*area('food')>o.capacity||best&&(label.boundItems>best.totalItems||label.boundItems===best.totalItems&&boundUnits/5>best.activityHours))return;
+   if(!Number.isFinite(boundUnits)||food>o.maxDays||consumedIds.some(id=>label[id]>available[id])||!o.network&&fixedCells+label.cells+food*area('food')>o.capacity||best&&(label.boundItems>objective(best)||label.boundItems===objective(best)&&boundUnits/5>best.activityHours))return;
    const current=frontier[label.node];if(current.some(a=>dominates(a,label)))return;
    frontier[label.node]=current.filter(a=>{if(dominates(label,a)){a.active=false;return false;}return true;});label.active=true;frontier[label.node].push(label);heap.push(label);created++;
   }
   consider({node:start,units:0,...Object.fromEntries(consumedIds.map(id=>[id,0])),parent:null});
   while(heap.length){
    const label=heap.pop();if(!label.active)continue;
-   if(best&&(label.boundItems>best.totalItems||label.boundItems===best.totalItems&&label.boundUnits/5>best.activityHours))continue;
+   if(best&&(label.boundItems>objective(best)||label.boundItems===objective(best)&&label.boundUnits/5>best.activityHours))continue;
    expanded++;
    if(label.node===goal){
     const counts=emptyCounts(),food=Math.max(1,Math.ceil(label.units/dayUnits));Object.assign(counts,{food,flashlight,compass});for(const id of consumedIds)counts[id]=copiesForUses(id,label[id]);
-    const totalItems=Object.values(counts).reduce((sum,n)=>sum+n,0),occupiedCells=supplyIds.reduce((sum,id)=>sum+counts[id]*area(id),0),candidate={...result,status:'ready',counts,totalItems,occupiedCells,activityHours:label.units/5,days:food,placements:[],path:[]};
+    const totalItems=Object.values(counts).reduce((sum,n)=>sum+n,0),occupiedCells=supplyIds.reduce((sum,id)=>sum+counts[id]*area(id),0),candidate={...result,status:'ready',counts,totalItems,explorationCost:usedCopies(label)+food,occupiedCells,activityHours:label.units/5,days:food,placements:[],path:[]};
     if(!best||comparePlan(candidate,best)<0){
-     const key=supplyIds.map(id=>counts[id]).join(','),cached=packingCache.get(key),placements=cached===undefined?packCounts(counts,o.width,o.height):cached;packingCache.set(key,placements);
+     const key=supplyIds.map(id=>counts[id]).join(','),cached=packingCache.get(key),placements=o.network?[]:cached===undefined?packCounts(counts,o.width,o.height):cached;packingCache.set(key,placements);
      if(placements){candidate.placements=placements;for(let a=label;a;a=a.parent)candidate.path.push(nodes[a.node].id);candidate.path.reverse();best=candidate;}
     }
    }else for(const j of forward[label.node]){
@@ -128,17 +129,19 @@ function* calculate(options){
  const answer=best??result;answer.diagnostics={configurations,labelsCreated:created,labelsExpanded:expanded};return freezePlan(answer);
 }
 
-/** Minimum total number of items first, then minimum activity hours. */
+/** Ordinary target estimates retain their minimum packed-item objective.
+ * Guidance/optimal mode minimizes consumed exploration copies and food, then
+ * activity hours. Support items occupy the bag without adding to that cost. */
 export function planCampDestination(options={}){const iterator=calculate(options);let step;do{step=iterator.next();}while(!step.done);return step.value;}
 
 function cacheEntry(options){
  const o=normalizedOptions(options);let cache=caches.get(o.world);if(!cache){cache=new Map();caches.set(o.world,cache);}
  const ruleKey=Object.values(CAMP_TERRAINS).map(t=>t.id+':'+t.hours).join('|')+';'+supplyIds.map(id=>id+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].repeatable).join('|');
- const key=[o.world.revision??'',o.startId,o.destination,o.destinations[o.destination].nodeId??'',o.routeMode,o.maxDays,o.width,o.height,ruleKey].join(';');
+ const key=[o.world.revision??'',o.startId,o.destination,o.destinations[o.destination].nodeId??'',o.routeMode,o.network?1:0,o.maxDays,o.width,o.height,ruleKey].join(';');
  if(cache.has(key)){const entry=cache.get(key);cache.delete(key);cache.set(key,entry);return entry;}
  while(cache.size>=64)cache.delete(cache.keys().next().value);
  const destinations=Object.freeze({[o.destination]:Object.freeze({nodeId:o.destinations[o.destination].nodeId??null})});
- const snapshot=Object.freeze({world:o.world,startId:o.startId,destination:o.destination,destinations,routeMode:o.routeMode,maxDays:o.maxDays,capacityWidth:o.width,capacityHeight:o.height});
+ const snapshot=Object.freeze({world:o.world,startId:o.startId,destination:o.destination,destinations,routeMode:o.routeMode,network:o.network,maxDays:o.maxDays,capacityWidth:o.width,capacityHeight:o.height});
  const entry={options:snapshot,value:null,promise:null};cache.set(key,entry);return entry;
 }
 export function getCachedCampDestinationPlan(options={}){const entry=cacheEntry(options);return entry.value??(entry.value=planCampDestination(entry.options));}
@@ -152,3 +155,12 @@ export function requestCampDestinationPlan(options={}){
   setTimeout(run,0);
  });return entry.promise;
 }
+
+/** A directional exploration-optimal path between any two map vertices.
+ * Entry terrain belongs to the destination vertex, so reverse routes are
+ * calculated independently. Set network:true only for virtual-network labels
+ * to omit departure bag/day limits; live guidance always retains feasibility.
+ * Cached incremental work is also available below. */
+const optimalOptions=({world=CAMP_WORLD,startId=world.startId,goalId,...options}={})=>({...options,world,startId,destination:'route',destinations:{route:{nodeId:goalId}},routeMode:'optimal'});
+export function planCampOptimalRoute(options={}){return getCachedCampDestinationPlan(optimalOptions(options));}
+export function requestCampOptimalRoute(options={}){return requestCampDestinationPlan(optimalOptions(options));}

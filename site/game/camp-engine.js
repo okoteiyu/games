@@ -1,5 +1,5 @@
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS} from './camp-world.js';
-import {CAMP_MAX_DAYS,CAMP_DURABLE_TOOL_IDS,campBagSummary,campRuntimeSupplies,isCampDurableTool,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
+import {CAMP_MAX_DAYS,CAMP_SUPPLIES,CAMP_DURABLE_TOOL_IDS,campBagSummary,campRuntimeSupplies,isCampDurableTool,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
 import {planCampNavigation} from './camp-navigation-plan.js';
 const EPS=1e-9,clone=value=>JSON.parse(JSON.stringify(value));
 export const CAMP_SECONDS_PER_ACTIVITY_HOUR=.65;
@@ -12,16 +12,20 @@ export class CampExpedition{
   const summary=campBagSummary(bag);if(summary.counts.food<1)throw new RangeError('キャンプには携帯食料が必要です。');
   this.world=world;this.nodeIndex=new Map(world.nodes.map(node=>[node.id,node]));if(!this.nodeIndex.has(startId))throw new TypeError('キャンプの始点が見つかりません。');
   if(!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が正しくありません。');
-  this.startId=startId;this.depths=this.distances(startId);this.destination=destinations[destination];this.moaiCompassGoalId=destinations.moai_village?.nodeId??world.moaiVillageId??null;if(this.destination.nodeId&&!this.nodeIndex.has(this.destination.nodeId))throw new RangeError('目的地が見つかりません。');
+  this.startId=startId;this.depths=this.distances(startId);this.destination=destinations[destination];
+  this.guidanceItem=Object.values(CAMP_SUPPLIES).find(item=>summary.counts[item.id]&&item.category==='route_guidance')??(summary.counts.moai_compass?CAMP_SUPPLIES.moai_compass:null);
+  this.guidanceDestinationId=this.guidanceItem?.routeDestinationId??(this.guidanceItem?.id==='moai_compass'?'moai_village':null);
+  this.guidanceGoalId=destinations[this.guidanceDestinationId]?.nodeId??(this.guidanceDestinationId==='moai_village'?world.moaiVillageId:null)??null;
+  this.moaiCompassGoalId=this.guidanceGoalId;if(this.destination.nodeId&&!this.nodeIndex.has(this.destination.nodeId))throw new RangeError('目的地が見つかりません。');
   this.rng=rng;this.onEvent=onEvent;this.secondsPerActivityHour=secondsPerActivityHour;this.goalDistances=this.destination.nodeId?this.distances(this.destination.nodeId):null;
-  this.moaiCompassDistances=summary.counts.moai_compass&&this.nodeIndex.has(this.moaiCompassGoalId)?this.distances(this.moaiCompassGoalId):null;
+  this.moaiCompassDistances=this.guidanceItem&&this.nodeIndex.has(this.guidanceGoalId)?this.distances(this.guidanceGoalId):null;
   this.visited=new Set([startId,...discovered.filter(id=>this.nodeIndex.has(id))]);
   // Historical discovery is for the map. The current trip has a separate
   // reached set and a simple ancestry stack so retreat can never reopen a child.
-  this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=false;
+  this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=Boolean(this.guidanceItem&&startId===this.guidanceGoalId);
   const supplies=campRuntimeSupplies(summary.counts);supplies.food--;
   const supplyUnits=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,'uses']));
-  this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null,targetDetourDistance:null};
+  this.state={worldId:world.id,startId,destination,guidanceItemId:this.guidanceItem?.id??null,guidanceGoalId:this.guidanceGoalId,guidanceFulfilled:this.moaiCompassFulfilled,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null,targetDetourDistance:null};
  }
  random(){const value=Number(this.rng());if(!Number.isFinite(value))throw new TypeError('キャンプの乱数が正しくありません。');return Math.max(0,Math.min(1-Number.EPSILON,value));}
  pick(items){return items.length?items[Math.floor(this.random()*items.length)]:null;}
@@ -101,22 +105,27 @@ export class CampExpedition{
   const options=candidates.map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));if(Number.isFinite(nearest))candidates=options.filter(option=>option.distance===nearest).map(option=>option.node);
   return this.pick(candidates);
  }
+ hasActiveGuidance(){return Boolean(this.guidanceItem&&this.state.supplies[this.guidanceItem.id]&&!this.state.guidanceFulfilled);}
+ completeGuidanceIfReached(){
+  if(!this.hasActiveGuidance()||this.state.nodeId!==this.guidanceGoalId)return false;
+  this.state.guidanceFulfilled=true;this.moaiCompassFulfilled=true;return true;
+ }
  guidedMove(){
-  if(!this.state.supplies.moai_compass||this.moaiCompassFulfilled)return null;
+  if(!this.hasActiveGuidance())return null;
   // Guidance never replaces the separately selected destination/end rule.
-  const goalId=this.moaiCompassGoalId;
+  const goalId=this.guidanceGoalId;
   const unavailable={unavailable:true};
   if(!goalId||!this.nodeIndex.has(goalId)||!this.moaiCompassDistances)return unavailable;
-  const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,counts:this.state.supplies,day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing});
-  if(plan.status==='reached'){this.moaiCompassFulfilled=true;return null;}
+  const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,counts:this.state.supplies,usedToolUses:Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,Math.max(0,(this.state.initialToolUses[id]??0)-(this.state.supplies[id]??0))])),day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing});
+  if(plan.status==='reached'){this.state.guidanceFulfilled=true;this.moaiCompassFulfilled=true;return null;}
   if(plan.status!=='ready')return unavailable;
-  const node=this.nodeIndex.get(plan.nextNodeId),currentDistance=this.moaiCompassDistances.get(this.state.nodeId),nextDistance=node?this.moaiCompassDistances.get(node.id):undefined;
-  if(!node||!this.nodeIndex.get(this.state.nodeId).neighbors.includes(node.id)||this.tripReached.has(node.id)||!Number.isFinite(nextDistance)||!(nextDistance<currentDistance)||!canTraverseCampNode(node,this.state.supplies)||!this.hasTimeFor(node))return unavailable;
+  const node=this.nodeIndex.get(plan.nextNodeId);
+  if(!node||!this.nodeIndex.get(this.state.nodeId).neighbors.includes(node.id)||this.tripReached.has(node.id)||!canTraverseCampNode(node,this.state.supplies)||!this.hasTimeFor(node))return unavailable;
   return {node,movementMode:'forward'};
  }
  planNext(){
   if(this.state.phase!=='travel'||this.state.nextNodeId)return;
-  if(this.destination.nodeId===this.state.nodeId){this.finalize('destination');return;}
+  if(this.destination.nodeId===this.state.nodeId&&!this.hasActiveGuidance()){this.finalize('destination');return;}
   const guided=this.guidedMove();if(guided?.unavailable){this.finalize('compass-route-unavailable');return;}
   let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??(this.goalDistances&&next&&this.tripReached.has(next.id)?'backtrack':'forward');
   if(!next){
@@ -154,13 +163,13 @@ export class CampExpedition{
    if(s.targetDetourDistance!==null&&after<=s.targetDetourDistance)s.targetDetourDistance=null;
   }
   if(backtracking)this.activePath.pop();else{this.activePath.push(node.id);this.tripReached.add(node.id);}
-  this.visited.add(node.id);this.route.push(node.id);this.emit('arrive',{terrain:node.terrain,newlyDiscovered,fromNodeId,backtracking});
+  this.visited.add(node.id);this.route.push(node.id);this.completeGuidanceIfReached();this.emit('arrive',{terrain:node.terrain,newlyDiscovered,fromNodeId,backtracking});
   // Separate draws allow a weather/wildlife event and a battle at one vertex.
   if(this.random()<.3){
    if(this.random()<.5){this.rainForNextCrossing=true;this.emit('weather',{kind:'rain',multiplier:1.5});this.medical('rain');}
    else{const used=s.supplies.food>0?1:0;this.consume('food',used);this.emit('wildlife',{consumedFood:used});this.medical('wildlife');}
   }
-  if(this.destination.nodeId===node.id){this.finalize('destination');return;}
+  if(this.destination.nodeId===node.id&&!this.hasActiveGuidance()){this.finalize('destination');return;}
   if(this.random()<.5){s.phase='encounter';this.emit('encounter',{playerLevel:s.playerLevel,levelRange:{min:s.playerLevel-5,max:s.playerLevel+3}});return;}
   if(s.dayHoursRemaining<=EPS)this.endDay();else this.planNext();
  }
@@ -195,7 +204,7 @@ export class CampExpedition{
  resolveEncounter({won,hp,maxHp}={}){
   if(this.state.phase!=='encounter')return false;if(typeof won!=='boolean')throw new TypeError('キャンプの戦闘結果が正しくありません。');this.context({hp,maxHp});
   if(!won||this.state.hp===0){this.state.phase='failed';this.state.finalReason='battle-loss';this.emit('failed',{reason:'battle-loss'});return true;}
-  this.medical('battle');this.state.phase='travel';if(this.destination.nodeId===this.state.nodeId)this.finalize('destination');else if(this.state.dayHoursRemaining<=EPS)this.endDay();else this.planNext();return true;
+  this.medical('battle');this.state.phase='travel';if(this.destination.nodeId===this.state.nodeId&&!this.hasActiveGuidance())this.finalize('destination');else if(this.state.dayHoursRemaining<=EPS)this.endDay();else this.planNext();return true;
  }
  finalize(reason){
   if(['final','failed','finished'].includes(this.state.phase))return false;
