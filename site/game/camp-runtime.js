@@ -2,7 +2,7 @@ import {CampExpedition} from './camp-engine.js';
 import {CampUI} from './camp-ui.js';
 import {CampNightView} from './camp-night.js';
 import {chooseCampEncounter,chooseCampGuardianLevel} from './camp-encounters.js';
-import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode} from './camp-world.js';
+import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode,getCampDestinationAt} from './camp-world.js';
 import {getCampRegion,getCampRegionAt} from './camp-regions.js';
 import {CREATURES,playerStats} from './game-session.js';
 import {isBuildingVisitScene} from './interior-rules.js';
@@ -102,10 +102,10 @@ export class CampRuntime{
  }
  startFinal(){
   const g=this.game;if(!this.active||this.finalStarted||this.finalIntro||!this.engine)return false;
-  const s=this.engine.snapshot(),isVillage=s.nodeId===CAMP_DESTINATIONS.moai_village.nodeId,id=isVillage?'fake_moai':'great_fairy',species=CREATURES[id];
+  const s=this.engine.snapshot(),actualDestination=getCampDestinationAt(s.nodeId),id=actualDestination?.guardianSpeciesId||'great_fairy',species=CREATURES[id];
   if(s.phase!=='final')return false;
   if(!species){this.engine.abort('unavailable');g.toast('最終地点のモデルを準備できませんでした。ホームへ戻れます。');this.ui.show(this.engine.snapshot());return;}
-  const destination=CAMP_DESTINATIONS[s.destination],arrival=s.finalReason==='destination',place=destination&&destination.id!=='none'?destination.name:'目標地点';
+  const destination=actualDestination||CAMP_DESTINATIONS[s.destination],arrival=s.finalReason==='destination',place=destination&&destination.id!=='none'?destination.name:'目標地点';
   const text=arrival?place+'にたどり着いた。奥のほうに、珍生物の気配がする。':finalExplorationMessages[s.finalReason]||'今回の探索は、ここで一区切り。ふたりが帰り支度を始めると……。';
   this.finalIntro={serial:this.serial,index:0,waitingForRead:false,speciesId:id,messages:[{type:'move',text},{type:'enemy',text:'道の先に、'+species.name+'が姿を現した。おこていゆは静かに身構えた。'}]};
   this.ui.show(s);this.statusPanel.hidden=false;this.checkpoint();this.presentFinalIntroduction();g.sync();return true;

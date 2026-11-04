@@ -961,6 +961,438 @@
       "bytes": 649872,
       "sha256": "595665cfb125e5511d677b701b16677148f10fcc2013a175ecca4d298cf9c6a7",
       "idle_description": "A small guardian gently hovers while four leaf-shaped wings breathe in a1.5second loop."
+    },
+    "mystery_015": {
+      "id": "mystery_015",
+      "name": "???-15",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_020": {
+      "id": "mystery_020",
+      "name": "???-20",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_025": {
+      "id": "mystery_025",
+      "name": "???-25",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_030": {
+      "id": "mystery_030",
+      "name": "???-30",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_035": {
+      "id": "mystery_035",
+      "name": "???-35",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_040": {
+      "id": "mystery_040",
+      "name": "???-40",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_045": {
+      "id": "mystery_045",
+      "name": "???-45",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_050": {
+      "id": "mystery_050",
+      "name": "???-50",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_055": {
+      "id": "mystery_055",
+      "name": "???-55",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_060": {
+      "id": "mystery_060",
+      "name": "???-60",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_065": {
+      "id": "mystery_065",
+      "name": "???-65",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_070": {
+      "id": "mystery_070",
+      "name": "???-70",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_075": {
+      "id": "mystery_075",
+      "name": "???-75",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_080": {
+      "id": "mystery_080",
+      "name": "???-80",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_085": {
+      "id": "mystery_085",
+      "name": "???-85",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_090": {
+      "id": "mystery_090",
+      "name": "???-90",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_095": {
+      "id": "mystery_095",
+      "name": "???-95",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
+    },
+    "mystery_100": {
+      "id": "mystery_100",
+      "name": "???-100",
+      "url": "mystery_unique.glb",
+      "height": 1,
+      "height_m": 1,
+      "canonical_height_m": 1,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R238",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 191108,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
+      "sharedModelId": "mystery_unique"
     }
   },
   "commonMotion": {

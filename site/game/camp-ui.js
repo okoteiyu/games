@@ -1,5 +1,5 @@
 import {CAMP_SUPPLIES,BAG_WIDTH,BAG_HEIGHT,validateCampBag,validateCampBagInventory,campDepartureCost,campBagSummary,campRuntimeSupplies,isCampDurableTool} from './camp-rules.js';
-import {CAMP_WORLD,CAMP_DESTINATIONS} from './camp-world.js';
+import {CAMP_WORLD,CAMP_DESTINATIONS,getCampDestinationAt} from './camp-world.js';
 import {CampMap} from './camp-map.js';
 import {requestCampDestinationPlan} from './camp-destination-plan.js';
 import {planCampNavigation} from './camp-navigation-plan.js';
@@ -57,15 +57,16 @@ export class CampDestinationPicker{
   this.loadPlans();this.renderPlans();
  }
  loadPlans(){
-  const startId=this.readStartId(),requests=destinationValues().map(destination=>({destination,routeMode:this.readRouteMode(destination.id)==='compass'?'compass':'target'})),contextKey=[startId,...requests.map(({destination,routeMode})=>destination.id+':'+routeMode)].join('|');if(this.planContextKey===contextKey)return;
-  this.planStartId=startId;this.planContextKey=contextKey;const generation=++this.planGeneration;this.planResults.clear();
-  for(const {destination,routeMode} of requests){
-   if(!destination.nodeId){this.planResults.set(destination.id,{status:'none'});continue;}
-   this.planResults.set(destination.id,{status:'pending'});
-   Promise.resolve().then(()=>requestCampDestinationPlan({startId,destination:destination.id,routeMode})).then(plan=>{
-    if(this.destroyed||generation!==this.planGeneration)return;this.planResults.set(destination.id,plan);this.renderPlans();
-   }).catch(()=>{if(this.destroyed||generation!==this.planGeneration)return;this.planResults.set(destination.id,{status:'error'});this.renderPlans();});
-  }
+  const startId=this.readStartId(),requests=destinationValues().map(destination=>({destination,routeMode:this.readRouteMode(destination.id)==='compass'?'compass':'target'})),contextKey=[startId,...requests.map(({destination,routeMode})=>destination.id+':'+routeMode)].join('|');
+  if(this.planContextKey!==contextKey){this.planStartId=startId;this.planContextKey=contextKey;this.planGeneration++;this.planResults.clear();for(const {destination}of requests)this.planResults.set(destination.id,{status:destination.nodeId?'idle':'none'});}
+  this.requestPlan(this.readValue());
+ }
+ requestPlan(id){
+  const destination=CAMP_DESTINATIONS[id];if(!destination?.nodeId||this.planResults.get(id)?.status!=='idle')return;
+  // A growing destination list must not launch every path search on opening.
+  // Calculate only the selected/focused location; cached answers stay reusable.
+  const generation=this.planGeneration,startId=this.planStartId,routeMode=this.readRouteMode(id)==='compass'?'compass':'target';this.planResults.set(id,{status:'pending'});
+  Promise.resolve().then(()=>requestCampDestinationPlan({startId,destination:id,routeMode})).then(plan=>{if(this.destroyed||generation!==this.planGeneration)return;this.planResults.set(id,plan);this.renderPlans();}).catch(()=>{if(this.destroyed||generation!==this.planGeneration)return;this.planResults.set(id,{status:'error'});this.renderPlans();});
  }
  renderPlans(){
   if(this.destroyed)return;const selected=CAMP_DESTINATIONS[this.readValue()]||destinationValues()[0],plan=this.planResults.get(selected.id)||{status:'pending'};
@@ -73,7 +74,7 @@ export class CampDestinationPicker{
   setPlanCopy(summary,plan.status==='ready'?'最小物資 '+plan.totalItems+'個 · 最短活動 '+planHours(plan.activityHours)+'時間':plan.status==='pending'?'必要物資を計算しています…':plan.status==='unreachable'?'現在の容量・日数では到達できません。':plan.status==='none'?'':'経路情報を確認できませんでした。');
   for(const option of this.options){
    const result=this.planResults.get(option.dataset.campDestinationOption)||{status:'pending'},copy=option.querySelector('[data-camp-option-plan]');if(!copy)continue;copy.hidden=result.status==='none';
-   setPlanCopy(copy,result.status==='ready'?'最小 '+result.totalItems+'個・最短活動 '+planHours(result.activityHours)+'時間\n'+planCountsText(result):result.status==='pending'?'必要物資を計算しています…':result.status==='unreachable'?'現在の容量・日数では到達できません。':result.status==='none'?'':'経路情報を確認できませんでした。');
+   setPlanCopy(copy,result.status==='ready'?'最小 '+result.totalItems+'個・最短活動 '+planHours(result.activityHours)+'時間\n'+planCountsText(result):result.status==='pending'?'必要物資を計算しています…':result.status==='idle'?'選ぶと必要物資を確認できます。':result.status==='unreachable'?'現在の容量・日数では到達できません。':result.status==='none'?'':'経路情報を確認できませんでした。');
   }
   const detail=this.picker.querySelector('[data-camp-destination-plan]'),key=[this.planGeneration,selected.id,plan.status,plan.totalItems,plan.activityHours,plan.days].join('|');if(!detail||detail.dataset.planKey===key)return;detail.dataset.planKey=key;
   const heading='<header class="camp-destination-plan__heading"><h3 id="campDestinationPlanTitle">到達に必要な最小物資</h3>'+(plan.status==='ready'?'<span>'+plan.totalItems+'個 · '+plan.occupiedCells+'マス</span>':'')+'</header>';
@@ -88,7 +89,7 @@ export class CampDestinationPicker{
   const body=this.root.querySelector('.camp-dialog__body');if(!body||!element)return;const a=body.getBoundingClientRect(),b=element.getBoundingClientRect();if(b.top<a.top+6)body.scrollTop+=b.top-a.top-6;else if(b.bottom>a.bottom-6)body.scrollTop+=Math.min(b.bottom-a.bottom+6,b.top-a.top-6);
  }
  focusOption(option){
-  if(!option)return;option.focus({preventScroll:true});const a=this.list.getBoundingClientRect(),b=option.getBoundingClientRect();if(b.top<a.top+5)this.list.scrollTop+=b.top-a.top-5;else if(b.bottom>a.bottom-5)this.list.scrollTop+=b.bottom-a.bottom+5;this.ensureVisible(this.list);
+  if(!option)return;this.requestPlan(option.dataset.campDestinationOption);this.renderPlans();option.focus({preventScroll:true});const a=this.list.getBoundingClientRect(),b=option.getBoundingClientRect();if(b.top<a.top+5)this.list.scrollTop+=b.top-a.top-5;else if(b.bottom>a.bottom-5)this.list.scrollTop+=b.bottom-a.bottom+5;this.ensureVisible(this.list);
  }
  open(position='selected'){
   if(this.destroyed||!this.root.open||this.trigger.disabled||document.querySelector('dialog[open]')!==this.root)return false;
@@ -120,7 +121,7 @@ export class CampUI{
   this.destinationPicker=new CampDestinationPicker({root:this.dialog,readValue:()=>this.destination,onSelect:id=>{this.destination=id;this.renderGuidance();},readStartId,readRouteMode:id=>id==='moai_village'&&this.bag.some(item=>item.supplyId==='moai_compass')?'compass':'target'});this.click=event=>this.handleClick(event);this.dialog.addEventListener('click',this.click);this.closeListener=()=>{if(this.dialog.open)return;releaseModal(this.dialog);this.opener?.setAttribute('aria-expanded','false');};this.dialog.addEventListener('close',this.closeListener);
   this.worldDialog=document.createElement('dialog');this.worldDialog.id='campWorldMapDialog';this.worldDialog.className='camp-dialog camp-world-dialog';this.worldDialog.setAttribute('aria-labelledby','campWorldTitle');this.worldDialog.setAttribute('aria-modal','true');this.worldDialog.innerHTML='<header class="camp-dialog__header"><div><small>WORLD MAP</small><h2 id="campWorldTitle">森林の向こうへ</h2></div><button type="button" class="camp-close" data-camp-world-close aria-label="ワールドマップを閉じる">×</button></header><div class="camp-world-dialog__map"></div><footer class="camp-world-dialog__footer"><p>ドラッグ・ピンチで地図を動かせます。<br>地点をタップして、キャンプの支度へ。</p><button type="button" class="camp-button" data-camp-world-prepare>キャンプの支度へ ↗</button></footer>';document.body.append(this.worldDialog);
   this.worldDialog.querySelector('[data-camp-world-close]').addEventListener('click',()=>this.closeWorld());this.worldDialog.querySelector('[data-camp-world-prepare]').addEventListener('click',()=>this.worldToPreparation());this.worldDialog.addEventListener('close',()=>{releaseModal(this.worldDialog);this.worldOpener?.setAttribute('aria-expanded','false');});
-  this.worldMap=new CampMap(this.worldDialog.querySelector('.camp-world-dialog__map'),{onCamp:()=>this.worldToPreparation(),onNodeSelect:node=>{if(this.readState()?.canCamp===false)return;if(node.id===CAMP_DESTINATIONS.moai_village?.nodeId)this.destination='moai_village';}});
+  this.worldMap=new CampMap(this.worldDialog.querySelector('.camp-world-dialog__map'),{onCamp:()=>this.worldToPreparation(),onNodeSelect:node=>{if(this.readState()?.canCamp===false)return;const destination=getCampDestinationAt(node.id);if(destination)this.destination=destination.id;}});
  }
  readCamp(){return this.readState()?.camp??{};}
  status(text='',error=false){this.dialog.querySelector('[data-camp-status]').textContent=text;this.dialog.querySelector('[data-camp-status]').dataset.error=String(error);}
@@ -175,7 +176,7 @@ export class CampUI{
  show(snapshot){this.ensureLive();const current=activeSnapshot(snapshot),journey=this.readCamp().expeditions;if(this.liveJourneyKey!==journey||(current.day===1&&current.activityHours===0)){this.carriedIds=null;this.liveKey=null;this.liveJourneyKey=journey;}if(this.live.parentNode!==this.view.surface)this.view.surface.append(this.live);this.live.hidden=false;this.active=true;this.setBattleActive(false);this.liveMap.resize();this.update(snapshot);}
  update(snapshot){if(!this.live||!this.active)return;const s=activeSnapshot(snapshot);this.liveMap.update({discovered:s.discovered||s.visited||this.readCamp().discovered,nodeId:s.nodeId,nextNodeId:s.nextNodeId,travelProgress:s.travelProgress,targetId:CAMP_DESTINATIONS[s.destination]?.nodeId,phase:s.phase,day:s.day});
   const supplyCounts=s.supplies||s.counts||{};this.carriedIds??=new Set();for(const item of supplyList){const raw=supplyCounts[item.id],initial=s.initialSupplies?.[item.id];if(number(initial)>0||number(typeof raw==='object'?raw?.count:raw)>0)this.carriedIds.add(item.id);}const key=JSON.stringify(supplyCounts)+'|'+[...this.carriedIds].join(',');if(this.liveKey!==key){this.liveKey=key;this.live.querySelector('[data-camp-live-supplies]').innerHTML=supplyList.filter(item=>this.carriedIds.has(item.id)).map(item=>{const raw=supplyCounts[item.id],count=number(typeof raw==='object'?raw?.count:raw),unit=isCampDurableTool(item.id)?'回':'個',label=item.name+'、残り'+count+unit;return '<div class="camp-live-supply" data-camp-live-supply="'+escapeHtml(item.id)+'" data-empty="'+(count<=0)+'" title="'+escapeHtml(label)+'" aria-label="'+escapeHtml(label)+'">'+campSupplyIcon(item.id)+'<span>'+escapeHtml(item.name)+'</span><strong aria-label="残り'+count+unit+'">'+count+'<small>'+unit+'</small></strong></div>';}).join('');}
-  this.live.querySelector('[data-camp-phase]').textContent=phaseNames[s.phase]||'探索中';this.live.querySelector('[data-camp-remaining]').textContent=String(Math.max(0,Math.ceil(number(s.remainingDays??s.daysRemaining))));this.live.querySelector('[data-camp-day]').textContent=Math.max(1,number(s.day,1))+'日目';this.live.querySelector('[data-camp-live-progress]').textContent='本日の活動 あと'+number(s.dayHoursRemaining,s.dayHours??14).toFixed(1)+'時間'+(s.destination&&s.destination!=='none'?' · '+(CAMP_DESTINATIONS[s.destination]?.name||'目標地'):'');this.live.querySelector('.camp-live__return').hidden=!['finished','failed','complete'].includes(s.phase);this.live.dataset.phase=s.phase||'travel';
+  this.live.querySelector('[data-camp-phase]').textContent=phaseNames[s.phase]||'探索中';this.live.querySelector('[data-camp-remaining]').textContent=String(Math.max(0,Math.ceil(number(s.remainingDays??s.daysRemaining))));this.live.querySelector('[data-camp-day]').textContent=Math.max(1,number(s.day,1))+'日目';this.live.querySelector('[data-camp-live-progress]').textContent='本日の活動 あと'+number(s.dayHoursRemaining,s.dayHours??14).toFixed(1)+'時間'+(s.destination&&s.destination!=='none'?' · '+(this.liveMap.discovered.has(CAMP_DESTINATIONS[s.destination]?.nodeId)?CAMP_DESTINATIONS[s.destination].name:'目標地点'):'');this.live.querySelector('.camp-live__return').hidden=!['finished','failed','complete'].includes(s.phase);this.live.dataset.phase=s.phase||'travel';
  }
  setBattleActive(active){if(!this.live)return;const visible=Boolean(active&&this.active&&!this.live.hidden);this.live.querySelector('[data-camp-battle-status]').hidden=!visible;this.live.dataset.battleActive=String(visible);}
  hide(){this.setBattleActive(false);this.active=false;if(this.live)this.live.hidden=true;}

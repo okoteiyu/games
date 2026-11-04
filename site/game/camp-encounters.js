@@ -46,9 +46,11 @@ export function chooseCampEncounter(playerLevel,creatures,rng=Math.random,contex
  const candidate=candidates[Math.floor(randomValue(rng)*candidates.length)],rawLevel=candidate.rawMin+Math.floor(randomValue(rng)*(candidate.rawMax-candidate.rawMin+1));
  return {speciesId:candidate.creature.id,level:clampToBand(rawLevel,nativeBand(candidate.creature)),id:'camp-opponent'};
 }
-/** A guardian is selected separately; one inclusive +3..+6 level draw occurs
- * when its final battle starts, with the same native-band clamping policy. */
+/** Fixed unique guardians retain their authored level. Other guardians draw
+ * once from +3..+6 when battle starts, then clamp to the native band. */
 export function chooseCampGuardianLevel(playerLevel,creature,rng=Math.random){
- validatePlayerLevel(playerLevel);const band=nativeBand(creature),rawLevel=playerLevel+3+Math.floor(randomValue(rng)*4);
+ validatePlayerLevel(playerLevel);const band=nativeBand(creature);
+ if(creature.category==='unique'&&band.min===band.max)return band.min;
+ const rawLevel=playerLevel+3+Math.floor(randomValue(rng)*4);
  return clampToBand(rawLevel,band);
 }

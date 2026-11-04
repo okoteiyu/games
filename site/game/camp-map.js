@@ -1,4 +1,4 @@
-import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode} from './camp-world.js';
+import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode,getCampDestinationAt} from './camp-world.js';
 import {createPatrolMap} from './patrol-map.js';
 import {CampMapRenderer} from './camp-map-renderer.js';
 import {getCampRegion} from './camp-regions.js';
@@ -33,9 +33,9 @@ export class CampMap{
   const before=this.drawStateKey;this.state={...this.state,...state};const visited=state.discovered??state.visited;
   if(visited){
    const values=visited instanceof Set?[...visited]:Array.isArray(visited)?visited:Object.keys(visited),next=new Set(values);
-   if(next.size!==this.discovered.size||[...next].some(id=>!this.discovered.has(id))){this.discovered=next;this.discoveryKey=values.join('|');this.renderer.setDiscovered(next);this.dirty=true;}
+   if(next.size!==this.discovered.size||[...next].some(id=>!this.discovered.has(id))){this.discovered=next;this.discoveryKey=values.join('|');this.renderer.setDiscovered(next);this.dirty=true;if(this.noteNodeId)this.note.textContent=this.describeNode(nodeAt(this.noteNodeId));}
   }
-  if(Object.hasOwn(state,'nodeId')){const current=nodeAt(state.nodeId),region=getCampRegion(current?.regionId);if(region)this.note.textContent=region.name;}
+  if(Object.hasOwn(state,'nodeId')){this.noteNodeId=null;const current=nodeAt(state.nodeId),region=getCampRegion(current?.regionId);if(region)this.note.textContent=region.name;}
   const s=this.state;this.drawStateKey=[s.nodeId||CAMP_WORLD.startId,s.nextNodeId||'',clamp(Number(s.travelProgress)||0,0,1),s.phase||'',s.day??'',s.targetId||''].join('|');
   if(before===this.drawStateKey&&!this.dirty)return;
   if((this.follow||this.autoFollow)&&this.width)this.ensureVisible();this.requestDraw();
@@ -77,15 +77,27 @@ export class CampMap{
   event.preventDefault();event.stopPropagation();const candidate=this.tapCandidate;this.tapCandidate=null;
   if(this.interactive&&candidate&&!this.pointers.size&&!this.destroyed)this.tap(candidate);
  }
- tap(point){const start=nodeAt(CAMP_WORLD.startId)||nodes[0],s=this.project(start),rect=this.patrolRect();if(Math.hypot(point.x-s.x,point.y-s.y)<24||point.x>=rect.x&&point.x<=rect.x+rect.w&&point.y>=rect.y&&point.y<=rect.y+rect.h){this.onCamp({nodeId:CAMP_WORLD.startId});return;}let best=null,bestD=20;for(const node of nodes){const p=this.project(node),d=Math.hypot(p.x-point.x,p.y-point.y);if(d<bestD){bestD=d;best=node;}}if(best){this.onNodeSelect(best);this.note.textContent=best.id===CAMP_DESTINATIONS.moai_village?.nodeId?'モアイ郷':this.discovered.has(best.id)?(getCampRegion(best.regionId)?.name||'未開の地')+' · '+(TERRAINS[best.terrain]?.label||'通常'):'まだ訪れていない土地';}this.onCamp({nodeId:best?.id??null,source:best?'node':'terrain'});}
+ describeNode(node){return node&&this.discovered.has(node.id)?getCampDestinationAt(node.id)?.name||(getCampRegion(node.regionId)?.name||'未開の地')+' · '+(TERRAINS[node.terrain]?.label||'通常'):'まだ訪れていない土地';}
+ tap(point){const start=nodeAt(CAMP_WORLD.startId)||nodes[0],s=this.project(start),rect=this.patrolRect();if(Math.hypot(point.x-s.x,point.y-s.y)<24||point.x>=rect.x&&point.x<=rect.x+rect.w&&point.y>=rect.y&&point.y<=rect.y+rect.h){this.onCamp({nodeId:CAMP_WORLD.startId});return;}let best=null,bestD=20;for(const node of nodes){const p=this.project(node),d=Math.hypot(p.x-point.x,p.y-point.y);if(d<bestD){bestD=d;best=node;}}if(best){this.onNodeSelect(best);this.noteNodeId=best.id;this.note.textContent=this.describeNode(best);}this.onCamp({nodeId:best?.id??null,source:best?'node':'terrain'});}
  patrolRect(){const start=nodeAt(CAMP_WORLD.startId)||nodes[0],p=this.project({x:start.x-210,y:start.y+85});return{x:p.x,y:p.y,w:420*this.zoom,h:300*this.zoom};}
  drawStatic(){
   const c=this.staticContext;c.setTransform(this.dpr,0,0,this.dpr,0,0);c.clearRect(0,0,this.width,this.height);
   if(!this.backgroundGradient){const bg=c.createLinearGradient(0,0,this.width,this.height);bg.addColorStop(0,'#e8edda');bg.addColorStop(1,'#d7e0c7');this.backgroundGradient=bg;}
-  c.fillStyle=this.backgroundGradient;c.fillRect(0,0,this.width,this.height);this.renderer.drawBackground(c,this);this.renderer.drawNetwork(c,this);this.renderer.drawRegionLabels(c,this);this.drawFog(c);this.drawPatrol(c);
-  const destination=CAMP_DESTINATIONS.moai_village,moai=nodeAt(destination?.nodeId);
-  if(moai){const p=this.project(moai);if(p.x>-100&&p.x<this.width+100&&p.y>-50&&p.y<this.height+50){c.fillStyle='#fdf5d8';c.strokeStyle='#9d8259';c.lineWidth=1;c.beginPath();c.roundRect(p.x-34,p.y-30,68,23,6);c.fill();c.stroke();c.font='600 11px sans-serif';c.textAlign='center';c.fillStyle='#6d583d';c.fillText('モアイ郷',p.x,p.y-14);c.beginPath();c.moveTo(p.x,p.y-7);c.lineTo(p.x,p.y);c.stroke();}}
+  c.fillStyle=this.backgroundGradient;c.fillRect(0,0,this.width,this.height);this.renderer.drawBackground(c,this);this.renderer.drawNetwork(c,this);this.drawFog(c);this.renderer.drawRegionLabels(c,this);this.drawPatrol(c);
+  this.drawDestinationLabels(c);
   this.dirty=false;
+ }
+ drawDestinationLabels(c){
+  this.destinationLabelsDrawn=[];const occupied=[...(this.renderer.regionLabelBoxes||[])],overlaps=(a,b)=>a.left<b.right+4&&a.right>b.left-4&&a.top<b.bottom+4&&a.bottom>b.top-4;
+  const destinations=Object.values(CAMP_DESTINATIONS).sort((a,b)=>Number(b.nodeId===this.state.nodeId||b.nodeId===this.state.targetId)-Number(a.nodeId===this.state.nodeId||a.nodeId===this.state.targetId));
+  for(const destination of destinations){
+   if(!destination.nodeId||!this.discovered.has(destination.nodeId))continue;
+   const node=nodeAt(destination.nodeId);if(!node)continue;const p=this.project(node);if(p.x<-100||p.x>this.width+100||p.y<-50||p.y>this.height+50)continue;
+   c.save();c.font='600 11px sans-serif';const width=Math.max(68,c.measureText(destination.name).width+18),box={left:p.x-width/2,right:p.x+width/2,top:p.y-30,bottom:p.y-7};c.fillStyle='#e7cd91';c.strokeStyle='#8d7045';c.lineWidth=1;c.beginPath();c.arc(p.x,p.y,3.3,0,Math.PI*2);c.fill();c.stroke();
+   // Known landmarks remain marked at overview; names appear where they fit.
+   // Tapping a reached marker also exposes its full name in the map's place note.
+   if(!occupied.some(rect=>overlaps(box,rect))){c.fillStyle='#fdf5d8';c.strokeStyle='#9d8259';c.beginPath();c.roundRect(box.left,box.top,width,23,6);c.fill();c.stroke();c.textAlign='center';c.fillStyle='#6d583d';c.fillText(destination.name,p.x,p.y-14);c.beginPath();c.moveTo(p.x,p.y-7);c.lineTo(p.x,p.y);c.stroke();occupied.push(box);this.destinationLabelsDrawn.push(destination.id);}c.restore();
+  }
  }
  drawFog(target){this.renderer.drawFog(target,this);}
  drawPatrol(c){const rect=this.patrolRect();if(rect.y>this.height+40||rect.y+rect.h<-40)return;const start=this.project(nodeAt(CAMP_WORLD.startId)||nodes[0]);c.strokeStyle='#7f9168';c.setLineDash([3,4]);c.beginPath();c.moveTo(start.x,start.y+9);c.lineTo(start.x,rect.y);c.stroke();c.setLineDash([]);c.fillStyle='#f4efd8';c.strokeStyle='#acb990';c.lineWidth=1;c.beginPath();c.roundRect(rect.x,rect.y,rect.w,rect.h,Math.min(16,rect.w*.05));c.fill();c.stroke();const h=rect.h;if(this.patrolBackground.complete&&this.patrolBackground.naturalWidth){c.save();c.clip();c.drawImage(this.patrolBackground,rect.x,rect.y,rect.w,rect.h);c.restore();c.stroke();}if(rect.w>90){c.save();c.globalAlpha=.35;c.strokeStyle='#7c806d';c.lineWidth=.7;for(const [a,b] of PATROL_MAP.edges){const pa=PATROL_BY_ID.get(a),pb=PATROL_BY_ID.get(b);c.beginPath();c.moveTo(rect.x+pa.x*rect.w,rect.y+pa.y*h);c.lineTo(rect.x+pb.x*rect.w,rect.y+pb.y*h);c.stroke();}for(const node of PATROL_MAP.nodes){c.fillStyle=node.id==='home'?'#ba8277':'#fffef3';c.beginPath();c.arc(rect.x+node.x*rect.w,rect.y+node.y*h,node.id==='home'?3:1.5,0,Math.PI*2);c.fill();}c.restore();}if(rect.w>95){const a=this.project(nodeAt(CAMP_WORLD.startId)||nodes[0]);c.fillStyle='#fffff3';c.strokeStyle='#8c9c70';c.beginPath();c.roundRect(a.x-58,a.y+14,116,25,8);c.fill();c.stroke();c.font='600 11px sans-serif';c.fillStyle='#526545';c.textAlign='center';c.fillText('キャンプへ出発',a.x,a.y+31);}}

@@ -1,6 +1,12 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
 export const COLLECTION_KINDS={support:'サポートもちもの',defense:'防御もちもの',aura:'オーラ'};
 export const collectionThumbnail=(kind,id)=>{
+ // The danger-zone guardians share one appearance; their auras share the same
+ // black-aura portrait of Okoteiyu, without duplicating eighteen image files.
+ if(ADDED_CREATURES[id]?.sharedAppearance==='mystery_unique'){
+  if(kind==='creature')return 'assets/collection/mystery_unique.webp';
+  if(kind==='aura')return 'assets/collection/aura-void_space.webp';
+ }
  if(kind==='technique')return 'assets/collection/technique-'+id+'.svg';
  return 'assets/collection/'+(kind==='aura'||kind==='creature'&&id==='okoteiyu'?'aura-':'')+id+'.webp';
 };

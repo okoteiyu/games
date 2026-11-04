@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 172,
-  "totalBytes": 159822009,
+  "fileCount": 174,
+  "totalBytes": 160097830,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=63d93b31440d5d019e70c565c2af781d6988ba19c5734789bb005914014a7d35",
+      "url": "assets/battle3d/manifest.json?v=aea6a52243000fcbc2e72e24945b4e44bde6f40c5e51788e829b143563452f03",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 27756,
+      "bytes": 41689,
       "priority": 2,
-      "sha256": "63d93b31440d5d019e70c565c2af781d6988ba19c5734789bb005914014a7d35"
+      "sha256": "aea6a52243000fcbc2e72e24945b4e44bde6f40c5e51788e829b143563452f03"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1379,6 +1379,22 @@
       "bytes": 1436,
       "priority": 3,
       "sha256": "78fb74ff0ce77687099466110f26ca65957879c261447bd98b320d5893284358"
+    },
+    {
+      "url": "assets/battle3d/mystery_unique.glb?v=6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
+      "label": "危険地帯のユニーク珍生物（共通モデル）",
+      "type": "binary",
+      "bytes": 191108,
+      "priority": 2,
+      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8"
+    },
+    {
+      "url": "assets/collection/mystery_unique.webp",
+      "label": "危険地帯のユニーク珍生物の記録画像",
+      "type": "image",
+      "bytes": 3812,
+      "priority": 3,
+      "sha256": "a01af84990211cacfac36732f489fb4c6881b850ee54935623922439c1d8f52f"
     }
   ]
 }

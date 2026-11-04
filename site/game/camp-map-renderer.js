@@ -167,9 +167,9 @@ export class CampMapRenderer{
   c.restore();this.artStats.spriteCacheSize=this.spriteCache.size;
  }
  drawRegionLabels(c,view){
-  const destinations=Object.values(CAMP_DESTINATIONS).filter(destination=>destination.nodeId).map(destination=>NODES[NODE_INDEX.get(destination.nodeId)]).filter(Boolean).map(node=>({x:node.x*view.zoom+view.pan.x,y:node.y*view.zoom+view.pan.y})).filter(point=>point.x>-100&&point.x<view.width+100&&point.y>-50&&point.y<view.height+50).map(point=>({left:point.x-34,right:point.x+34,top:point.y-30,bottom:point.y-7}));
+  this.regionLabelBoxes=[];
+  const destinations=Object.values(CAMP_DESTINATIONS).filter(destination=>destination.nodeId&&view.discovered?.has(destination.nodeId)).map(destination=>({destination,node:NODES[NODE_INDEX.get(destination.nodeId)]})).filter(entry=>entry.node).map(({destination,node})=>({x:node.x*view.zoom+view.pan.x,y:node.y*view.zoom+view.pan.y,halfWidth:Math.max(34,(destination.name.length*11+18)/2)})).filter(point=>point.x>-100&&point.x<view.width+100&&point.y>-50&&point.y<view.height+50).map(point=>({left:point.x-point.halfWidth,right:point.x+point.halfWidth,top:point.y-30,bottom:point.y-7}));
   for(const region of REGION_LIST){
-   if(!this.regionKnownCounts.get(region.id))continue;
    const width=(region.bounds.maxX-region.bounds.minX)*view.zoom,height=(region.bounds.maxY-region.bounds.minY)*view.zoom;if(width<70||height<42)continue;
    const point=region.labelPoint||{x:(region.bounds.minX+region.bounds.maxX)/2,y:(region.bounds.minY+region.bounds.maxY)/2},x=point.x*view.zoom+view.pan.x;let y=point.y*view.zoom+view.pan.y;if(x<-100||x>view.width+100||y<-35||y>view.height+35)continue;
    c.save();const font=clamp(width/12,10,16);c.font='600 '+font+'px sans-serif';c.textAlign='center';c.textBaseline='middle';const labelWidth=c.measureText(region.name).width+20,minY=region.bounds.minY*view.zoom+view.pan.y+14,maxY=region.bounds.maxY*view.zoom+view.pan.y-14;
@@ -177,8 +177,10 @@ export class CampMapRenderer{
    // never the geography, so the two labels cannot cover each other at overview.
    const overlaps=box=>x+labelWidth/2>box.left-5&&x-labelWidth/2<box.right+5&&y+12>box.top-5&&y-12<box.bottom+5;
    for(const box of destinations)if(overlaps(box)){const above=box.top-18,below=box.bottom+18;y=above>=minY?above:below<=maxY?below:y;}
-   if(destinations.some(overlaps)){c.restore();continue;}
-   c.fillStyle='#f8f4e4e8';c.strokeStyle='#53614a90';c.lineWidth=1;c.beginPath();c.roundRect(x-labelWidth/2,y-12,labelWidth,24,7);c.fill();c.stroke();c.fillStyle='#435341';c.fillText(region.name,x,y+.5);c.restore();this.artStats.regionLabelsDrawn=(this.artStats.regionLabelsDrawn||0)+1;
+   // Macro-region names remain visible even on unknown land. If the first
+   // offset still meets a reached landmark, try another position in this region.
+   if(destinations.some(overlaps)){for(const candidate of [minY+18,maxY-18,(minY+maxY)/2]){y=candidate;if(!destinations.some(overlaps))break;}}
+   c.fillStyle='#f8f4e4e8';c.strokeStyle='#53614a90';c.lineWidth=1;c.beginPath();c.roundRect(x-labelWidth/2,y-12,labelWidth,24,7);c.fill();c.stroke();c.fillStyle='#435341';c.fillText(region.name,x,y+.5);c.restore();this.regionLabelBoxes.push({left:x-labelWidth/2,right:x+labelWidth/2,top:y-12,bottom:y+12});this.artStats.regionLabelsDrawn=(this.artStats.regionLabelsDrawn||0)+1;
   }
  }
  edgePaths(){
