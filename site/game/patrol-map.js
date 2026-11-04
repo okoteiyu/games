@@ -37,5 +37,5 @@ export function createPatrolMap(){
  const nodes=POINTS.map(([x,y],index)=>({id:index===0?'home':`n${String(index).padStart(2,'0')}`,x,y,region:getRegionAt(x,y)}));
  const edges=CONNECTIONS.map(([a,b])=>[nodes[a].id,nodes[b].id]);
  const edgeRegions=CONNECTIONS.map(([a,b])=>({edge:[nodes[a].id,nodes[b].id],segments:segmentRegions(nodes[a],nodes[b])}));
- return {id:'road-map-01',schemaVersion:1,nodes,edges,edgeRegions,origin:'home',backgroundUrl:'assets/patrol-map-background.webp?v=90ed7765751e4f360c15f8db5a86f75c0d4c20952e9697dc87d3608e922b8b41',temporary:false,bounds:{minX:0,minY:0,maxX:1,maxY:1},rules:{...PATROL_RULES},regionGeometry:{...REGION_GEOMETRY,center:[.5,1]}};
+ return {id:'road-map-01',schemaVersion:1,nodes,edges,edgeRegions,origin:'home',backgroundUrl:'assets/patrol-map-background.webp?v=b3f4c26a94b60630f256f3e52c4dc834d4657b0fb6ef73cbd522dee18e5a8854',temporary:false,bounds:{minX:0,minY:0,maxX:1,maxY:1},rules:{...PATROL_RULES},regionGeometry:{...REGION_GEOMETRY,center:[.5,1]}};
 }

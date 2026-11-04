@@ -45,12 +45,12 @@
       "sha256": "bb2ae8f927c39f262ae3684e94cc8070f5187fc26b6598a2e4f7b72eb5666c82"
     },
     {
-      "url": "assets/patrol-map-background.webp?v=90ed7765751e4f360c15f8db5a86f75c0d4c20952e9697dc87d3608e922b8b41",
+      "url": "assets/patrol-map-background.webp?v=b3f4c26a94b60630f256f3e52c4dc834d4657b0fb6ef73cbd522dee18e5a8854",
       "label": "道中マップの背景",
       "type": "image",
-      "bytes": 243656,
+      "bytes": 310624,
       "priority": 1,
-      "sha256": "90ed7765751e4f360c15f8db5a86f75c0d4c20952e9697dc87d3608e922b8b41"
+      "sha256": "b3f4c26a94b60630f256f3e52c4dc834d4657b0fb6ef73cbd522dee18e5a8854"
     },
     {
       "url": "assets/icons/app-icon-192.png",
