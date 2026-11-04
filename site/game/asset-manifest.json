@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
   "fileCount": 177,
-  "totalBytes": 163211152,
+  "totalBytes": 163288612,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -72,49 +72,49 @@
       "url": "assets/collection/aura-crystal_striker.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4724,
+      "bytes": 8272,
       "priority": 3,
-      "sha256": "0fa7c2cc565fb5e53d6289b32aa4efa488eacc56d89393852143b1ed9d531266"
+      "sha256": "e359bf0c25c5c10808d137eaed42a71e76db39f82b3fd49114f161c1074e410a"
     },
     {
       "url": "assets/collection/aura-dragon.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4886,
+      "bytes": 8468,
       "priority": 3,
-      "sha256": "497275df26461b4231b03a3fdd65823b3817823f3964235cf6242a43c7d21165"
+      "sha256": "479ef4f64390571832b94cf45cd3c972762fbf8a128b8e55503d605de70de300"
     },
     {
       "url": "assets/collection/aura-fae_dragon.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4380,
+      "bytes": 7852,
       "priority": 3,
-      "sha256": "ec95c0a2b4bca76c4106eb648f428ad7b2b7189cc54c73ffd1fd7a1c66671a3b"
+      "sha256": "5d1874a6a02e01326a93f6e262796e35292c19b134ef5ee1994146b8b380cad4"
     },
     {
       "url": "assets/collection/aura-gold_moai.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4384,
+      "bytes": 8072,
       "priority": 3,
-      "sha256": "6e79ee101a5576f0e700e44a86516c725af67cbf9f8ebae8c8b3cf1817086a8a"
+      "sha256": "5d2f98f92bc124df1b9297be976545bd05cd9bc6452890632e57e02b7820038f"
     },
     {
       "url": "assets/collection/aura-horarara_horaran.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 5006,
+      "bytes": 8456,
       "priority": 3,
-      "sha256": "3178c9f5272e333ea17a61543752e7fc7f63d8bee6518cc5583f5760f0d7709d"
+      "sha256": "c88216bd16d0ae896d670289a71030b7f93001c8dda9f44b6098cf9fafb56812"
     },
     {
       "url": "assets/collection/aura-moai_king.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4566,
+      "bytes": 6916,
       "priority": 3,
-      "sha256": "01e79823dd1f3a3ca7dcc867455b718828d30d13197784af1e110774406a3894"
+      "sha256": "efefd06985ce76795d6f1f5be4c48f07740648a3a12027ec03fd1beb0ddfaa6d"
     },
     {
       "url": "assets/collection/aura-okoteiyu.webp",
@@ -128,41 +128,41 @@
       "url": "assets/collection/aura-punim.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4380,
+      "bytes": 7852,
       "priority": 3,
-      "sha256": "ec95c0a2b4bca76c4106eb648f428ad7b2b7189cc54c73ffd1fd7a1c66671a3b"
+      "sha256": "5d1874a6a02e01326a93f6e262796e35292c19b134ef5ee1994146b8b380cad4"
     },
     {
       "url": "assets/collection/aura-transparent_knight.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4786,
+      "bytes": 7830,
       "priority": 3,
-      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+      "sha256": "d8c43fa45d7ed8e433129f4c01cb060c0dd075e2318c5b1befe89721a04055f2"
     },
     {
       "url": "assets/collection/aura-unknown_danger.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4786,
+      "bytes": 7830,
       "priority": 3,
-      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+      "sha256": "d8c43fa45d7ed8e433129f4c01cb060c0dd075e2318c5b1befe89721a04055f2"
     },
     {
       "url": "assets/collection/aura-unknown_extreme.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4786,
+      "bytes": 7830,
       "priority": 3,
-      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+      "sha256": "d8c43fa45d7ed8e433129f4c01cb060c0dd075e2318c5b1befe89721a04055f2"
     },
     {
       "url": "assets/collection/aura-unknown_low.webp",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 4786,
+      "bytes": 7830,
       "priority": 3,
-      "sha256": "2d1b5442c8bbe388ed246c8499dcde2982594d4382dc2e9697277885deedbd26"
+      "sha256": "d8c43fa45d7ed8e433129f4c01cb060c0dd075e2318c5b1befe89721a04055f2"
     },
     {
       "url": "assets/collection/aura_shield.webp",
@@ -833,32 +833,32 @@
       "label": "黒丸のオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "f6e965e5de1a2a2d747ab1537262ce6632946862e4e005f759046d46a542d919",
-      "bytes": 6188
+      "sha256": "3ea9c6c300fa9cfd5cd31877732609b46588cc495eb35dbe46c171d8112de22b",
+      "bytes": 8576
     },
     {
       "url": "assets/collection/aura-star_soul.webp",
       "label": "星の塊のオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "67352fb92ff94b9e9d148510221bbef806a5e597777b532f084002021dec9c17",
-      "bytes": 6964
+      "sha256": "b5648e431c4df01635ace9354a2fce522e43da429c7280b41fb04985254d8cb0",
+      "bytes": 10170
     },
     {
       "url": "assets/collection/aura-wind_kurukuru.webp",
       "label": "風のクルクルのオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "fb8f69f32d5cb8e1349d641706ba93b5b31b0b8852883f4f5127b2ae302ccd4a",
-      "bytes": 4172
+      "sha256": "cc711d60a19a1d534f05ada44de61054587766d7e728168aa770b942ebd25d10",
+      "bytes": 7184
     },
     {
       "url": "assets/collection/aura-railway_cannon.webp",
       "label": "自力移動列車砲のオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "6918b33dfe50201cc78966644950f316f4c0e4dd7e0ae5b156bc49615012e7fd",
-      "bytes": 10152
+      "sha256": "18d9d63314429509f9951537e63d33319410addf32cfff515673f31d9e70e205",
+      "bytes": 12084
     },
     {
       "url": "assets/collection/steel_maru.webp",
@@ -889,16 +889,16 @@
       "label": "エレキくんのオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137",
-      "bytes": 4272
+      "sha256": "3717a33c652489f1cc89019d019af48c967743f6d7b05ce23972d27b5c413ba3",
+      "bytes": 8184
     },
     {
       "url": "assets/collection/aura-perfect_cosmos.webp",
       "label": "虹のやつのオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "e802b0856558edd580593ddbb5b5b498b79d18cc1c4f318f83b514071631fd53",
-      "bytes": 9208
+      "sha256": "bef7078fc54b851fd4c25e063906626c34ae1b78d907f1f0425d630f039d2ead",
+      "bytes": 11212
     },
     {
       "url": "assets/collection/railway_cannon.webp",
@@ -945,16 +945,16 @@
       "label": "堅牢な自力移動戦車のオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "76a8fb7800f95ee810f29d68cc2102f1a36837b40d938e43280871fae5bff4a9",
-      "bytes": 4872
+      "sha256": "f0dc84cf979676f37e6e4c055d20bd279e14869898453a3278aaaeda74eb0f4f",
+      "bytes": 7868
     },
     {
       "url": "assets/collection/aura-steel_maru.webp",
       "label": "鋼丸のオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "b6533c27047d1d259cbf3989c962c73963932079c27db62a106bc50261f54735",
-      "bytes": 4300
+      "sha256": "1add28856a9d31a15796140001a59609ac4d2d6f18aabbb766f63944c1472581",
+      "bytes": 6906
     },
     {
       "url": "assets/collection/armored_tank.webp",
@@ -985,8 +985,8 @@
       "label": "カオス君のオーラ",
       "type": "image",
       "priority": 3,
-      "sha256": "9f2999dfd092f9d9f512bd2e42ea14218d45e3acab01e436cca0edee6cdac4ee",
-      "bytes": 6896
+      "sha256": "4d778cb2329c2e3fddfc4f240d5c112c5c9420e29511a9ae57e6e78d142c77b1",
+      "bytes": 9936
     },
     {
       "url": "assets/collection/technique-chaos_wave.svg",
@@ -1016,9 +1016,9 @@
       "url": "assets/collection/aura-rookie_kun.webp",
       "label": "新人くんの白いオーラを纏うおこていゆ",
       "type": "image",
-      "bytes": 4556,
+      "bytes": 6884,
       "priority": 3,
-      "sha256": "f1caa4d5568b0c5c33b2c7b1f476eec9047a39cc7c9add55336533da29d2c50d"
+      "sha256": "90495a60b19b6e9f2322c17ed8ca44637c18c1a12744cb34f0b7a0f3de13ffa0"
     },
     {
       "url": "assets/collection/technique-okoteiyu_beam.svg",
@@ -1049,8 +1049,8 @@
       "label": "コレクション・記録帳の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137",
-      "bytes": 4272
+      "sha256": "3717a33c652489f1cc89019d019af48c967743f6d7b05ce23972d27b5c413ba3",
+      "bytes": 8184
     },
     {
       "url": "assets/battle3d/car.glb?v=b1985e62900a538c9f110f77b5e425511ee188099e7af99654e3983f2911cf32",
@@ -1073,8 +1073,8 @@
       "label": "黄色のオーラ写真",
       "type": "image",
       "priority": 3,
-      "bytes": 4272,
-      "sha256": "aeea2cd7df8f0b2dda8bfcd3e0cc9b20a000942d16842624651cf0643e599137"
+      "bytes": 8184,
+      "sha256": "3717a33c652489f1cc89019d019af48c967743f6d7b05ce23972d27b5c413ba3"
     },
     {
       "url": "assets/collection/technique-tackle.svg",
@@ -1097,8 +1097,8 @@
       "label": "偽モアイの画像",
       "type": "image",
       "priority": 3,
-      "bytes": 4380,
-      "sha256": "ec95c0a2b4bca76c4106eb648f428ad7b2b7189cc54c73ffd1fd7a1c66671a3b"
+      "bytes": 7852,
+      "sha256": "5d1874a6a02e01326a93f6e262796e35292c19b134ef5ee1994146b8b380cad4"
     },
     {
       "url": "assets/collection/technique-fake_moai_beam.svg",
@@ -1320,9 +1320,9 @@
       "url": "assets/collection/aura-great_fairy.webp",
       "label": "大妖精のオーラの装備画像",
       "type": "image",
-      "bytes": 4896,
+      "bytes": 7898,
       "priority": 3,
-      "sha256": "03a97963449c861be543bcbf09656259540b291ecd9d465d197c830c2ba72f68"
+      "sha256": "6b8b513fd15e2fbd950731a3a8a5fde56e17d0c351bcece8d58a30e1c9643a74"
     },
     {
       "url": "assets/camp/r225-world-atlas.webp",
