@@ -21,7 +21,7 @@ function buildWorld(){
  byId.get(startId).depth=0;const queue=[startId];
  for(let i=0;i<queue.length;i++)for(const nextId of byId.get(queue[i]).neighbors){const next=byId.get(nextId);if(next.depth>=0)continue;next.depth=byId.get(queue[i]).depth+1;queue.push(nextId);}
  Object.assign(byId.get(goalId),{locationId:'moai_village',name:'モアイ郷'});
- return Object.freeze({id:'camp-world-01',schemaVersion:1,revision:'R225',temporary:true,startId,origin:startId,nodes:Object.freeze(nodes.map(node=>Object.freeze({...node,neighbors:Object.freeze(node.neighbors)}))),edges:Object.freeze(edges),bounds:CAMP_REGION_BOUNDS,maxDegree:6,patrolAttachment:Object.freeze({x:byId.get(startId).x,y:byId.get(startId).y+330,width:730,height:480,name:'おこていゆハウス周辺',region:'forest'}),moaiVillageId:goalId,moaiVillageBaseHours:80});
+ return Object.freeze({id:'camp-world-01',schemaVersion:1,revision:'R227',temporary:true,startId,origin:startId,nodes:Object.freeze(nodes.map(node=>Object.freeze({...node,neighbors:Object.freeze(node.neighbors)}))),edges:Object.freeze(edges),bounds:CAMP_REGION_BOUNDS,maxDegree:6,patrolAttachment:Object.freeze({x:byId.get(startId).x,y:byId.get(startId).y+330,width:730,height:480,name:'おこていゆハウス周辺',region:'forest'}),moaiVillageId:goalId,moaiVillageBaseHours:80});
 }
 export const CAMP_WORLD=buildWorld();
 const nodeIndex=new Map(CAMP_WORLD.nodes.map(node=>[node.id,node]));

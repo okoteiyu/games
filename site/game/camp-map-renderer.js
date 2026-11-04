@@ -39,10 +39,14 @@ const clouds=NODES.map((node,index)=>{
  const seed=(index*1664525+1013904223)>>>0;
  return {x:node.x+((seed>>>8)%39)-19,y:node.y+((seed>>>16)%37)-18,radius:125+(seed%51)};
 });
+// Reveal the ground around a reached point, not only its tiny center. A fully
+// transparent inner disk removes overlapping cloud fragments; its soft border
+// blends into the still unknown land. These are drawing distances, not visits.
+const CLEARING_INNER_RADIUS=200,CLEARING_RADIUS=320,CLOUD_REACH=195;
 // A known clearing can only affect clouds whose disks touch its erase disk.
 // This avoids stamping thousands of transparent holes into an empty fog layer.
-const clearingNeighbors=NODES.map(node=>visibleIndices({minX:node.x,minY:node.y,maxX:node.x,maxY:node.y},290).filter(index=>{
- const cloud=clouds[index];return Math.hypot(cloud.x-node.x,cloud.y-node.y)<=cloud.radius+95;
+const clearingNeighbors=NODES.map(node=>visibleIndices({minX:node.x,minY:node.y,maxX:node.x,maxY:node.y},CLEARING_RADIUS+CLOUD_REACH).filter(index=>{
+ const cloud=clouds[index];return Math.hypot(cloud.x-node.x,cloud.y-node.y)<=cloud.radius+CLEARING_RADIUS;
 }));
 const FOG_BOUNDS={minX:extent.minX-210,minY:extent.minY-210,maxX:extent.maxX+210,maxY:extent.maxY+210};
 const ATLAS_SIDE=1024;
@@ -53,8 +57,8 @@ function fogSprites(){
  const size=256,center=size/2;
  const make=erase=>{
   const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');
-  const inner=erase?40/95: .15,gradient=c.createRadialGradient(center,center,center*inner,center,center,center);
-  if(erase){gradient.addColorStop(0,'#000');gradient.addColorStop(.5,'#000c');gradient.addColorStop(1,'#0000');}
+  const inner=erase?CLEARING_INNER_RADIUS/CLEARING_RADIUS: .15,gradient=c.createRadialGradient(center,center,center*inner,center,center,center);
+  if(erase){gradient.addColorStop(0,'#000');gradient.addColorStop(.45,'#000d');gradient.addColorStop(1,'#0000');}
   else{gradient.addColorStop(0,'#26332be0');gradient.addColorStop(.58,'#303c34c5');gradient.addColorStop(1,'#37433700');}
   c.fillStyle=gradient;c.fillRect(0,0,size,size);return canvas;
  };
@@ -63,6 +67,11 @@ function fogSprites(){
 function worldRect(view){return {minX:-view.pan.x/view.zoom,minY:-view.pan.y/view.zoom,maxX:(view.width-view.pan.x)/view.zoom,maxY:(view.height-view.pan.y)/view.zoom};}
 function intersects(a,b){return a.maxX>=b.minX&&a.minX<=b.maxX&&a.maxY>=b.minY&&a.minY<=b.maxY;}
 function disk(path,x,y,radius){path.moveTo(x+radius,y);path.arc(x,y,radius,0,Math.PI*2);}
+function drawFogCache(target,cache,view){
+ const r=worldRect(view),clip={minX:Math.max(r.minX,FOG_BOUNDS.minX),minY:Math.max(r.minY,FOG_BOUNDS.minY),maxX:Math.min(r.maxX,FOG_BOUNDS.maxX),maxY:Math.min(r.maxY,FOG_BOUNDS.maxY)};if(clip.minX>=clip.maxX||clip.minY>=clip.maxY)return;
+ const sx=(clip.minX-FOG_BOUNDS.minX)*ATLAS_SCALE,sy=(clip.minY-FOG_BOUNDS.minY)*ATLAS_SCALE,sw=(clip.maxX-clip.minX)*ATLAS_SCALE,sh=(clip.maxY-clip.minY)*ATLAS_SCALE;
+ target.drawImage(cache,sx,sy,sw,sh,clip.minX*view.zoom+view.pan.x,clip.minY*view.zoom+view.pan.y,(clip.maxX-clip.minX)*view.zoom,(clip.maxY-clip.minY)*view.zoom);
+}
 
 // One shared decoded atlas and six transparent terrain illustrations. New
 // region records may add a backgroundUrl without moving this authored extent.
@@ -103,7 +112,7 @@ export class CampMapRenderer{
   this.assetListener=()=>{if(this.destroyed)return;for(const sprite of this.spriteCache.values())sprite.width=sprite.height=0;this.spriteCache.clear();this.onInvalidate();};ART_LISTENERS.add(this.assetListener);
   this.backgroundLayers=ART_LAYERS.map(layer=>({...layer,asset:artRecord(layer.url)}));this.patchAssets=Object.fromEntries(Object.entries(PATCH_URLS).map(([id,url])=>[id,artRecord(url)]));
   this.known=new Uint8Array(NODES.length);this.unknown=new Uint8Array(NODES.length);this.clearings=[];this.unknownCount=NODES.length;
-  this.discoveryDirty=true;this.pathsDirty=true;this.atlasDirty=true;this.atlas=null;
+  this.discoveryDirty=true;this.pathsDirty=true;this.atlasDirty=true;this.atlas=null;this.clearingAtlasDirty=true;this.clearingAtlas=null;
   this.scratch=document.createElement('canvas');this.scratchContext=this.scratch.getContext('2d');
   this.setDiscovered(new Set());
  }
@@ -111,7 +120,7 @@ export class CampMapRenderer{
   let changed=false;
   for(let i=0;i<NODES.length;i++){const known=discovered.has(NODES[i].id)||i===START_INDEX?1:0;if(this.known[i]!==known){this.known[i]=known;changed=true;}}
   if(!changed&&!this.discoveryDirty)return false;
-  this.discoveryDirty=false;this.pathsDirty=true;this.atlasDirty=true;this.unknownCount=0;
+  this.discoveryDirty=false;this.pathsDirty=true;this.atlasDirty=true;this.clearingAtlasDirty=true;this.unknownCount=0;
   for(let i=0;i<NODES.length;i++){this.unknown[i]=this.known[i]?0:1;this.unknownCount+=this.unknown[i];}
   this.overviewPatchDirty=true;this.regionKnownCounts.clear();for(let i=0;i<NODES.length;i++)if(this.known[i]){const id=NODES[i].regionId;this.regionKnownCounts.set(id,(this.regionKnownCounts.get(id)||0)+1);}
   this.clearings=[];
@@ -192,12 +201,18 @@ export class CampMapRenderer{
   if(decorated.length){c.fillStyle='#fffdf1';c.font=`${clamp(10/view.zoom,10,24)}px sans-serif`;c.textAlign='center';for(const node of decorated)c.fillText(node.cave?'⌂':'≋',node.x,node.y-radius-6/view.zoom);}
   c.restore();
  }
+ buildClearingAtlas(){
+  if(!this.clearingAtlas){this.clearingAtlas=document.createElement('canvas');this.clearingAtlas.width=Math.ceil((FOG_BOUNDS.maxX-FOG_BOUNDS.minX)*ATLAS_SCALE);this.clearingAtlas.height=Math.ceil((FOG_BOUNDS.maxY-FOG_BOUNDS.minY)*ATLAS_SCALE);this.clearingAtlasContext=this.clearingAtlas.getContext('2d');}
+  const c=this.clearingAtlasContext,{clearing}=fogSprites();c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,this.clearingAtlas.width,this.clearingAtlas.height);c.setTransform(ATLAS_SCALE,0,0,ATLAS_SCALE,-FOG_BOUNDS.minX*ATLAS_SCALE,-FOG_BOUNDS.minY*ATLAS_SCALE);
+  for(const i of this.clearings){const n=NODES[i];c.drawImage(clearing,n.x-CLEARING_RADIUS,n.y-CLEARING_RADIUS,CLEARING_RADIUS*2,CLEARING_RADIUS*2);}this.clearingAtlasDirty=false;
+ }
  buildAtlas(){
   if(!this.atlas){this.atlas=document.createElement('canvas');this.atlas.width=Math.ceil((FOG_BOUNDS.maxX-FOG_BOUNDS.minX)*ATLAS_SCALE);this.atlas.height=Math.ceil((FOG_BOUNDS.maxY-FOG_BOUNDS.minY)*ATLAS_SCALE);this.atlasContext=this.atlas.getContext('2d');}
-  const c=this.atlasContext,{cloud,clearing}=fogSprites();c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,this.atlas.width,this.atlas.height);c.setTransform(ATLAS_SCALE,0,0,ATLAS_SCALE,-FOG_BOUNDS.minX*ATLAS_SCALE,-FOG_BOUNDS.minY*ATLAS_SCALE);
+  if(this.clearingAtlasDirty)this.buildClearingAtlas();
+  const c=this.atlasContext,{cloud}=fogSprites();c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,this.atlas.width,this.atlas.height);c.setTransform(ATLAS_SCALE,0,0,ATLAS_SCALE,-FOG_BOUNDS.minX*ATLAS_SCALE,-FOG_BOUNDS.minY*ATLAS_SCALE);
   c.globalCompositeOperation='source-over';
   for(let i=0;i<NODES.length;i++){if(!this.unknown[i])continue;const f=clouds[i];c.drawImage(cloud,f.x-f.radius,f.y-f.radius,f.radius*2,f.radius*2);}
-  c.globalCompositeOperation='destination-out';for(const i of this.clearings){const n=NODES[i];c.drawImage(clearing,n.x-95,n.y-95,190,190);}c.globalCompositeOperation='source-over';this.atlasDirty=false;
+  c.setTransform(1,0,0,1,0,0);c.globalCompositeOperation='destination-out';c.drawImage(this.clearingAtlas,0,0);c.globalCompositeOperation='source-over';this.atlasDirty=false;
  }
  drawFog(target,view){
   if(!this.unknownCount)return;
@@ -206,14 +221,15 @@ export class CampMapRenderer{
   // changes. Zoomed views stamp just their nearby clouds at display resolution.
   if(projectedPixel>=.48){
    if(this.atlasDirty)this.buildAtlas();
-   const r=worldRect(view),clip={minX:Math.max(r.minX,FOG_BOUNDS.minX),minY:Math.max(r.minY,FOG_BOUNDS.minY),maxX:Math.min(r.maxX,FOG_BOUNDS.maxX),maxY:Math.min(r.maxY,FOG_BOUNDS.maxY)};if(clip.minX>=clip.maxX||clip.minY>=clip.maxY)return;
-   const sx=(clip.minX-FOG_BOUNDS.minX)*ATLAS_SCALE,sy=(clip.minY-FOG_BOUNDS.minY)*ATLAS_SCALE,sw=(clip.maxX-clip.minX)*ATLAS_SCALE,sh=(clip.maxY-clip.minY)*ATLAS_SCALE;
-   target.drawImage(this.atlas,sx,sy,sw,sh,clip.minX*view.zoom+view.pan.x,clip.minY*view.zoom+view.pan.y,(clip.maxX-clip.minX)*view.zoom,(clip.maxY-clip.minY)*view.zoom);return;
+   drawFogCache(target,this.atlas,view);return;
   }
+  if(this.clearingAtlasDirty)this.buildClearingAtlas();
   const width=Math.round(view.width*view.dpr),height=Math.round(view.height*view.dpr);if(this.scratch.width!==width||this.scratch.height!==height){this.scratch.width=width;this.scratch.height=height;}
-  const c=this.scratchContext,{cloud,clearing}=fogSprites(),rect=worldRect(view);c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,width,height);c.setTransform(view.dpr*view.zoom,0,0,view.dpr*view.zoom,view.pan.x*view.dpr,view.pan.y*view.dpr);c.globalCompositeOperation='source-over';
-  for(const index of visibleIndices(rect,200).sort((a,b)=>a-b)){if(!this.unknown[index])continue;const f=clouds[index];if(f.x+f.radius<rect.minX||f.x-f.radius>rect.maxX||f.y+f.radius<rect.minY||f.y-f.radius>rect.maxY)continue;c.drawImage(cloud,f.x-f.radius,f.y-f.radius,f.radius*2,f.radius*2);}
-  c.globalCompositeOperation='destination-out';for(const index of this.clearings){const n=NODES[index];if(n.x+95<rect.minX||n.x-95>rect.maxX||n.y+95<rect.minY||n.y-95>rect.maxY)continue;c.drawImage(clearing,n.x-95,n.y-95,190,190);}c.globalCompositeOperation='source-over';target.drawImage(this.scratch,0,0,view.width,view.height);
+  const c=this.scratchContext,{cloud}=fogSprites(),rect=worldRect(view);c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,width,height);c.setTransform(view.dpr*view.zoom,0,0,view.dpr*view.zoom,view.pan.x*view.dpr,view.pan.y*view.dpr);c.globalCompositeOperation='source-over';
+  for(const index of visibleIndices(rect,CLOUD_REACH).sort((a,b)=>a-b)){if(!this.unknown[index])continue;const f=clouds[index];if(f.x+f.radius<rect.minX||f.x-f.radius>rect.maxX||f.y+f.radius<rect.minY||f.y-f.radius>rect.maxY)continue;c.drawImage(cloud,f.x-f.radius,f.y-f.radius,f.radius*2,f.radius*2);}
+  // The broader holes share one bounded mask in both LODs. Sampling its soft
+  // edge once avoids overpainting many large transparent disks every pan frame.
+  c.setTransform(view.dpr,0,0,view.dpr,0,0);c.globalCompositeOperation='destination-out';drawFogCache(c,this.clearingAtlas,view);c.globalCompositeOperation='source-over';target.drawImage(this.scratch,0,0,view.width,view.height);
  }
- destroy(){this.destroyed=true;ART_LISTENERS.delete(this.assetListener);for(const sprite of this.spriteCache.values())sprite.width=sprite.height=0;this.spriteCache.clear();this.backgroundLayers=[];this.patchAssets={};if(this.atlas)this.atlas.width=this.atlas.height=0;this.atlas=null;this.atlasContext=null;this.scratch.width=this.scratch.height=0;this.scratch=null;this.scratchContext=null;this.paths=null;}
+ destroy(){this.destroyed=true;ART_LISTENERS.delete(this.assetListener);for(const sprite of this.spriteCache.values())sprite.width=sprite.height=0;this.spriteCache.clear();this.backgroundLayers=[];this.patchAssets={};if(this.atlas)this.atlas.width=this.atlas.height=0;this.atlas=null;this.atlasContext=null;if(this.clearingAtlas)this.clearingAtlas.width=this.clearingAtlas.height=0;this.clearingAtlas=null;this.clearingAtlasContext=null;this.scratch.width=this.scratch.height=0;this.scratch=null;this.scratchContext=null;this.paths=null;}
 }
