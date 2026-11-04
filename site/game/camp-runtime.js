@@ -20,7 +20,7 @@ export class CampRuntime{
   this.game=game;this.active=false;this.engine=null;this.entries=[];this.serial=0;this.finalIntro=null;
   this.ui=new CampUI({view:game.view,readState:()=>({...game.snapshot(),camp:game.session.state.camp,canCamp:this.canDepart()}),canOpen:()=>this.canBrowse(),
    onStart:options=>this.requestStart(options),onReturn:()=>this.returnHome(),
-   onSaveBag:(slot,bag)=>{const ok=game.session.setCampBag(slot,bag);game.sync();return ok;},
+   onSaveBag:(slot,bag,unpacked)=>{const ok=game.session.setCampBag(slot,bag,unpacked);game.sync();return ok;},
    onSelectBag:slot=>{const ok=game.session.selectCampBag(slot);game.sync();return ok;}});
   this.night=new CampNightView({container:game.view.surface,isPaused:()=>game.isPaused(),onComplete:()=>this.wake(),onError:()=>game.toast('夜の3D表示を再試行してください。探索の時計は止まっています。')});
   this.actionArea=document.createElement('section');this.actionArea.id='campActionArea';this.actionArea.className='lower-right camp-actions';this.actionArea.hidden=true;this.actionArea.setAttribute('aria-label','キャンプ中のおこていゆ');

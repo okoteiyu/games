@@ -1,5 +1,5 @@
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS} from './camp-world.js';
-import {CAMP_MAX_DAYS,campBagSummary,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
+import {CAMP_MAX_DAYS,CAMP_DURABLE_TOOL_IDS,campBagSummary,campRuntimeSupplies,isCampDurableTool,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
 import {planCampNavigation} from './camp-navigation-plan.js';
 const EPS=1e-9,clone=value=>JSON.parse(JSON.stringify(value));
 export const CAMP_SECONDS_PER_ACTIVITY_HOUR=.65;
@@ -18,8 +18,9 @@ export class CampExpedition{
   // Historical discovery is for the map. The current trip has a separate
   // reached set and a simple ancestry stack so retreat can never reopen a child.
   this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=false;
-  const supplies={...summary.counts};supplies.food--;
-  this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,initialSupplies:{...summary.counts},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null};
+  const supplies=campRuntimeSupplies(summary.counts);supplies.food--;
+  const supplyUnits=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,'uses']));
+  this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null};
  }
  random(){const value=Number(this.rng());if(!Number.isFinite(value))throw new TypeError('キャンプの乱数が正しくありません。');return Math.max(0,Math.min(1-Number.EPSILON,value));}
  pick(items){return items.length?items[Math.floor(this.random()*items.length)]:null;}
@@ -103,7 +104,7 @@ export class CampExpedition{
   const s=this.state;if(!s.supplies.medical_kit||!(s.maxHp>0)||!(s.hp>0)||s.hp>s.maxHp*.5)return false;
   const amount=Math.min(s.maxHp-s.hp,s.maxHp*.3);if(amount<=0)return false;s.hp+=amount;this.emit('heal',{amount,hp:s.hp,maxHp:s.maxHp,reason});return true;
  }
- consume(id,amount=1){if(amount<=0)return;const used=Math.min(this.state.supplies[id]||0,amount);if(used<=0)return;this.state.supplies[id]-=used;this.emit('supply',{supplyId:id,amount:used,remaining:this.state.supplies[id]});}
+ consume(id,amount=1){if(amount<=0)return;const used=Math.min(this.state.supplies[id]||0,amount);if(used<=0)return;this.state.supplies[id]-=used;this.emit('supply',{supplyId:id,amount:used,remaining:this.state.supplies[id],unit:isCampDurableTool(id)?'uses':'items'});}
  arrive(){
   const s=this.state,node=this.nodeIndex.get(s.nextNodeId);if(!node){this.finalize('no-route');return;}
   if(!canTraverseCampNode(node,s.supplies)){this.finalize('supplies');return;}

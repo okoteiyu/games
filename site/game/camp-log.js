@@ -1,6 +1,6 @@
 import {battleLogNames,formatBattleLogEvent,formatBattleLogTime,BATTLE_LOG_LIMIT} from './battle-log.js';
 import {superUnlockMessage} from './battle-result.js';
-import {CAMP_SUPPLIES} from './camp-rules.js';
+import {CAMP_SUPPLIES,isCampDurableTool} from './camp-rules.js';
 const decimals=n=>Math.floor((Number(n)||0)*10)/10;
 const kinds={departure:'出発',arrive:'探索',weather:'天候',wildlife:'出来事',survival:'野営',night:'夜',heal:'回復',supply:'物資',guardian:'最終地点',failed:'帰り支度',finish:'帰り支度'};
 /** Continuous expedition log; battle rows retain the established formatting. */
@@ -19,7 +19,12 @@ export class CampLog{
    case 'survival':if(!event.extended)return false;text='サバイバルキットを活用し、もう1日分の備えができた。';break;
    case 'night':text='今日はここで野営。ふたりで、ひと休み。';break;
    case 'heal':text='医療キットで、HPが'+decimals(event.amount)+'回復した。';break;
-   case 'supply':text=(CAMP_SUPPLIES[event.supplyId]?.name||'物資')+'を'+event.amount+'個使った。';break;
+   case 'supply':{
+    const uses=event.unit==='uses'||event.unit===undefined&&isCampDurableTool(event.supplyId);
+    text=(CAMP_SUPPLIES[event.supplyId]?.name||'物資')+'を'+event.amount+(uses?'回':'個')+'使った。';
+    if(uses&&Number.isFinite(event.remaining))text+=event.remaining>0?'あと'+event.remaining+'回使える。':'使い切った。';
+    break;
+   }
    case 'guardian':text=event.name+'が、この場所で待っている。';break;
    case 'failed':text='おこていゆは疲れた。今回のキャンプを終えることにした。';break;
    case 'finish':text='今回のキャンプを終えた。';break;

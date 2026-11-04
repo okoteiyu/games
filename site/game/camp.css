@@ -55,6 +55,15 @@
 .camp-supplies small { font-size:9px;line-height:1;color:#a3a68e; }
 .camp-supplies button[data-selected=true] { border-color:#a7b77b;background:#edf1db;box-shadow:inset 0 0 0 1px #b4c491; }
 .camp-supply-description { min-block-size:37px;margin:9px 0 12px;padding:9px 10px;border:1px solid #d6d8bf;border-radius:8px;background:#fffdf182;color:#7e826b;font-size:11px;line-height:1.75; }
+.camp-repacked { margin:9px 0 12px;padding:10px;border:1px solid #c9b989;border-radius:9px 3px;background:#fff8e5;color:#7e765a; }
+.camp-repacked[hidden] { display:none; }
+.camp-repacked p { margin:0;font-size:11px;line-height:1.65; }
+.camp-unpacked { display:flex;flex-wrap:wrap;gap:6px;margin-top:8px; }
+.camp-unpacked:empty { display:none; }
+.camp-unpacked button { display:flex;align-items:center;gap:5px;max-inline-size:100%;min-block-size:34px;padding:5px 8px;border:1px solid #c7c5a5;border-radius:7px;background:#fffef5;color:#6d795a;font:inherit;font-size:11px;cursor:pointer;touch-action:manipulation; }
+.camp-unpacked button[data-selected=true] { border-color:#97a965;background:#ecf0d9;box-shadow:inset 0 0 0 1px #afbe83; }
+.camp-unpacked svg { inline-size:16px;block-size:21px;flex:none;fill:#fffef6;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round; }
+.camp-unpacked span { min-inline-size:0;overflow-wrap:anywhere; }.camp-unpacked small { color:#9c977e;font-size:9px;white-space:nowrap; }
 .camp-bag-tools { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
 .camp-button { display:flex;align-items:center;justify-content:center;gap:8px;min-inline-size:0;min-block-size:38px;padding:8px 13px;border:1px solid #aab684;border-radius:10px 4px;background:linear-gradient(120deg,#dce6c1,#c5d49e);color:#526540;font:inherit;font-size:12px;font-weight:600;line-height:1.5;cursor:pointer;touch-action:manipulation; }
 .camp-button--quiet { border-color:#c9cdb2;background:#fbf9ec;color:#8a876d;font-weight:400; }
@@ -132,8 +141,10 @@
 
 /* Compact copy stays readable, even beside the expedition map. */
 .camp-live__supplies { inline-size:111px; }
-.camp-live-supply { min-block-size:22px;grid-template-columns:15px minmax(0,1fr) 14px; }
+.camp-live-supply { min-block-size:22px;grid-template-columns:15px minmax(0,1fr) max-content; }
 .camp-live-supply span { font-size:10px; }.camp-live-supply strong { font-size:12px; }
+.camp-live-supply strong { display:flex;align-items:baseline;justify-content:flex-end;gap:1px;white-space:nowrap; }
+.camp-live-supply strong small { font-size:9px;font-weight:400;line-height:1; }
 .camp-live__supplies h3 { font-size:10px; }.camp-live__header small { font-size:8px; }
 @media(max-height:620px) { .camp-live-supply { min-block-size:21px; }.camp-live-supply span { font-size:9.5px; } }
 

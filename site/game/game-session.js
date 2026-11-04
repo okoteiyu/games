@@ -258,11 +258,11 @@ export class GameSession{
   const campBag=this.state.camp.bags[this.state.camp.selectedBag],campCost=campDepartureCost(campBag),campPrepared=campBag.some(item=>item.supplyId==='food');
   return {patrol:home&&points>=PATROL_CALM_COST&&patrolAvailable,patrolAvailable,camp:home&&Boolean(this.state.visitorName)&&campPrepared&&points>=campCost,campCost,campPrepared,training:trainings.easy,trainings,meal:home,research:home,rest:home,food:home,chair:home,bed:home,interfere:home&&(interfereBonus||points>=3),interfereBonus,commandsLocked:false,recovered:points>=3};
  }
- setCampBag(slot,placements){
+ setCampBag(slot,placements,unpacked=null){
   if(this.state.location!=='home'||this.state.pendingAngerEvent||!Number.isInteger(slot)||slot<0||slot>2)return false;
   let bag;try{bag=validateCampBag(placements);}catch{return false;}
   const next=clone(this.state.camp);next.bags[slot]=bag;
-  try{this.state.camp=normalizeCampProgress(next);}catch{return false;}
+  try{if(unpacked!==null)next.unpackedBags[slot]=clone(unpacked);next.adjustedBags[slot]=false;this.state.camp=normalizeCampProgress(next);}catch{return false;}
   this.emit('camp-bag-saved',{slot});return true;
  }
  selectCampBag(slot){

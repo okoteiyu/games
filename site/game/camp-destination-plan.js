@@ -1,12 +1,14 @@
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS} from './camp-world.js';
-import {BAG_WIDTH,BAG_HEIGHT,CAMP_MAX_DAYS,CAMP_SUPPLIES,canTraverseCampNode,campTraversalConsumption,validateCampBag} from './camp-rules.js';
+import {BAG_WIDTH,BAG_HEIGHT,CAMP_MAX_DAYS,CAMP_SUPPLIES,CAMP_DURABLE_TOOL_IDS,canTraverseCampNode,campTraversalConsumption,validateCampBag} from './camp-rules.js';
 
 const supplyIds=Object.keys(CAMP_SUPPLIES);
-const consumedIds=['rope','mask','goggles'];
+const consumedIds=CAMP_DURABLE_TOOL_IDS;
 const caches=new WeakMap();
 const emptyCounts=()=>Object.fromEntries(supplyIds.map(id=>[id,0]));
 const area=id=>CAMP_SUPPLIES[id].width*CAMP_SUPPLIES[id].height;
 const fits=(id,width,height)=>{const s=CAMP_SUPPLIES[id];return s.width<=width&&s.height<=height||s.height<=width&&s.width<=height;};
+const copiesForUses=(id,uses)=>Math.ceil(uses/(CAMP_SUPPLIES[id].maxUses??1));
+const usedCopies=label=>consumedIds.reduce((sum,id)=>sum+copiesForUses(id,label[id]),0);
 
 class MinHeap{
  constructor(compare){this.values=[];this.compare=compare;}
@@ -55,7 +57,7 @@ function packCounts(counts,width,height){
  return search(0,0n,-1)?validateCampBag(placements):null;
 }
 
-const dominates=(a,b)=>a.units<=b.units&&a.rope<=b.rope&&a.mask<=b.mask&&a.goggles<=b.goggles;
+const dominates=(a,b)=>a.units<=b.units&&consumedIds.every(id=>a[id]<=b[id]);
 const comparePlan=(a,b)=>a.totalItems-b.totalItems||a.activityHours-b.activityHours||a.occupiedCells-b.occupiedCells||a.days-b.days;
 
 /** Exact positive-cost label search; each yield is an opportunity for UI work.
@@ -78,11 +80,13 @@ function* calculate(options){
  if(depths[goal]<0||!fits('food',o.width,o.height))return freezePlan(result);
  let best=null,created=0,expanded=0,configurations=0;
  const packingCache=new Map();
- for(const flashlight of [0,1])for(const gloves of [0,1])for(const compass of [1,0]){
-  if(flashlight&&!fits('flashlight',o.width,o.height)||gloves&&!fits('gloves',o.width,o.height)||compass&&!fits('compass',o.width,o.height))continue;
+ for(const flashlight of [0,1])for(const compass of [1,0]){
+  if(flashlight&&!fits('flashlight',o.width,o.height)||compass&&!fits('compass',o.width,o.height))continue;
   configurations++;
-  const fixedItems=flashlight+gloves+compass,fixedCells=flashlight*area('flashlight')+gloves*area('gloves')+compass*area('compass'),dayUnits=(flashlight?16:14)*5,unitFactor=compass?3:5;
-  const available={flashlight,gloves,rope:fits('rope',o.width,o.height)?o.capacity:0,mask:fits('mask',o.width,o.height)?o.capacity:0,goggles:fits('goggles',o.width,o.height)?o.capacity:0};
+  const fixedItems=flashlight+compass,fixedCells=flashlight*area('flashlight')+compass*area('compass'),dayUnits=(flashlight?16:14)*5,unitFactor=compass?3:5;
+  // The graph search counts terrain uses. Its objective and packing count the
+  // physical copies needed to supply those uses, including a partially used one.
+  const available={flashlight,...Object.fromEntries(consumedIds.map(id=>[id,fits(id,o.width,o.height)?(CAMP_SUPPLIES[id].repeatable?Math.floor(o.capacity/area(id)):1)*(CAMP_SUPPLIES[id].maxUses??1):0]))};
   const allowed=nodes.map((n,i)=>i===start||canTraverseCampNode(n,available)),forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
   if(!allowed[goal])continue;
   for(let i=0;i<nodes.length;i++){
@@ -96,26 +100,26 @@ function* calculate(options){
   const frontier=nodes.map(()=>[]),heap=new MinHeap((a,b)=>a.boundItems-b.boundItems||a.boundUnits-b.boundUnits||a.cells-b.cells);
   function consider(label){
    const boundUnits=label.units+remaining[label.node]*unitFactor,food=Math.max(1,Math.ceil(boundUnits/dayUnits));
-   label.boundUnits=boundUnits;label.boundItems=fixedItems+label.rope+label.mask+label.goggles+food;
-   label.cells=label.rope*area('rope')+label.mask*area('mask')+label.goggles*area('goggles');
-   if(!Number.isFinite(boundUnits)||food>o.maxDays||fixedCells+label.cells+food*area('food')>o.capacity||best&&(label.boundItems>best.totalItems||label.boundItems===best.totalItems&&boundUnits/5>best.activityHours))return;
+   label.boundUnits=boundUnits;label.boundItems=fixedItems+usedCopies(label)+food;
+   label.cells=consumedIds.reduce((sum,id)=>sum+copiesForUses(id,label[id])*area(id),0);
+   if(!Number.isFinite(boundUnits)||food>o.maxDays||consumedIds.some(id=>label[id]>available[id])||fixedCells+label.cells+food*area('food')>o.capacity||best&&(label.boundItems>best.totalItems||label.boundItems===best.totalItems&&boundUnits/5>best.activityHours))return;
    const current=frontier[label.node];if(current.some(a=>dominates(a,label)))return;
    frontier[label.node]=current.filter(a=>{if(dominates(label,a)){a.active=false;return false;}return true;});label.active=true;frontier[label.node].push(label);heap.push(label);created++;
   }
-  consider({node:start,units:0,rope:0,mask:0,goggles:0,parent:null});
+  consider({node:start,units:0,...Object.fromEntries(consumedIds.map(id=>[id,0])),parent:null});
   while(heap.length){
    const label=heap.pop();if(!label.active)continue;
    if(best&&(label.boundItems>best.totalItems||label.boundItems===best.totalItems&&label.boundUnits/5>best.activityHours))continue;
    expanded++;
    if(label.node===goal){
-    const counts=emptyCounts(),food=Math.max(1,Math.ceil(label.units/dayUnits));Object.assign(counts,{food,flashlight,gloves,compass,rope:label.rope,mask:label.mask,goggles:label.goggles});
+    const counts=emptyCounts(),food=Math.max(1,Math.ceil(label.units/dayUnits));Object.assign(counts,{food,flashlight,compass});for(const id of consumedIds)counts[id]=copiesForUses(id,label[id]);
     const totalItems=Object.values(counts).reduce((sum,n)=>sum+n,0),occupiedCells=supplyIds.reduce((sum,id)=>sum+counts[id]*area(id),0),candidate={...result,status:'ready',counts,totalItems,occupiedCells,activityHours:label.units/5,days:food,placements:[],path:[]};
     if(!best||comparePlan(candidate,best)<0){
      const key=supplyIds.map(id=>counts[id]).join(','),cached=packingCache.get(key),placements=cached===undefined?packCounts(counts,o.width,o.height):cached;packingCache.set(key,placements);
      if(placements){candidate.placements=placements;for(let a=label;a;a=a.parent)candidate.path.push(nodes[a.node].id);candidate.path.reverse();best=candidate;}
     }
    }else for(const j of forward[label.node]){
-    const consumption=campTraversalConsumption(nodes[j]);consider({node:j,units:label.units+hours[j]*unitFactor,rope:label.rope+consumption.rope,mask:label.mask+consumption.mask,goggles:label.goggles+consumption.goggles,parent:label});
+    const consumption=campTraversalConsumption(nodes[j]);consider({node:j,units:label.units+hours[j]*unitFactor,...Object.fromEntries(consumedIds.map(id=>[id,label[id]+consumption[id]])),parent:label});
    }
    if(++work%128===0)yield;
   }
@@ -128,7 +132,7 @@ export function planCampDestination(options={}){const iterator=calculate(options
 
 function cacheEntry(options){
  const o=normalizedOptions(options);let cache=caches.get(o.world);if(!cache){cache=new Map();caches.set(o.world,cache);}
- const ruleKey=Object.values(CAMP_TERRAINS).map(t=>t.id+':'+t.hours).join('|')+';'+supplyIds.map(id=>id+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height).join('|');
+ const ruleKey=Object.values(CAMP_TERRAINS).map(t=>t.id+':'+t.hours).join('|')+';'+supplyIds.map(id=>id+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].repeatable).join('|');
  const key=[o.world.revision??'',o.startId,o.destination,o.destinations[o.destination].nodeId??'',o.maxDays,o.width,o.height,ruleKey].join(';');
  if(cache.has(key)){const entry=cache.get(key);cache.delete(key);cache.set(key,entry);return entry;}
  while(cache.size>=64)cache.delete(cache.keys().next().value);

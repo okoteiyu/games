@@ -1,9 +1,10 @@
 import {CAMP_WORLD,CAMP_TERRAINS} from './camp-world.js';
-import {CAMP_MAX_DAYS,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
+import {CAMP_MAX_DAYS,CAMP_SUPPLIES,CAMP_DURABLE_TOOL_IDS,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
 
 const EPS=1e-9,CACHE_LIMIT=64,graphs=new WeakMap(),plans=new WeakMap();
-const consumables=['food','rope','mask','goggles'];
-const fixedTools=['flashlight','gloves','compass'];
+const toolIds=CAMP_DURABLE_TOOL_IDS,consumables=['food',...toolIds];
+const fixedTools=['flashlight','compass'];
+const copiesForUses=(id,uses)=>Math.ceil(uses/(CAMP_SUPPLIES[id].maxUses??1));
 
 class MinHeap{
  constructor(compare){this.values=[];this.compare=compare;}
@@ -39,25 +40,25 @@ function normalize(options){
 }
 
 function freezeResult(value){Object.freeze(value.path);Object.freeze(value.consumption);Object.freeze(value.diagnostics);return Object.freeze(value);}
-function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,rope:0,mask:0,goggles:0},diagnostics:{labelsCreated:0,labelsExpanded:0,retreatSeeds:0}};}
+function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,...Object.fromEntries(toolIds.map(id=>[id,0]))},diagnostics:{labelsCreated:0,labelsExpanded:0,retreatSeeds:0}};}
 
-/** Actual carried tools are fixed. Minimize remaining food and single-use tools
- * first, then activity hours; no random future event is assumed to help. */
+/** Counts for durable tools are remaining uses, not physical copies. Minimize
+ * needed two-use copies plus food, then time; random events never grant a route. */
 function calculate(o){
  if(o.currentNodeId===o.goalId||o.tripReached.has(o.goalId))return freezeResult(result(o,'reached'));
  const output=result(o,'unreachable'),{nodes,index,neighbors,depths}=o.graph,current=index.get(o.currentNodeId),goal=index.get(o.goalId),factor=o.counts.compass?.6:1;
  if(depths[goal]<0)return freezeResult(output);
  const crossing=(node,first)=>CAMP_TERRAINS[node.terrain].hours*factor*(first&&o.rainNext?1.5:1);
  const foodFor=hours=>Math.max(0,Math.ceil((hours-o.dayHoursRemaining-EPS)/o.dayHours));
- const usedItems=label=>label.rope+label.mask+label.goggles;
- const available=label=>({...o.counts,rope:o.counts.rope-label.rope,mask:o.counts.mask-label.mask,goggles:o.counts.goggles-label.goggles});
- const fits=label=>label.hours<=o.maxHours+EPS&&label.rope<=o.counts.rope&&label.mask<=o.counts.mask&&label.goggles<=o.counts.goggles;
- const spend=(label,next)=>{if(!canTraverseCampNode(nodes[next],available(label)))return null;const consumed=campTraversalConsumption(nodes[next]),candidate={node:next,hours:label.hours+crossing(nodes[next],label.steps===0),rope:label.rope+consumed.rope,mask:label.mask+consumed.mask,goggles:label.goggles+consumed.goggles,steps:label.steps+1,parent:label};return fits(candidate)?candidate:null;};
+ const usedItems=label=>toolIds.reduce((sum,id)=>sum+copiesForUses(id,label[id]),0);
+ const available=label=>({...o.counts,...Object.fromEntries(toolIds.map(id=>[id,o.counts[id]-label[id]]))});
+ const fits=label=>label.hours<=o.maxHours+EPS&&toolIds.every(id=>label[id]<=o.counts[id]);
+ const spend=(label,next)=>{if(!canTraverseCampNode(nodes[next],available(label)))return null;const consumed=campTraversalConsumption(nodes[next]),candidate={node:next,hours:label.hours+crossing(nodes[next],label.steps===0),...Object.fromEntries(toolIds.map(id=>[id,label[id]+consumed[id]])),steps:label.steps+1,parent:label};return fits(candidate)?candidate:null;};
 
  // Legal retreats form one finite prefix of the current ancestry. Forward
  // searches from these seeds never re-enter any reached vertex, so this also
  // prevents bouncing between the branch just abandoned and its parent.
- const seeds=[],initial={node:current,hours:0,rope:0,mask:0,goggles:0,steps:0,parent:null};
+ const seeds=[],initial={node:current,hours:0,...Object.fromEntries(toolIds.map(id=>[id,0])),steps:0,parent:null};
  seeds.push(initial);let retreat=initial;
  for(let i=o.activePath.length-2;i>=0;i--){retreat=spend(retreat,index.get(o.activePath[i]));if(!retreat)break;seeds.push(retreat);}
  output.diagnostics.retreatSeeds=seeds.length;
@@ -70,7 +71,7 @@ function calculate(o){
  const remaining=new Float64Array(nodes.length).fill(Infinity),timeHeap=new MinHeap((a,b)=>a.hours-b.hours);remaining[goal]=0;timeHeap.push({node:goal,hours:0});
  while(timeHeap.length){const a=timeHeap.pop();if(a.hours!==remaining[a.node])continue;for(const previous of reverse[a.node]){const hours=a.hours+CAMP_TERRAINS[nodes[a.node].terrain].hours*factor;if(hours<remaining[previous]){remaining[previous]=hours;timeHeap.push({node:previous,hours});}}}
  const frontier=nodes.map(()=>[]),heap=new MinHeap((a,b)=>a.boundItems-b.boundItems||a.boundHours-b.boundHours||a.sequence-b.sequence);let best=null,sequence=0;
- const dominates=(a,b)=>a.hours<=b.hours+EPS&&a.rope<=b.rope&&a.mask<=b.mask&&a.goggles<=b.goggles;
+ const dominates=(a,b)=>a.hours<=b.hours+EPS&&toolIds.every(id=>a[id]<=b[id]);
  function consider(label){
   const boundHours=label.hours+remaining[label.node],boundItems=usedItems(label)+foodFor(boundHours);
   if(!Number.isFinite(boundHours)||boundHours>o.maxHours+EPS||best&&(boundItems>best.requiredItems||boundItems===best.requiredItems&&boundHours>best.activityHours+EPS))return;
@@ -87,7 +88,7 @@ function calculate(o){
    const food=foodFor(label.hours),requiredItems=usedItems(label)+food;
    if(!best||requiredItems<best.requiredItems||requiredItems===best.requiredItems&&label.hours<best.activityHours-EPS){
     const path=[];for(let previous=label;previous;previous=previous.parent)path.push(nodes[previous.node].id);path.reverse();
-    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:o.activePath.at(-2)===path[1]?'backtrack':'forward',requiredItems,activityHours:label.hours,consumption:{food,rope:label.rope,mask:label.mask,goggles:label.goggles}};
+    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:o.activePath.at(-2)===path[1]?'backtrack':'forward',requiredItems,activityHours:label.hours,consumption:{food,...Object.fromEntries(toolIds.map(id=>[id,label[id]]))}};
    }
   }else for(const next of forward[label.node]){const candidate=spend(label,next);if(candidate)consider(candidate);}
  }
@@ -97,7 +98,8 @@ function calculate(o){
 /** Pure navigation: the chosen target/end-of-exploration rules stay in engine. */
 export function planCampNavigation(options={}){
  const o=normalize(options);let cache=plans.get(o.world);if(!cache){cache=new Map();plans.set(o.world,cache);}
- const key=[o.world.revision??'',o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,...consumables.map(id=>o.counts[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
+ const ruleKey=toolIds.map(id=>id+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+CAMP_SUPPLIES[id].repeatable).join('|');
+ const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,...consumables.map(id=>o.counts[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
  if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}
  const value=calculate(o);while(cache.size>=CACHE_LIMIT)cache.delete(cache.keys().next().value);cache.set(key,value);return value;
 }

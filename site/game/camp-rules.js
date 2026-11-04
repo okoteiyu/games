@@ -1,6 +1,10 @@
 import {CAMP_WORLD,getCampNode} from './camp-world.js';
+import {migrateLegacyCampBag,normalizeUnpackedCampBag} from './camp-bag-migration.js';
 export const BAG_WIDTH=6,BAG_HEIGHT=6,CAMP_MAX_DAYS=15;
-const supply=(id,name,width,height,repeatable,description,color,icon)=>Object.freeze({id,name,width,height,repeatable,description,color,icon});
+export const CAMP_TOOL_USES_PER_ITEM=2;
+export const CAMP_DURABLE_TOOL_IDS=Object.freeze(['gloves','goggles','rope','mask']);
+export const isCampDurableTool=id=>CAMP_DURABLE_TOOL_IDS.includes(id);
+const supply=(id,name,width,height,repeatable,description,color,icon,maxUses=1)=>Object.freeze({id,name,width,height,repeatable,description,color,icon,maxUses});
 export const CAMP_SUPPLIES=Object.freeze({
  food:supply('food','携帯食料',1,2,true,'1個で1日分の行動ができる。「あなた」の分は消費しない。何個でも持ち込める。','#d4ab67','▣'),
  flashlight:supply('flashlight','懐中電灯',1,2,false,'洞窟のルートを進める。1日の活動時間が16時間になる。','#dfc770','☼'),
@@ -10,11 +14,17 @@ export const CAMP_SUPPLIES=Object.freeze({
  medical_kit:supply('medical_kit','医療キット',2,2,false,'イベント終了時、HPが半分以下なら最大HPの30%を回復する。','#cb9598','＋'),
  compass:supply('compass','コンパス',1,1,false,'各エリアを進む時間を0.6倍にする。','#9eabbd','◇'),
  moai_compass:supply('moai_compass','モアイコンパス',1,1,false,'今の物資で進める道から、モアイ郷までの必要物資が最小になるルートを案内する。目標地点の設定や移動速度は変えない。','#c4b476','⌖'),
- gloves:supply('gloves','グローブ',1,2,false,'消費せず、悪路を進める。怪我イベントの発生率を0.7倍にする。','#b6a18d','✋'),
- goggles:supply('goggles','ゴーグル',1,2,true,'見通しの悪いルートを1つ越えるたび1個消費。所持中は怪我の発生率を0.7倍にする。','#8caeb5','∞'),
- rope:supply('rope','ロープ',1,2,true,'崖の険しいルートを1つ越えるたび1個消費する。','#c4ad7d','⌁'),
- mask:supply('mask','マスク',1,3,true,'毒ガスのルートを1つ越えるたび1個消費する。','#afa7bd','◒')
+ gloves:supply('gloves','グローブ',1,3,true,'1個で悪路を2回通れる。往路も帰路も1回ずつ使う。使える間は怪我イベントの発生率を0.7倍にする。','#b6a18d','✋',CAMP_TOOL_USES_PER_ITEM),
+ goggles:supply('goggles','ゴーグル',1,3,true,'1個で見通しの悪いルートを2回通れる。往路も帰路も1回ずつ使う。使える間は怪我の発生率を0.7倍にする。','#8caeb5','∞',CAMP_TOOL_USES_PER_ITEM),
+ rope:supply('rope','ロープ',1,3,true,'1個で崖の険しいルートを2回通れる。往路も帰路も1回ずつ使う。','#c4ad7d','⌁',CAMP_TOOL_USES_PER_ITEM),
+ mask:supply('mask','マスク',1,3,true,'1個で毒ガスのルートを2回通れる。往路も帰路も1回ずつ使う。','#afa7bd','◒',CAMP_TOOL_USES_PER_ITEM)
 });
+/** Bag entries count physical items; a live journey counts available tool uses. */
+export function campRuntimeSupplies(itemCounts){
+ const runtime={...itemCounts};
+ for(const id of CAMP_DURABLE_TOOL_IDS){const count=itemCounts?.[id]??0;if(!Number.isSafeInteger(count)||count<0)throw new TypeError('道具の個数が正しくありません。');runtime[id]=count*CAMP_SUPPLIES[id].maxUses;}
+ return runtime;
+}
 const clone=value=>JSON.parse(JSON.stringify(value));
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&[Object.prototype,null].includes(Object.getPrototypeOf(value));
 export function campSupplyDimensions(supplyId,rotated=false){const item=typeof supplyId==='string'&&Object.hasOwn(CAMP_SUPPLIES,supplyId)?CAMP_SUPPLIES[supplyId]:null;if(!item)throw new RangeError('不明なキャンプ物資です。');return rotated?{width:item.height,height:item.width}:{width:item.width,height:item.height};}
@@ -37,20 +47,32 @@ export function validateCampBag(placements){
 export function campBagSummary(placements){
  const bag=validateCampBag(placements),counts=Object.fromEntries(Object.keys(CAMP_SUPPLIES).map(id=>[id,0]));let occupied=0;
  for(const placement of bag){counts[placement.supplyId]++;const item=CAMP_SUPPLIES[placement.supplyId];occupied+=item.width*item.height;}
- return {counts,occupied,capacity:BAG_WIDTH*BAG_HEIGHT,foodDays:Math.min(CAMP_MAX_DAYS,counts.food),calmCost:7-(counts.phone?2:0)-(counts.battery?1:0),activityHoursPerDay:counts.flashlight?16:14,injuryProbabilityMultiplier:(counts.gloves ? .7 : 1)*(counts.goggles ? .7 : 1)};
+ const runtime=campRuntimeSupplies(counts),toolUses=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,runtime[id]]));
+ return {counts,toolUses,occupied,capacity:BAG_WIDTH*BAG_HEIGHT,foodDays:Math.min(CAMP_MAX_DAYS,counts.food),calmCost:7-(counts.phone?2:0)-(counts.battery?1:0),activityHoursPerDay:counts.flashlight?16:14,injuryProbabilityMultiplier:(counts.gloves ? .7 : 1)*(counts.goggles ? .7 : 1)};
 }
 export function campDepartureCost(placements){return campBagSummary(placements).calmCost;}
-export function createCampProgress(){return {version:1,bags:[[],[],[]],selectedBag:0,discovered:[CAMP_WORLD.startId],expeditions:0};}
+export function createCampProgress(){return {version:1,bagLayoutVersion:2,bags:[[],[],[]],unpackedBags:[[],[],[]],adjustedBags:[false,false,false],selectedBag:0,discovered:[CAMP_WORLD.startId],expeditions:0};}
 /** Legacy saves have no camp field and receive a fresh, independent default. */
 export function normalizeCampProgress(value){
  if(value===undefined)return createCampProgress();
  if(!plain(value))throw new TypeError('キャンプの記録が正しくありません。');
  if(value.version!==undefined&&value.version!==1)throw new TypeError('未対応のキャンプ記録です。');
+ const layoutVersion=value.bagLayoutVersion??1;if(layoutVersion!==1&&layoutVersion!==2)throw new TypeError('未対応のバッグ配置です。');
  const bags=value.bags??[[],[],[]];if(!Array.isArray(bags)||bags.length!==3)throw new TypeError('登録バッグは3つです。');
+ const options={supplies:CAMP_SUPPLIES,width:BAG_WIDTH,height:BAG_HEIGHT,validateCurrent:validateCampBag};
+ let normalizedBags,unpackedBags,adjustedBags;
+ if(layoutVersion===1){
+  const migrated=Array.from(bags).map(bag=>migrateLegacyCampBag(bag,options));normalizedBags=migrated.map(item=>item.bag);unpackedBags=migrated.map(item=>item.unpacked);adjustedBags=migrated.map(item=>item.adjusted);
+ }else{
+  normalizedBags=Array.from(bags).map(validateCampBag);
+  const unpacked=value.unpackedBags??[[],[],[]],adjusted=value.adjustedBags??[false,false,false];
+  if(!Array.isArray(unpacked)||unpacked.length!==3||!Array.isArray(adjusted)||adjusted.length!==3||Array.from(adjusted).some(flag=>typeof flag!=='boolean'))throw new TypeError('登録バッグの調整記録が正しくありません。');
+  unpackedBags=Array.from(unpacked).map((items,slot)=>normalizeUnpackedCampBag(items,normalizedBags[slot],options));adjustedBags=Array.from(adjusted);
+ }
  const selectedBag=value.selectedBag??0;if(!Number.isInteger(selectedBag)||selectedBag<0||selectedBag>2)throw new RangeError('バッグの選択が正しくありません。');
  const discovered=value.discovered??[CAMP_WORLD.startId];if(!Array.isArray(discovered)||discovered.length>CAMP_WORLD.nodes.length||Array.from(discovered).some(id=>typeof id!=='string'||!getCampNode(id)))throw new TypeError('未開の地の記録が正しくありません。');
  const expeditions=value.expeditions??0;if(!Number.isSafeInteger(expeditions)||expeditions<0)throw new RangeError('キャンプ回数が正しくありません。');
- return clone({version:1,bags:Array.from(bags).map(validateCampBag),selectedBag,discovered:[...new Set([CAMP_WORLD.startId,...discovered])],expeditions});
+ return clone({version:1,bagLayoutVersion:2,bags:normalizedBags,unpackedBags,adjustedBags,selectedBag,discovered:[...new Set([CAMP_WORLD.startId,...discovered])],expeditions});
 }
 /** One copy protects the party; multiple goggles do not stack the multiplier. */
 export function canTraverseCampNode(node,counts){
@@ -62,4 +84,4 @@ export function canTraverseCampNode(node,counts){
  if(node.terrain==='gas'&&!counts.mask)return false;
  return true;
 }
-export function campTraversalConsumption(node){return {rope:node?.terrain==='cliff'?1:0,mask:node?.terrain==='gas'?1:0,goggles:node?.terrain==='poor_visibility'||node?.poorVisibility?1:0};}
+export function campTraversalConsumption(node){return {gloves:node?.terrain==='rough'?1:0,rope:node?.terrain==='cliff'?1:0,mask:node?.terrain==='gas'?1:0,goggles:node?.terrain==='poor_visibility'||node?.poorVisibility?1:0};}
