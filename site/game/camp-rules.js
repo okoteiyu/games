@@ -4,12 +4,12 @@ export const BAG_WIDTH=6,BAG_HEIGHT=6,CAMP_MAX_DAYS=15;
 export const CAMP_TOOL_USES_PER_ITEM=2;
 export const CAMP_DURABLE_TOOL_IDS=Object.freeze(['gloves','goggles','rope','mask']);
 export const isCampDurableTool=id=>CAMP_DURABLE_TOOL_IDS.includes(id);
-const supply=(id,name,width,height,repeatable,description,color,icon,maxUses=1)=>Object.freeze({id,name,width,height,repeatable,description,color,icon,maxUses});
+const supply=(id,name,width,height,repeatable,description,color,icon,maxUses=1,maxCount=repeatable?null:1)=>Object.freeze({id,name,width,height,repeatable,description,color,icon,maxUses,maxCount});
 export const CAMP_SUPPLIES=Object.freeze({
  food:supply('food','携帯食料',1,2,true,'1個で1日分の行動ができる。「あなた」の分は消費しない。何個でも持ち込める。','#d4ab67','▣'),
  flashlight:supply('flashlight','懐中電灯',1,2,false,'洞窟のルートを進める。1日の活動時間が16時間になる。','#dfc770','☼'),
  phone:supply('phone','スマホ',1,1,false,'出発時に使う穏やかポイントを2減らす。','#8da9bb','▯'),
- battery:supply('battery','バッテリー',1,1,false,'出発時に使う穏やかポイントをさらに1減らす。','#7f9c8f','▰'),
+ battery:supply('battery','バッテリー',1,1,true,'出発時に使う穏やかポイントをさらに1減らす。最大4個まで持ち込める。','#7f9c8f','▰',1,4),
  survival_kit:supply('survival_kit','サバイバルキット',2,3,false,'日付が変わるたび、30%の確率で行動可能日数が1日増える。','#92aa78','✦'),
  medical_kit:supply('medical_kit','医療キット',2,2,false,'イベント終了時、HPが半分以下なら最大HPの30%を回復する。','#cb9598','＋'),
  compass:supply('compass','コンパス',1,1,false,'各エリアを進む時間を0.6倍にする。','#9eabbd','◇'),
@@ -31,7 +31,7 @@ export function campSupplyDimensions(supplyId,rotated=false){const item=typeof s
 /** Strict geometry validation shared by UI, saves and departure. */
 export function validateCampBag(placements){
  if(!Array.isArray(placements)||placements.length>BAG_WIDTH*BAG_HEIGHT)throw new TypeError('バッグの中身が正しくありません。');
- const occupied=new Set(),ids=new Set(),singles=new Set();
+ const occupied=new Set(),ids=new Set(),counts=new Map();
  return Array.from(placements).map((placement,index)=>{
   if(!plain(placement))throw new TypeError('物資の配置が正しくありません。');
   const {supplyId,x,y}=placement,item=typeof supplyId==='string'&&Object.hasOwn(CAMP_SUPPLIES,supplyId)?CAMP_SUPPLIES[supplyId]:null;if(!item)throw new RangeError('不明なキャンプ物資です。');
@@ -39,10 +39,16 @@ export function validateCampBag(placements){
   if(placement.rotated!==undefined&&typeof placement.rotated!=='boolean')throw new TypeError('物資の向きが正しくありません。');
   const rotated=placement.rotated===true,{width,height}=campSupplyDimensions(supplyId,rotated);
   if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x+width>BAG_WIDTH||y+height>BAG_HEIGHT)throw new RangeError('物資がバッグの外にはみ出しています。');
-  if(!item.repeatable&&singles.has(supplyId))throw new RangeError(item.name+'は1個だけ持ち込めます。');singles.add(supplyId);
+  const count=(counts.get(supplyId)||0)+1,limit=item.maxCount??Infinity;
+  if(count>limit)throw new RangeError(item.name+(limit===1?'は1個だけ持ち込めます。':'は'+limit+'個まで持ち込めます。'));counts.set(supplyId,count);
   for(let row=y;row<y+height;row++)for(let col=x;col<x+width;col++){const key=row*BAG_WIDTH+col;if(occupied.has(key))throw new RangeError('物資の置き場所が重なっています。');occupied.add(key);}
   return {id,supplyId,x,y,rotated};
  });
+}
+/** Include retained unpacked records when checking per-bag quantity limits. */
+export function validateCampBagInventory(placements,unpacked=[]){
+ const bag=validateCampBag(placements),options={supplies:CAMP_SUPPLIES,width:BAG_WIDTH,height:BAG_HEIGHT};
+ return {bag,unpacked:normalizeUnpackedCampBag(unpacked,bag,options)};
 }
 export function campBagSummary(placements){
  const bag=validateCampBag(placements),counts=Object.fromEntries(Object.keys(CAMP_SUPPLIES).map(id=>[id,0]));let occupied=0;
