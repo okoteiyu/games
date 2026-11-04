@@ -11,6 +11,7 @@ const done=new Set(['failed','finished']);
 const finalExplorationMessages={
  supplies:'今の物資で進めるのは、ここまで。ふたりは帰り支度を始めた。',
  'time-limit':'長い探索も、そろそろ一区切り。ふたりは帰り支度を始めた。',
+ 'return-tools':'帰り道を通るための道具が足りなくなってしまった。ふたりが帰り支度を始めると……。',
  'no-route':'この先へは進めそうにない。ふたりが引き返そうとすると……。'
 };
 /** Keeps exploration presentation separate from ordinary battles and saves. */

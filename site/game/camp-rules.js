@@ -9,6 +9,7 @@ export const CAMP_SUPPLIES=Object.freeze({
  survival_kit:supply('survival_kit','サバイバルキット',2,3,false,'日付が変わるたび、30%の確率で行動可能日数が1日増える。','#92aa78','✦'),
  medical_kit:supply('medical_kit','医療キット',2,2,false,'イベント終了時、HPが半分以下なら最大HPの30%を回復する。','#cb9598','＋'),
  compass:supply('compass','コンパス',1,1,false,'各エリアを進む時間を0.6倍にする。','#9eabbd','◇'),
+ moai_compass:supply('moai_compass','モアイコンパス',1,1,false,'今の物資で進める道から、モアイ郷までの必要物資が最小になるルートを案内する。目標地点の設定や移動速度は変えない。','#c4b476','⌖'),
  gloves:supply('gloves','グローブ',1,2,false,'消費せず、悪路を進める。怪我イベントの発生率を0.7倍にする。','#b6a18d','✋'),
  goggles:supply('goggles','ゴーグル',1,2,true,'見通しの悪いルートを1つ越えるたび1個消費。所持中は怪我の発生率を0.7倍にする。','#8caeb5','∞'),
  rope:supply('rope','ロープ',1,2,true,'崖の険しいルートを1つ越えるたび1個消費する。','#c4ad7d','⌁'),

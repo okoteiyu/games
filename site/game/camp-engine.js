@@ -1,5 +1,6 @@
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS} from './camp-world.js';
 import {CAMP_MAX_DAYS,campBagSummary,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
+import {planCampNavigation} from './camp-navigation-plan.js';
 const EPS=1e-9,clone=value=>JSON.parse(JSON.stringify(value));
 export const CAMP_SECONDS_PER_ACTIVITY_HOUR=.65;
 /** No combat rules live here: real battles pause and resume this journey. */
@@ -11,12 +12,12 @@ export class CampExpedition{
   const summary=campBagSummary(bag);if(summary.counts.food<1)throw new RangeError('キャンプには携帯食料が必要です。');
   this.world=world;this.nodeIndex=new Map(world.nodes.map(node=>[node.id,node]));if(!this.nodeIndex.has(startId))throw new TypeError('キャンプの始点が見つかりません。');
   if(!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が正しくありません。');
-  this.startId=startId;this.depths=this.distances(startId);this.destination=destinations[destination];if(this.destination.nodeId&&!this.nodeIndex.has(this.destination.nodeId))throw new RangeError('目的地が見つかりません。');
+  this.startId=startId;this.depths=this.distances(startId);this.destination=destinations[destination];this.moaiCompassGoalId=destinations.moai_village?.nodeId??world.moaiVillageId??null;if(this.destination.nodeId&&!this.nodeIndex.has(this.destination.nodeId))throw new RangeError('目的地が見つかりません。');
   this.rng=rng;this.onEvent=onEvent;this.secondsPerActivityHour=secondsPerActivityHour;this.goalDistances=this.destination.nodeId?this.distances(this.destination.nodeId):null;
   this.visited=new Set([startId,...discovered.filter(id=>this.nodeIndex.has(id))]);
   // Historical discovery is for the map. The current trip has a separate
   // reached set and a simple ancestry stack so retreat can never reopen a child.
-  this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;
+  this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=false;
   const supplies={...summary.counts};supplies.food--;
   this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,initialSupplies:{...summary.counts},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null};
  }
@@ -64,20 +65,35 @@ export class CampExpedition{
  }
  chooseNextNode(){
   let candidates=this.candidateNodes();if(!candidates.length)return null;
-  if(this.goalDistances&&this.random()<.7){const current=this.goalDistances.get(this.state.nodeId),closer=candidates.filter(node=>this.goalDistances.get(node.id)<current);if(closer.length)candidates=closer;}
+  if(this.goalDistances&&this.random()<.7){const current=this.goalDistances.get(this.state.nodeId),toward=candidates.filter(node=>this.goalDistances.get(node.id)<=current);if(toward.length)candidates=toward;}
   const unknown=candidates.filter(node=>this.unknownWithinFour(node));if(unknown.length)candidates=unknown;
   return this.pick(candidates);
+ }
+ guidedMove(){
+  if(!this.state.supplies.moai_compass||this.moaiCompassFulfilled)return null;
+  // Guidance never replaces the separately selected destination/end rule.
+  const goalId=this.moaiCompassGoalId;
+  if(!goalId||!this.nodeIndex.has(goalId))return null;
+  const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,counts:this.state.supplies,day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing});
+  if(plan.status==='reached'){this.moaiCompassFulfilled=true;return null;}
+  if(plan.status!=='ready')return null;
+  const node=this.nodeIndex.get(plan.nextNodeId),parentId=this.activePath.at(-2),backtracking=plan.movementMode==='backtrack';
+  if(!node||!this.nodeIndex.get(this.state.nodeId).neighbors.includes(node.id)||!canTraverseCampNode(node,this.state.supplies)||!this.hasTimeFor(node))return null;
+  const depth=this.depths.get(this.state.nodeId),nextDepth=this.depths.get(node.id);
+  if(backtracking?node.id!==parentId:this.tripReached.has(node.id)||(nextDepth!==depth&&nextDepth!==depth+1))return null;
+  return {node,movementMode:backtracking?'backtrack':'forward'};
  }
  planNext(){
   if(this.state.phase!=='travel'||this.state.nextNodeId)return;
   if(this.destination.nodeId===this.state.nodeId){this.finalize('destination');return;}
-  let next=this.chooseNextNode(),movementMode='forward';
+  const guided=this.guidedMove();let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??'forward';
   if(!next){
    // Backtracking is the sole allowed revisit. It retraces the active ancestry
    // one edge at a time and uses the destination's ordinary conditions/costs.
    const parentId=this.activePath.length>1?this.activePath[this.activePath.length-2]:null;
    next=parentId?this.nodeIndex.get(parentId):null;movementMode='backtrack';
-   if(!next||!canTraverseCampNode(next,this.state.supplies)){this.finalize(!next&&this.candidateNodes({ignoreTime:true}).length?'supplies':'no-route');return;}
+   if(!next){this.finalize(this.candidateNodes({ignoreTime:true}).length?'supplies':'no-route');return;}
+   if(!canTraverseCampNode(next,this.state.supplies)){this.finalize('return-tools');return;}
    if(!this.hasTimeFor(next)){this.finalize('supplies');return;}
   }
   const hours=this.crossingHoursFor(next),knownHours=this.remainingActivityHours();

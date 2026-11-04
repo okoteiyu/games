@@ -17,6 +17,7 @@ const ICON_PATHS={
  survival_kit:'<path d="M5 8h14l2 15H3Z"/><path d="M8 8V4h8v4M7 13h10m-5-3v6"/>',
  medical_kit:'<rect x="3" y="7" width="18" height="16" rx="3"/><path d="M8 7V3h8v4m-4 4v8m-4-4h8"/>',
  compass:'<circle cx="12" cy="14" r="10"/><path d="m16 8-2 8-6 4 2-8Z"/>',
+ moai_compass:'<circle cx="12" cy="14" r="10"/><path d="m9 7 6 1 1 6-2 6H8l1-6Z"/><path d="M10 11h4m-2 0-1 5h3m-4 2h4M12 1v3"/>',
  gloves:'<path d="M5 22V10c0-2 3-2 3 0V5c0-2 3-2 3 0V4c0-2 3-2 3 0v1c0-2 3-2 3 0v8l2-3c2-2 4 0 3 2l-4 11H8Z"/>',
  goggles:'<path d="M2 11h20v8H2Zm8 0v8m4-8v8M2 14l-2-1m22 1 2-1"/><path d="M3 8h18"/>',
  rope:'<path d="M8 25V9a5 5 0 0 1 10 0v9a3 3 0 0 1-6 0V9a1 1 0 0 1 2 0v8M8 21c-6 0-7-9-3-12m13 11c4 0 5 3 2 6"/>',
