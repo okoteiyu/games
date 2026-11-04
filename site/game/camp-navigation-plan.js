@@ -13,20 +13,25 @@ class MinHeap{
  get length(){return this.values.length;}
 }
 
-function graphFor(world,startId){
- let starts=graphs.get(world);if(!starts){starts=new Map();graphs.set(world,starts);}if(starts.has(startId))return starts.get(startId);
+function graphFor(world){
+ if(graphs.has(world))return graphs.get(world);
  const nodes=world.nodes,index=new Map(nodes.map((node,i)=>[node.id,i]));
- if(index.size!==nodes.length||!index.has(startId))throw new TypeError('キャンプの始点が見つかりません。');
+ if(index.size!==nodes.length)throw new TypeError('キャンプの地点が正しくありません。');
  const neighbors=nodes.map(node=>{if(!CAMP_TERRAINS[node.terrain]||!Array.isArray(node.neighbors))throw new TypeError('キャンプの地点が正しくありません。');return node.neighbors.map(id=>{if(!index.has(id))throw new TypeError('キャンプの道が正しくありません。');return index.get(id);});});
- const depths=new Int32Array(nodes.length).fill(-1),start=index.get(startId),queue=[start];depths[start]=0;
- for(let i=0;i<queue.length;i++)for(const next of neighbors[queue[i]])if(depths[next]<0){depths[next]=depths[queue[i]]+1;queue.push(next);}
- const graph={nodes,index,neighbors,depths};starts.set(startId,graph);return graph;
+ const graph={nodes,index,neighbors,goalDistances:new Map()};graphs.set(world,graph);return graph;
+}
+function distancesToGoal(graph,goal){
+ if(graph.goalDistances.has(goal))return graph.goalDistances.get(goal);
+ const distances=new Int32Array(graph.nodes.length).fill(-1),queue=[goal];distances[goal]=0;
+ for(let i=0;i<queue.length;i++)for(const next of graph.neighbors[queue[i]])if(distances[next]<0){distances[next]=distances[queue[i]]+1;queue.push(next);}
+ while(graph.goalDistances.size>=CACHE_LIMIT)graph.goalDistances.delete(graph.goalDistances.keys().next().value);
+ graph.goalDistances.set(goal,distances);return distances;
 }
 
 function normalize(options){
  const world=options.world??CAMP_WORLD,startId=options.startId??world.startId,currentNodeId=options.currentNodeId??startId,goalId=options.goalId??world.moaiVillageId;
  if(!world||!Array.isArray(world.nodes)||!world.nodes.length||typeof startId!=='string'||typeof currentNodeId!=='string'||typeof goalId!=='string')throw new TypeError('コンパスの地図が正しくありません。');
- const graph=graphFor(world,startId);if(!graph.index.has(currentNodeId)||!graph.index.has(goalId))throw new TypeError('コンパスの地点が見つかりません。');
+ const graph=graphFor(world);if(!graph.index.has(startId)||!graph.index.has(currentNodeId)||!graph.index.has(goalId))throw new TypeError('コンパスの地点が見つかりません。');
  const counts=Object.fromEntries([...consumables,...fixedTools].map(id=>{const value=options.counts?.[id]??0;if(!Number.isSafeInteger(value)||value<0)throw new TypeError('コンパスの物資が正しくありません。');return [id,value];}));
  const day=options.day??1,dayHours=options.dayHours??(counts.flashlight?16:14),dayHoursRemaining=options.dayHoursRemaining??dayHours;
  if(!Number.isInteger(day)||day<1||day>CAMP_MAX_DAYS||!Number.isFinite(dayHours)||dayHours<=0||!Number.isFinite(dayHoursRemaining)||dayHoursRemaining<0||dayHoursRemaining>dayHours+EPS)throw new TypeError('コンパスの活動時間が正しくありません。');
@@ -40,14 +45,15 @@ function normalize(options){
 }
 
 function freezeResult(value){Object.freeze(value.path);Object.freeze(value.consumption);Object.freeze(value.diagnostics);return Object.freeze(value);}
-function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,...Object.fromEntries(toolIds.map(id=>[id,0]))},diagnostics:{labelsCreated:0,labelsExpanded:0,retreatSeeds:0}};}
+function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,...Object.fromEntries(toolIds.map(id=>[id,0]))},diagnostics:{labelsCreated:0,labelsExpanded:0,routeMode:'compass'}};}
 
 /** Counts for durable tools are remaining uses, not physical copies. Minimize
- * needed two-use copies plus food, then time; random events never grant a route. */
+ * needed two-use copies plus food, then time, among routes that get strictly
+ * closer to the goal at every step. Unknown map nodes remain in the graph. */
 function calculate(o){
  if(o.currentNodeId===o.goalId||o.tripReached.has(o.goalId))return freezeResult(result(o,'reached'));
- const output=result(o,'unreachable'),{nodes,index,neighbors,depths}=o.graph,current=index.get(o.currentNodeId),goal=index.get(o.goalId),factor=o.counts.compass?.6:1;
- if(depths[goal]<0)return freezeResult(output);
+ const output=result(o,'unreachable'),{nodes,index,neighbors}=o.graph,current=index.get(o.currentNodeId),goal=index.get(o.goalId),factor=o.counts.compass?.6:1,goalDistances=distancesToGoal(o.graph,goal);
+ if(goalDistances[current]<0)return freezeResult(output);
  const crossing=(node,first)=>CAMP_TERRAINS[node.terrain].hours*factor*(first&&o.rainNext?1.5:1);
  const foodFor=hours=>Math.max(0,Math.ceil((hours-o.dayHoursRemaining-EPS)/o.dayHours));
  const usedItems=label=>toolIds.reduce((sum,id)=>sum+copiesForUses(id,label[id]),0);
@@ -55,17 +61,12 @@ function calculate(o){
  const fits=label=>label.hours<=o.maxHours+EPS&&toolIds.every(id=>label[id]<=o.counts[id]);
  const spend=(label,next)=>{if(!canTraverseCampNode(nodes[next],available(label)))return null;const consumed=campTraversalConsumption(nodes[next]),candidate={node:next,hours:label.hours+crossing(nodes[next],label.steps===0),...Object.fromEntries(toolIds.map(id=>[id,label[id]+consumed[id]])),steps:label.steps+1,parent:label};return fits(candidate)?candidate:null;};
 
- // Legal retreats form one finite prefix of the current ancestry. Forward
- // searches from these seeds never re-enter any reached vertex, so this also
- // prevents bouncing between the branch just abandoned and its parent.
- const seeds=[],initial={node:current,hours:0,...Object.fromEntries(toolIds.map(id=>[id,0])),steps:0,parent:null};
- seeds.push(initial);let retreat=initial;
- for(let i=o.activePath.length-2;i>=0;i--){retreat=spend(retreat,index.get(o.activePath[i]));if(!retreat)break;seeds.push(retreat);}
- output.diagnostics.retreatSeeds=seeds.length;
-
- const allowed=nodes.map(node=>!o.tripReached.has(node.id)&&canTraverseCampNode(node,o.counts)),seedIndices=new Set(seeds.map(seed=>seed.node)),forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
+ const initial={node:current,hours:0,...Object.fromEntries(toolIds.map(id=>[id,0])),steps:0,parent:null};
+ const allowed=nodes.map(node=>!o.tripReached.has(node.id)&&canTraverseCampNode(node,o.counts)),forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
  if(!allowed[goal])return freezeResult(output);
- for(let i=0;i<nodes.length;i++)if((allowed[i]||seedIndices.has(i))&&depths[i]>=0&&depths[i]<=depths[goal])for(const next of neighbors[i])if(allowed[next]&&(depths[next]===depths[i]||depths[next]===depths[i]+1)&&depths[next]<=depths[goal]){forward[i].push(next);reverse[next].push(i);}
+ // The compass has its own goal-based rule. Neither start-distance nor a
+ // retreat into the current trip may replace a strictly closer next step.
+ for(let i=0;i<nodes.length;i++)if((allowed[i]||i===current)&&goalDistances[i]>=0)for(const next of neighbors[i])if(allowed[next]&&goalDistances[next]>=0&&goalDistances[next]<goalDistances[i]){forward[i].push(next);reverse[next].push(i);}
  // A reverse time bound ignores consumption, but never overestimates the best
  // remaining time. It avoids exploring the far side of the entire world.
  const remaining=new Float64Array(nodes.length).fill(Infinity),timeHeap=new MinHeap((a,b)=>a.hours-b.hours);remaining[goal]=0;timeHeap.push({node:goal,hours:0});
@@ -79,7 +80,7 @@ function calculate(o){
   frontier[label.node]=labels.filter(a=>{if(dominates(label,a)){a.active=false;return false;}return true;});
   Object.assign(label,{boundHours,boundItems,sequence:sequence++,active:true});frontier[label.node].push(label);heap.push(label);output.diagnostics.labelsCreated++;
  }
- for(const seed of seeds)consider(seed);
+ consider(initial);
  while(heap.length){
   const label=heap.pop();if(!label.active)continue;
   if(best&&(label.boundItems>best.requiredItems||label.boundItems===best.requiredItems&&label.boundHours>best.activityHours+EPS))continue;
@@ -88,7 +89,7 @@ function calculate(o){
    const food=foodFor(label.hours),requiredItems=usedItems(label)+food;
    if(!best||requiredItems<best.requiredItems||requiredItems===best.requiredItems&&label.hours<best.activityHours-EPS){
     const path=[];for(let previous=label;previous;previous=previous.parent)path.push(nodes[previous.node].id);path.reverse();
-    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:o.activePath.at(-2)===path[1]?'backtrack':'forward',requiredItems,activityHours:label.hours,consumption:{food,...Object.fromEntries(toolIds.map(id=>[id,label[id]]))}};
+    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:'forward',requiredItems,activityHours:label.hours,consumption:{food,...Object.fromEntries(toolIds.map(id=>[id,label[id]]))}};
    }
   }else for(const next of forward[label.node]){const candidate=spend(label,next);if(candidate)consider(candidate);}
  }

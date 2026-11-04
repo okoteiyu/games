@@ -19,16 +19,17 @@ class MinHeap{
 
 function normalizedOptions(options={}){
  const world=options.world??CAMP_WORLD,startId=options.startId??world.startId,destination=options.destination??'none',destinations=options.destinations??CAMP_DESTINATIONS;
- const maxDays=options.maxDays??CAMP_MAX_DAYS,width=options.capacityWidth??BAG_WIDTH,height=options.capacityHeight??BAG_HEIGHT;
+ const maxDays=options.maxDays??CAMP_MAX_DAYS,width=options.capacityWidth??BAG_WIDTH,height=options.capacityHeight??BAG_HEIGHT,routeMode=options.routeMode??'target';
  if(!world||!Array.isArray(world.nodes)||!world.nodes.length||typeof startId!=='string')throw new TypeError('キャンプの地図が正しくありません。');
  if(typeof destination!=='string'||!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が見つかりません。');
+ if(!['target','compass'].includes(routeMode))throw new RangeError('キャンプの経路の種類が正しくありません。');
  if(!Number.isInteger(maxDays)||maxDays<1||maxDays>CAMP_MAX_DAYS||!Number.isInteger(width)||width<1||width>BAG_WIDTH||!Number.isInteger(height)||height<1||height>BAG_HEIGHT)throw new RangeError('キャンプの物資容量が正しくありません。');
- return {world,startId,destination,destinations,maxDays,width,height,capacity:width*height};
+ return {world,startId,destination,destinations,maxDays,width,height,routeMode,capacity:width*height};
 }
 function freezePlan(value){
  Object.freeze(value.counts);Object.freeze(value.path);for(const p of value.placements)Object.freeze(p);Object.freeze(value.placements);if(value.diagnostics)Object.freeze(value.diagnostics);return Object.freeze(value);
 }
-function baseResult(o,status){return {status,startId:o.startId,destination:o.destination,destinationNodeId:o.destinations[o.destination].nodeId??null,counts:emptyCounts(),totalItems:0,occupiedCells:0,activityHours:null,days:0,placements:[],path:[]};}
+function baseResult(o,status){return {status,startId:o.startId,destination:o.destination,routeMode:o.routeMode,destinationNodeId:o.destinations[o.destination].nodeId??null,counts:emptyCounts(),totalItems:0,occupiedCells:0,activityHours:null,days:0,placements:[],path:[]};}
 
 /** Verify the physical rectangles as well as their total area. No bag is filled. */
 function packCounts(counts,width,height){
@@ -65,7 +66,7 @@ const comparePlan=(a,b)=>a.totalItems-b.totalItems||a.activityHours-b.activityHo
 function* calculate(options){
  const o=normalizedOptions(options),result=baseResult(o,o.destinations[o.destination].nodeId?'unreachable':'none');
  if(result.status==='none')return freezePlan(result);
- const nodes=o.world.nodes,index=new Map(),neighbors=[],depths=new Int32Array(nodes.length).fill(-1),hours=[];
+ const nodes=o.world.nodes,index=new Map(),neighbors=[],goalDistances=new Int32Array(nodes.length).fill(-1),hours=[];
  let work=0;
  for(let i=0;i<nodes.length;i++){
   const n=nodes[i];if(!n||typeof n.id!=='string'||index.has(n.id)||!Array.isArray(n.neighbors)||!CAMP_TERRAINS[n.terrain])throw new TypeError('キャンプの地点が正しくありません。');
@@ -76,8 +77,8 @@ function* calculate(options){
  for(let i=0;i<nodes.length;i++){
   neighbors[i]=nodes[i].neighbors.map(id=>{const j=index.get(id);if(j===undefined)throw new TypeError('キャンプの道が正しくありません。');return j;});if(++work%256===0)yield;
  }
- depths[start]=0;const queue=[start];for(let i=0;i<queue.length;i++){for(const j of neighbors[queue[i]])if(depths[j]<0){depths[j]=depths[queue[i]]+1;queue.push(j);}if(++work%256===0)yield;}
- if(depths[goal]<0||!fits('food',o.width,o.height))return freezePlan(result);
+ goalDistances[goal]=0;const queue=[goal];for(let i=0;i<queue.length;i++){for(const j of neighbors[queue[i]])if(goalDistances[j]<0){goalDistances[j]=goalDistances[queue[i]]+1;queue.push(j);}if(++work%256===0)yield;}
+ if(goalDistances[start]<0||!fits('food',o.width,o.height))return freezePlan(result);
  let best=null,created=0,expanded=0,configurations=0;
  const packingCache=new Map();
  for(const flashlight of [0,1])for(const compass of [1,0]){
@@ -90,7 +91,7 @@ function* calculate(options){
   const allowed=nodes.map((n,i)=>i===start||canTraverseCampNode(n,available)),forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
   if(!allowed[goal])continue;
   for(let i=0;i<nodes.length;i++){
-   if(allowed[i]&&depths[i]>=0&&depths[i]<=depths[goal])for(const j of neighbors[i])if(j!==start&&allowed[j]&&(depths[j]===depths[i]||depths[j]===depths[i]+1)&&depths[j]<=depths[goal]){forward[i].push(j);reverse[j].push(i);}
+   if(allowed[i]&&goalDistances[i]>=0)for(const j of neighbors[i])if(j!==start&&allowed[j]&&goalDistances[j]>=0&&(o.routeMode==='compass'?goalDistances[j]<goalDistances[i]:goalDistances[j]<=goalDistances[i])){forward[i].push(j);reverse[j].push(i);}
    if(++work%256===0)yield;
   }
   // A reverse shortest-time bound keeps distant side branches out of the search.
@@ -133,11 +134,11 @@ export function planCampDestination(options={}){const iterator=calculate(options
 function cacheEntry(options){
  const o=normalizedOptions(options);let cache=caches.get(o.world);if(!cache){cache=new Map();caches.set(o.world,cache);}
  const ruleKey=Object.values(CAMP_TERRAINS).map(t=>t.id+':'+t.hours).join('|')+';'+supplyIds.map(id=>id+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].repeatable).join('|');
- const key=[o.world.revision??'',o.startId,o.destination,o.destinations[o.destination].nodeId??'',o.maxDays,o.width,o.height,ruleKey].join(';');
+ const key=[o.world.revision??'',o.startId,o.destination,o.destinations[o.destination].nodeId??'',o.routeMode,o.maxDays,o.width,o.height,ruleKey].join(';');
  if(cache.has(key)){const entry=cache.get(key);cache.delete(key);cache.set(key,entry);return entry;}
  while(cache.size>=64)cache.delete(cache.keys().next().value);
  const destinations=Object.freeze({[o.destination]:Object.freeze({nodeId:o.destinations[o.destination].nodeId??null})});
- const snapshot=Object.freeze({world:o.world,startId:o.startId,destination:o.destination,destinations,maxDays:o.maxDays,capacityWidth:o.width,capacityHeight:o.height});
+ const snapshot=Object.freeze({world:o.world,startId:o.startId,destination:o.destination,destinations,routeMode:o.routeMode,maxDays:o.maxDays,capacityWidth:o.width,capacityHeight:o.height});
  const entry={options:snapshot,value:null,promise:null};cache.set(key,entry);return entry;
 }
 export function getCachedCampDestinationPlan(options={}){const entry=cacheEntry(options);return entry.value??(entry.value=planCampDestination(entry.options));}

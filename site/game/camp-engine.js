@@ -14,6 +14,7 @@ export class CampExpedition{
   if(!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が正しくありません。');
   this.startId=startId;this.depths=this.distances(startId);this.destination=destinations[destination];this.moaiCompassGoalId=destinations.moai_village?.nodeId??world.moaiVillageId??null;if(this.destination.nodeId&&!this.nodeIndex.has(this.destination.nodeId))throw new RangeError('目的地が見つかりません。');
   this.rng=rng;this.onEvent=onEvent;this.secondsPerActivityHour=secondsPerActivityHour;this.goalDistances=this.destination.nodeId?this.distances(this.destination.nodeId):null;
+  this.moaiCompassDistances=summary.counts.moai_compass&&this.nodeIndex.has(this.moaiCompassGoalId)?this.distances(this.moaiCompassGoalId):null;
   this.visited=new Set([startId,...discovered.filter(id=>this.nodeIndex.has(id))]);
   // Historical discovery is for the map. The current trip has a separate
   // reached set and a simple ancestry stack so retreat can never reopen a child.
@@ -48,52 +49,59 @@ export class CampExpedition{
   return cost<=maxHours+EPS&&(cost<=hours+EPS||Boolean(counts.survival_kit&&this.state.day<CAMP_MAX_DAYS));
  }
  candidateNodes({ignoreTime=false}={}){
-  const current=this.nodeIndex.get(this.state.nodeId),depth=this.depths.get(current.id);
-  return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>node&&!this.tripReached.has(node.id)&&(this.depths.get(node.id)===depth||this.depths.get(node.id)===depth+1)&&canTraverseCampNode(node,this.state.supplies)&&(ignoreTime||this.hasTimeFor(node)));
+  const current=this.nodeIndex.get(this.state.nodeId),distances=this.goalDistances??this.depths,distance=distances.get(current.id);
+  return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>{
+   const nextDistance=node?distances.get(node.id):undefined;
+   const direction=Number.isFinite(nextDistance)&&Number.isFinite(distance)&&(this.goalDistances?nextDistance<=distance:nextDistance>=distance);
+   return node&&!this.tripReached.has(node.id)&&direction&&canTraverseCampNode(node,this.state.supplies)&&(ignoreTime||this.hasTimeFor(node));
+  });
  }
- unknownWithinFour(candidate){
-  if(this.tripReached.has(candidate.id)||!canTraverseCampNode(candidate,this.state.supplies)||!this.hasTimeFor(candidate))return false;
+ unknownDistanceWithinFour(candidate){
+  if(this.tripReached.has(candidate.id)||!canTraverseCampNode(candidate,this.state.supplies)||!this.hasTimeFor(candidate))return Infinity;
   const initial={...this.state.supplies};for(const [id,n]of Object.entries(campTraversalConsumption(candidate)))initial[id]-=n;
-  const queue=[{node:candidate,remaining:3,counts:initial,hours:this.remainingActivityHours()-this.crossingHoursFor(candidate),maxHours:this.maximumActivityHours()-this.crossingHoursFor(candidate),path:new Set([this.state.nodeId,candidate.id])}];
+  const queue=[{node:candidate,distance:1,counts:initial,hours:this.remainingActivityHours()-this.crossingHoursFor(candidate),maxHours:this.maximumActivityHours()-this.crossingHoursFor(candidate),path:new Set([this.state.nodeId,candidate.id])}];
   for(let i=0;i<queue.length;i++){
-   const {node,remaining,counts,hours,maxHours,path}=queue[i];if(!this.visited.has(node.id))return true;if(!remaining)continue;
+   const {node,distance,counts,hours,maxHours,path}=queue[i];if(!this.visited.has(node.id))return distance;if(distance===4)continue;
    for(const id of node.neighbors){const next=this.nodeIndex.get(id);if(this.tripReached.has(id)||path.has(id)||!next||(this.depths.get(next.id)!==this.depths.get(node.id)&&this.depths.get(next.id)!==this.depths.get(node.id)+1)||!canTraverseCampNode(next,counts)||!this.hasTimeFor(next,{counts,hours,maxHours,rain:false}))continue;
     const nextCounts={...counts};for(const [s,n]of Object.entries(campTraversalConsumption(next)))nextCounts[s]-=n;
-    queue.push({node:next,remaining:remaining-1,counts:nextCounts,hours:hours-this.crossingHoursFor(next,{counts,rain:false}),maxHours:maxHours-this.crossingHoursFor(next,{counts,rain:false}),path:new Set([...path,id])});
+    queue.push({node:next,distance:distance+1,counts:nextCounts,hours:hours-this.crossingHoursFor(next,{counts,rain:false}),maxHours:maxHours-this.crossingHoursFor(next,{counts,rain:false}),path:new Set([...path,id])});
    }
   }
-  return false;
+  return Infinity;
  }
+ unknownWithinFour(candidate){return Number.isFinite(this.unknownDistanceWithinFour(candidate));}
  chooseNextNode(){
   let candidates=this.candidateNodes();if(!candidates.length)return null;
-  if(this.goalDistances&&this.random()<.7){const current=this.goalDistances.get(this.state.nodeId),toward=candidates.filter(node=>this.goalDistances.get(node.id)<=current);if(toward.length)candidates=toward;}
-  const unknown=candidates.filter(node=>this.unknownWithinFour(node));if(unknown.length)candidates=unknown;
+  // Targeted travel never consults map discovery. Exploration alone follows
+  // the first hop of a nearest reachable unknown point within four moves.
+  if(!this.goalDistances){const options=candidates.map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));if(Number.isFinite(nearest))candidates=options.filter(option=>option.distance===nearest).map(option=>option.node);}
   return this.pick(candidates);
  }
  guidedMove(){
   if(!this.state.supplies.moai_compass||this.moaiCompassFulfilled)return null;
   // Guidance never replaces the separately selected destination/end rule.
   const goalId=this.moaiCompassGoalId;
-  if(!goalId||!this.nodeIndex.has(goalId))return null;
+  const unavailable={unavailable:true};
+  if(!goalId||!this.nodeIndex.has(goalId)||!this.moaiCompassDistances)return unavailable;
   const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,counts:this.state.supplies,day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing});
   if(plan.status==='reached'){this.moaiCompassFulfilled=true;return null;}
-  if(plan.status!=='ready')return null;
-  const node=this.nodeIndex.get(plan.nextNodeId),parentId=this.activePath.at(-2),backtracking=plan.movementMode==='backtrack';
-  if(!node||!this.nodeIndex.get(this.state.nodeId).neighbors.includes(node.id)||!canTraverseCampNode(node,this.state.supplies)||!this.hasTimeFor(node))return null;
-  const depth=this.depths.get(this.state.nodeId),nextDepth=this.depths.get(node.id);
-  if(backtracking?node.id!==parentId:this.tripReached.has(node.id)||(nextDepth!==depth&&nextDepth!==depth+1))return null;
-  return {node,movementMode:backtracking?'backtrack':'forward'};
+  if(plan.status!=='ready')return unavailable;
+  const node=this.nodeIndex.get(plan.nextNodeId),currentDistance=this.moaiCompassDistances.get(this.state.nodeId),nextDistance=node?this.moaiCompassDistances.get(node.id):undefined;
+  if(!node||!this.nodeIndex.get(this.state.nodeId).neighbors.includes(node.id)||this.tripReached.has(node.id)||!Number.isFinite(nextDistance)||!(nextDistance<currentDistance)||!canTraverseCampNode(node,this.state.supplies)||!this.hasTimeFor(node))return unavailable;
+  return {node,movementMode:'forward'};
  }
  planNext(){
   if(this.state.phase!=='travel'||this.state.nextNodeId)return;
   if(this.destination.nodeId===this.state.nodeId){this.finalize('destination');return;}
-  const guided=this.guidedMove();let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??'forward';
+  const guided=this.guidedMove();if(guided?.unavailable){this.finalize('compass-route-unavailable');return;}
+  let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??'forward';
   if(!next){
    // Backtracking is the sole allowed revisit. It retraces the active ancestry
    // one edge at a time and uses the destination's ordinary conditions/costs.
    const parentId=this.activePath.length>1?this.activePath[this.activePath.length-2]:null;
    next=parentId?this.nodeIndex.get(parentId):null;movementMode='backtrack';
    if(!next){this.finalize(this.candidateNodes({ignoreTime:true}).length?'supplies':'no-route');return;}
+   if(this.goalDistances&&!(this.goalDistances.get(next.id)<=this.goalDistances.get(this.state.nodeId))){this.finalize('no-route');return;}
    if(!canTraverseCampNode(next,this.state.supplies)){this.finalize('return-tools');return;}
    if(!this.hasTimeFor(next)){this.finalize('supplies');return;}
   }

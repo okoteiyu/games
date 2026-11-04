@@ -69,6 +69,9 @@
 .camp-button--quiet { border-color:#c9cdb2;background:#fbf9ec;color:#8a876d;font-weight:400; }
 .camp-destination { min-inline-size:0;display:grid;gap:8px;margin-top:18px;padding-top:15px;border-top:1px dashed #c4cbae; }
 .camp-destination p { margin:0;color:#90917b;font-size:10px;line-height:1.7; }
+.camp-destination .camp-guidance { padding:10px 11px;border:1px solid #c8cfad;border-radius:9px 4px;background:#f1f5e5;color:#71815b;font-size:11px;line-height:1.75;overflow-wrap:anywhere; }
+.camp-destination .camp-guidance[data-status=unreachable],.camp-destination .camp-guidance[data-status=error] { border-color:#d1bc85;background:#fff8e7;color:#8b7852; }
+.camp-destination .camp-guidance[hidden] { display:none; }
 /* The real destination list stays in the modal scroll flow, clear of its footer. */
 .camp-destination-picker { min-inline-size:0; }
 .camp-destination-picker__label { display:block;margin-bottom:7px;color:#6e7755;font-size:12px;font-weight:600;letter-spacing:.05em; }
