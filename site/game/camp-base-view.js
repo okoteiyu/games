@@ -2,6 +2,7 @@ import * as THREE from './vendor/three/three.module.js';
 import {GLTFLoader} from './vendor/three/addons/loaders/GLTFLoader.js';
 import {loadAssetJson,loadGLTFAsset} from './asset-store.js';
 import {isModalBlocked} from './modal-layer.js';
+import {createCampPatrolPlan,sampleCampPatrol} from './camp-base-patrol.js';
 
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const safeInt=(v,min,max,fallback)=>Number.isInteger(v)&&v>=min&&v<=max?v:fallback;
@@ -17,7 +18,7 @@ export class CampBaseView{
   Object.assign(this,{container,onStatus,onError,isPresentationPaused});
   this.root=document.createElement('div');this.root.className='camp-base-view';this.root.hidden=true;Object.assign(this.root.style,{position:'absolute',inset:'0',overflow:'hidden',background:'#17251f'});container.append(this.root);
   this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#243c35');this.scene.fog=new THREE.FogExp2('#243c35',.021);
-  this.camera=new THREE.PerspectiveCamera(43,1,.1,90);this.cameraAim=new THREE.Vector3(0,.5,0);this.orbit={yaw:.3,pitch:.72,radius:22};
+  this.camera=new THREE.PerspectiveCamera(43,1,.1,90);this.cameraAim=new THREE.Vector3(0,.5,0);this.orbit={yaw:.3,pitch:.72,radius:26.5};
   this.scene.add(new THREE.HemisphereLight(0xc4d9d7,0x414b31,2.3));
   const moon=new THREE.DirectionalLight(0xc5d9e8,2.35);moon.position.set(-8,13,7);this.scene.add(moon);
   const warm=new THREE.DirectionalLight(0xffe1a9,.65);warm.position.set(7,6,-4);this.scene.add(warm);
@@ -69,8 +70,12 @@ export class CampBaseView{
   }
   for(let i=0;i<this.base.rookieCount;i++){
    const model=this.rookieTemplate.scene.clone(true),anchor=new THREE.Group();anchor.name='CampBase.PatrollingRookie.'+i;anchor.add(model);this.stage.add(anchor);model.traverse(node=>{if(node.isMesh){node.castShadow=false;node.receiveShadow=false;}});
-   const mixer=new THREE.AnimationMixer(model),clip=this.rookieTemplate.animations.find(clip=>clip.name===this.actorManifest.models.rookie_kun.clips.idle)||this.rookieTemplate.animations[0];if(clip)mixer.clipAction(clip).play();
-   const path=layout.patrols[i].map(point),lengths=path.map((p,j)=>p.distanceTo(path[(j+1)%path.length])),length=lengths.reduce((a,b)=>a+b,0);this.patrols.push({anchor,model,mixer,path,lengths,length,phase:0,speed:.34});
+   // Face meshes share a head pivot, so looking around turns the eyes and
+   // smile together. The original character file and walking clip are retained.
+   const upper=find(model,'Rookie.UpperBody'),head=find(model,'Rookie.Head');let lookRig=null;
+   if(upper&&head){lookRig=new THREE.Group();lookRig.name='CampBase.RookieLook.'+i;lookRig.position.copy(head.position);upper.add(lookRig);model.updateMatrixWorld(true);for(const name of ['Rookie.Head','Rookie.Eye.-1','Rookie.Eye.1','Rookie.SmallSmile']){const part=find(model,name);if(part)lookRig.attach(part);}}
+   const mixer=new THREE.AnimationMixer(model),clip=this.rookieTemplate.animations.find(clip=>clip.name===this.actorManifest.models.rookie_kun.clips.idle)||this.rookieTemplate.animations[0],walkAction=clip?mixer.clipAction(clip).play():null;
+   const path=layout.patrols[i].map(point),plan=createCampPatrolPlan(path,i);this.patrols.push({anchor,model,mixer,path,plan,lookRig,walkAction});
   }
   this.stage.traverse(node=>{if(node.isMesh){node.castShadow=false;node.receiveShadow=false;}});
  }
@@ -82,17 +87,17 @@ export class CampBaseView{
   const dummy=new THREE.Object3D();for(const mesh of meshes){const instances=new THREE.InstancedMesh(mesh.geometry,mesh.material,placements.length);instances.name='CampBase.Forest';for(let i=0;i<placements.length;i++){const p=placements[i];dummy.position.set(Math.sin(p.angle)*p.radius,0,Math.cos(p.angle)*p.radius);dummy.rotation.set(0,p.angle*.7,0);dummy.scale.setScalar(p.size);dummy.updateMatrix();instances.setMatrixAt(i,dummy.matrix.clone().multiply(mesh.matrixWorld));}instances.instanceMatrix.needsUpdate=true;this.stage.add(instances);}
  }
  updatePatrols(dt){
-  for(const patrol of this.patrols){patrol.mixer.update(dt);let distance=(this.time*patrol.speed+patrol.phase)%patrol.length,index=0;while(distance>patrol.lengths[index]&&index<patrol.path.length-1){distance-=patrol.lengths[index];index++;}const a=patrol.path[index],b=patrol.path[(index+1)%patrol.path.length],t=distance/patrol.lengths[index];patrol.anchor.position.copy(a).lerp(b,t);const direction=b.clone().sub(a);patrol.anchor.rotation.y=Math.atan2(direction.x,direction.z);}
+  for(const patrol of this.patrols){const pose=sampleCampPatrol(patrol.plan,this.time);patrol.anchor.position.fromArray(pose.position);patrol.anchor.rotation.y=pose.yaw;if(patrol.walkAction)patrol.walkAction.setEffectiveWeight(pose.walkBlend);patrol.mixer.setTime(pose.animationTime);if(patrol.lookRig)patrol.lookRig.rotation.y=pose.lookYaw;patrol.phase=pose.phase;patrol.pose=pose;}
   for(const fire of this.fires){const flicker=1+Math.sin(this.time*9+fire.index)*.10+Math.sin(this.time*13.7)*.055;fire.flames.scale.set(.95+Math.sin(this.time*7)*.07,flicker,1);fire.core.rotation.y=this.time*.8;fire.outer.rotation.y=-this.time*.4;fire.light.intensity=13*flicker;fire.sparks.rotation.y=this.time*.32;fire.sparks.position.y=(this.time*.18)% .35;fire.sparks.material.opacity=.65+Math.sin(this.time*3)*.15;}
  }
  tick(dt){if(!this.active||!this.ready||this.contextLost||this.destroyed||document.hidden||this.isPresentationPaused())return false;const delta=clamp(Number(dt)||0,0,.1);this.time+=delta;this.updatePatrols(delta);this.render();return true;}
- fitCamera(){const p=this.orbit,r=p.radius||22;this.camera.position.set(this.cameraAim.x+Math.sin(p.yaw)*Math.cos(p.pitch)*r,this.cameraAim.y+Math.sin(p.pitch)*r,this.cameraAim.z+Math.cos(p.yaw)*Math.cos(p.pitch)*r);this.camera.lookAt(this.cameraAim);this.camera.updateMatrixWorld(true);}
+ fitCamera(){const p=this.orbit,r=p.radius||26.5;this.camera.position.set(this.cameraAim.x+Math.sin(p.yaw)*Math.cos(p.pitch)*r,this.cameraAim.y+Math.sin(p.pitch)*r,this.cameraAim.z+Math.cos(p.yaw)*Math.cos(p.pitch)*r);this.camera.lookAt(this.cameraAim);this.camera.updateMatrixWorld(true);}
  resize(){if(!this.renderer||this.destroyed)return;const box=this.root.getBoundingClientRect();if(box.width<1||box.height<1)return;const width=Math.round(box.width),height=Math.round(box.height);if(width!==this.width||height!==this.height){this.width=width;this.height=height;this.renderer.setSize(width,height,false);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();}this.fitCamera();this.render();}
  render(){if(!this.active||!this.ready||!this.renderer||this.contextLost||this.destroyed||this.root.hidden)return;this.renderer.render(this.scene,this.camera);this.renderFrames++;}
  setActive(active){this.active=Boolean(active);this.root.hidden=!this.active;if(!this.active)this.cancelInput();else{if(this.root.parentElement!==this.container)this.container.append(this.root);this.resize();this.render();}}
  hide(){this.setActive(false);}
  capturePresentationState(){return {baseId:this.base?.id||null,time:this.time,orbit:{...this.orbit}};}
- restorePresentationState(value){if(!value||value.baseId!==(this.base?.id||null))return false;if(finite(value.time)&&value.time>=0)this.time=value.time;if(finite(value.orbit?.yaw)&&finite(value.orbit?.pitch))this.orbit={yaw:value.orbit.yaw,pitch:clamp(value.orbit.pitch,.45,1.12),radius:22};this.updatePatrols(0);this.resize();return true;}
+ restorePresentationState(value){if(!value||value.baseId!==(this.base?.id||null))return false;if(finite(value.time)&&value.time>=0)this.time=value.time;if(finite(value.orbit?.yaw)&&finite(value.orbit?.pitch))this.orbit={yaw:value.orbit.yaw,pitch:clamp(value.orbit.pitch,.45,1.12),radius:this.metadata?.camera?.radius||26.5};this.updatePatrols(0);this.resize();return true;}
  /** Browsers may leave a suspended context permanently lost when several game
   * views already own contexts. Rebuild its GPU resources from the retained CPU
   * scene; do not depend on a restoreContext event or restart the patrol clock. */

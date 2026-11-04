@@ -17,6 +17,10 @@ for(let i=0;i<NODES.length;i++){
  extent.minY=Math.min(extent.minY,y);extent.maxY=Math.max(extent.maxY,y);
 }
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+export const CAMP_DESTINATION_LABEL_MIN_ZOOM=.14;
+/** Screen-space radii stay legible while preserving the atlas' sparse overview. */
+export const campNodeScreenRadius=zoom=>clamp(12*Math.sqrt(Math.max(.001,Number(zoom)||.025)),1.8,14);
+
 function visibleIndices(rect,padding=0){
  const minX=Math.max(extent.minX,rect.minX-padding),minY=Math.max(extent.minY,rect.minY-padding);
  const maxX=Math.min(extent.maxX,rect.maxX+padding),maxY=Math.min(extent.maxY,rect.maxY+padding);
@@ -168,7 +172,8 @@ export class CampMapRenderer{
  }
  drawRegionLabels(c,view){
   this.regionLabelBoxes=[];
-  const destinations=Object.values(CAMP_DESTINATIONS).filter(destination=>destination.nodeId&&view.discovered?.has(destination.nodeId)).map(destination=>({destination,node:NODES[NODE_INDEX.get(destination.nodeId)]})).filter(entry=>entry.node).map(({destination,node})=>({x:node.x*view.zoom+view.pan.x,y:node.y*view.zoom+view.pan.y,halfWidth:Math.max(34,(destination.name.length*11+18)/2)})).filter(point=>point.x>-100&&point.x<view.width+100&&point.y>-50&&point.y<view.height+50).map(point=>({left:point.x-point.halfWidth,right:point.x+point.halfWidth,top:point.y-30,bottom:point.y-7}));
+  const markerRadius=Math.max(4.5,Math.min(15,campNodeScreenRadius(view.zoom)*1.2));
+  const destinations=Object.values(CAMP_DESTINATIONS).filter(destination=>view.zoom>=CAMP_DESTINATION_LABEL_MIN_ZOOM&&destination.nodeId&&view.discovered?.has(destination.nodeId)).map(destination=>({destination,node:NODES[NODE_INDEX.get(destination.nodeId)]})).filter(entry=>entry.node).map(({destination,node})=>({x:node.x*view.zoom+view.pan.x,y:node.y*view.zoom+view.pan.y,halfWidth:Math.max(34,(destination.name.length*11+18)/2)})).filter(point=>point.x>-100&&point.x<view.width+100&&point.y>-50&&point.y<view.height+50).map(point=>({left:point.x-point.halfWidth,right:point.x+point.halfWidth,top:point.y-markerRadius-26,bottom:point.y-markerRadius-3}));
   for(const region of REGION_LIST){
    const width=(region.bounds.maxX-region.bounds.minX)*view.zoom,height=(region.bounds.maxY-region.bounds.minY)*view.zoom;if(width<70||height<42)continue;
    const point=region.labelPoint||{x:(region.bounds.minX+region.bounds.maxX)/2,y:(region.bounds.minY+region.bounds.maxY)/2},x=point.x*view.zoom+view.pan.x;let y=point.y*view.zoom+view.pan.y;if(x<-100||x>view.width+100||y<-35||y>view.height+35)continue;
@@ -201,7 +206,7 @@ export class CampMapRenderer{
   c.save();c.translate(view.pan.x,view.pan.y);c.scale(view.zoom,view.zoom);c.lineWidth=1.2/view.zoom;
   c.globalAlpha=.3;c.strokeStyle='#c1cbb2';c.stroke(paths.unknown);
   c.globalAlpha=.68;c.strokeStyle='#8b9a79';c.stroke(paths.known);c.globalAlpha=1;
-  const radius=clamp(5/view.zoom,5,25),groups=Object.fromEntries(Object.keys(CAMP_TERRAINS).map(id=>[id,new Path2D()])),visible=visibleIndices(rect,radius+24+6/view.zoom),decorated=[];
+  const radius=campNodeScreenRadius(view.zoom)/view.zoom,groups=Object.fromEntries(Object.keys(CAMP_TERRAINS).map(id=>[id,new Path2D()])),visible=visibleIndices(rect,radius+24+6/view.zoom),decorated=[];
   for(const index of visible){if(!this.known[index])continue;const node=NODES[index];disk(groups[node.terrain]||groups.normal,node.x,node.y,radius);if(view.zoom>=.4&&(node.cave||node.poorVisibility))decorated.push(node);}
   // At overview scale the old white stroke was larger than the colored dot.
   // Keep terrain colors, and reserve subpixel outlines/icons for closer views.

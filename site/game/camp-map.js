@@ -1,6 +1,6 @@
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode,getCampDestinationAt} from './camp-world.js';
 import {createPatrolMap} from './patrol-map.js';
-import {CampMapRenderer} from './camp-map-renderer.js';
+import {CampMapRenderer,campNodeScreenRadius,CAMP_DESTINATION_LABEL_MIN_ZOOM} from './camp-map-renderer.js';
 import {getCampRegion} from './camp-regions.js';
 const PATROL_MAP=createPatrolMap();
 const PATROL_BY_ID=new Map(PATROL_MAP.nodes.map(node=>[node.id,node]));
@@ -34,7 +34,7 @@ export class CampMap{
   const before=this.drawStateKey;this.state={...this.state,...state};
   if(Object.hasOwn(state,'bases')||Object.hasOwn(state,'baseRoutes')){
    const bases=state.bases??this.bases,routes=state.baseRoutes??this.baseRoutes,key=JSON.stringify([bases,routes]);
-   if(key!==this.baseKey){this.baseKey=key;this.bases=Array.isArray(bases)?bases:[];this.baseRoutes=Array.isArray(routes)?routes:[];this.routeArrows=campBaseRouteArrows(this.baseRoutes);this.dirty=true;if(this.noteNodeId)this.note.textContent=this.describeNode(nodeAt(this.noteNodeId));}
+   if(key!==this.baseKey){this.baseKey=key;this.bases=Array.isArray(bases)?bases:[];this.baseRoutes=Array.isArray(routes)?routes:[];this.routeArrows=campBaseRouteArrows(this.baseRoutes);this.routeEdges=campBaseRouteEdges(this.routeArrows);this.dirty=true;if(this.noteNodeId)this.note.textContent=this.describeNode(nodeAt(this.noteNodeId));}
   }
   const visited=state.discovered??state.visited;
   if(visited){
@@ -78,6 +78,9 @@ export class CampMap{
   this.pinchDistance=0;
  }
  onCanvasClick(event){
+  // Compact maps are buttons owned by their host. Let its click handler open
+  // the atlas; only the interactive atlas consumes pointer navigation here.
+  if(!this.interactive){this.tapCandidate=null;return;}
   // Commit navigation after the click target/path is fixed. Opening the next
   // dialog during pointerup lets a touch's later compatibility click hit it.
   event.preventDefault();event.stopPropagation();const candidate=this.tapCandidate;this.tapCandidate=null;
@@ -98,22 +101,41 @@ export class CampMap{
   this.dirty=false;
  }
  drawDestinationLabels(c){
-  this.destinationLabelsDrawn=[];const occupied=[...(this.renderer.regionLabelBoxes||[])],overlaps=(a,b)=>a.left<b.right+4&&a.right>b.left-4&&a.top<b.bottom+4&&a.bottom>b.top-4;
+  this.destinationLabelsDrawn=[];this.registeredMarkersDrawn=[];const occupied=[...(this.renderer.regionLabelBoxes||[])],overlaps=(a,b)=>a.left<b.right+4&&a.right>b.left-4&&a.top<b.bottom+4&&a.bottom>b.top-4;
   const destinations=Object.values(CAMP_DESTINATIONS).sort((a,b)=>Number(b.nodeId===this.state.nodeId||b.nodeId===this.state.targetId)-Number(a.nodeId===this.state.nodeId||a.nodeId===this.state.targetId));
   for(const destination of destinations){
    if(!destination.nodeId||!this.discovered.has(destination.nodeId))continue;
    const node=nodeAt(destination.nodeId);if(!node)continue;const p=this.project(node);if(p.x<-100||p.x>this.width+100||p.y<-50||p.y>this.height+50)continue;
-   c.save();c.font='600 11px sans-serif';const width=Math.max(68,c.measureText(destination.name).width+18),box={left:p.x-width/2,right:p.x+width/2,top:p.y-30,bottom:p.y-7};c.fillStyle='#e7cd91';c.strokeStyle='#8d7045';c.lineWidth=1;c.beginPath();c.arc(p.x,p.y,3.3,0,Math.PI*2);c.fill();c.stroke();
-   // Known landmarks remain marked at overview; names appear where they fit.
-   // Tapping a reached marker also exposes its full name in the map's place note.
-   if(!occupied.some(rect=>overlaps(box,rect))){c.fillStyle='#fdf5d8';c.strokeStyle='#9d8259';c.beginPath();c.roundRect(box.left,box.top,width,23,6);c.fill();c.stroke();c.textAlign='center';c.fillStyle='#6d583d';c.fillText(destination.name,p.x,p.y-14);c.beginPath();c.moveTo(p.x,p.y-7);c.lineTo(p.x,p.y);c.stroke();occupied.push(box);this.destinationLabelsDrawn.push(destination.id);}c.restore();
+   const radius=Math.max(4.5,Math.min(15,campNodeScreenRadius(this.zoom)*1.2));
+   // Reached registered places keep a distinct diamond at overview. Their names
+   // return at detail scale; unknown places never acquire a label or marker.
+   c.save();c.lineJoin='round';c.beginPath();c.moveTo(p.x,p.y-radius);c.lineTo(p.x+radius,p.y);c.lineTo(p.x,p.y+radius);c.lineTo(p.x-radius,p.y);c.closePath();c.fillStyle='#e7bd69';c.fill();c.strokeStyle='#fff8e1';c.lineWidth=3;c.stroke();c.strokeStyle='#8d6d38';c.lineWidth=1.1;c.stroke();this.registeredMarkersDrawn.push(destination.id);
+   if(this.zoom<CAMP_DESTINATION_LABEL_MIN_ZOOM){c.restore();continue;}
+   c.font='600 11px sans-serif';const width=Math.max(68,c.measureText(destination.name).width+18),box={left:p.x-width/2,right:p.x+width/2,top:p.y-radius-26,bottom:p.y-radius-3};
+   if(!occupied.some(rect=>overlaps(box,rect))){c.fillStyle='#fdf5d8';c.strokeStyle='#9d8259';c.lineWidth=1;c.beginPath();c.roundRect(box.left,box.top,width,23,6);c.fill();c.stroke();c.textAlign='center';c.fillStyle='#6d583d';c.fillText(destination.name,p.x,box.bottom-7);c.beginPath();c.moveTo(p.x,box.bottom);c.lineTo(p.x,p.y-radius);c.stroke();occupied.push(box);this.destinationLabelsDrawn.push(destination.id);}c.restore();
   }
  }
  drawBaseRouteArrows(c){
-  // Both directions follow real graph edges. Virtual network links are never drawn.
-  this.baseArrowsDrawn=0;c.save();
-  for(const arrow of this.routeArrows||[]){const a=nodeAt(arrow.from),b=nodeAt(arrow.to);if(!a||!b)continue;const p=this.project(a),q=this.project(b);if(Math.max(p.x,q.x)<-12||Math.min(p.x,q.x)>this.width+12||Math.max(p.y,q.y)<-12||Math.min(p.y,q.y)>this.height+12)continue;const length=Math.hypot(q.x-p.x,q.y-p.y);if(length<1)continue;const ux=(q.x-p.x)/length,uy=(q.y-p.y)/length,offset=arrow.paired?2.3:0,size=Math.min(5,Math.max(2,length*.18)),x=(p.x+q.x)/2-uy*offset,y=(p.y+q.y)/2+ux*offset;
-   c.strokeStyle='#f9f4df';c.fillStyle='#577f80';c.lineWidth=1.4;c.beginPath();c.moveTo(x+ux*size,y+uy*size);c.lineTo(x-ux*size*.7-uy*size*.8,y-uy*size*.7+ux*size*.8);c.lineTo(x-ux*size*.7+uy*size*.8,y-uy*size*.7-ux*size*.8);c.closePath();c.stroke();c.fill();this.baseArrowsDrawn++;
+  // Every stroke follows an actual map edge. The virtual network link itself
+  // is never rendered; reciprocal directions use separate lanes on that edge.
+  this.baseArrowsDrawn=0;this.baseRouteEdgesDrawn=0;this.baseRouteShaftsDrawn=0;c.save();c.lineCap='round';c.lineJoin='round';
+  const radius=campNodeScreenRadius(this.zoom),segments=new Map(),visible=(p,q)=>!(Math.max(p.x,q.x)<-18||Math.min(p.x,q.x)>this.width+18||Math.max(p.y,q.y)<-18||Math.min(p.y,q.y)>this.height+18);
+  for(const edge of this.routeEdges||[]){
+   const a=nodeAt(edge.from),b=nodeAt(edge.to);if(!a||!b)continue;const p=this.project(a),q=this.project(b);if(!visible(p,q))continue;
+   const length=Math.hypot(q.x-p.x,q.y-p.y);if(length<1)continue;const ux=(q.x-p.x)/length,uy=(q.y-p.y)/length,padding=Math.min(radius+1,length*.18),x=p.x+ux*padding,y=p.y+uy*padding,ex=q.x-ux*padding,ey=q.y-uy*padding;
+   c.beginPath();c.moveTo(x,y);c.lineTo(ex,ey);c.strokeStyle='#fff5d6';c.lineWidth=edge.paired?8.4:6.4;c.stroke();c.strokeStyle='#e7c979';c.lineWidth=edge.paired?5.7:3.9;c.stroke();this.baseRouteEdgesDrawn++;
+   segments.set(edge.key,{p,q,length,ux,uy});
+  }
+  for(const arrow of this.routeArrows||[]){
+   const key=[arrow.from,arrow.to].sort().join('>'),edge=segments.get(key);if(!edge)continue;
+   const a=nodeAt(arrow.from),b=nodeAt(arrow.to),p=this.project(a),q=this.project(b),length=edge.length,ux=(q.x-p.x)/length,uy=(q.y-p.y)/length;
+   const lane=arrow.paired?Math.min(2.35,length*.08):0,padding=Math.min(radius+3,length*.22),available=length-padding*2;if(available<1)continue;
+   const x=p.x+ux*padding-uy*lane,y=p.y+uy*padding+ux*lane,ex=q.x-ux*padding-uy*lane,ey=q.y-uy*padding+ux*lane;
+   c.beginPath();c.moveTo(x,y);c.lineTo(ex,ey);c.strokeStyle='#fffbea';c.lineWidth=3.6;c.stroke();c.strokeStyle=arrow.paired&&arrow.from>arrow.to?'#94602f':'#365f65';c.lineWidth=1.8;c.stroke();this.baseRouteShaftsDrawn++;
+   // Long edges carry repeated arrowheads; even a short edge retains a shaft.
+   const heads=available>105?Math.min(4,Math.floor(available/70)):1,size=Math.min(5,Math.max(1.2,available*.20));
+   for(let i=1;i<=heads;i++){const t=heads===1?.72:i/(heads+1),hx=x+(ex-x)*t,hy=y+(ey-y)*t;c.beginPath();c.moveTo(hx-ux*size-uy*size*.67,hy-uy*size+ux*size*.67);c.lineTo(hx,hy);c.lineTo(hx-ux*size+uy*size*.67,hy-uy*size-ux*size*.67);c.strokeStyle='#fffbea';c.lineWidth=3.7;c.stroke();c.strokeStyle=arrow.paired&&arrow.from>arrow.to?'#94602f':'#365f65';c.lineWidth=1.85;c.stroke();}
+   this.baseArrowsDrawn++;
   }c.restore();
  }
  drawBases(c){
@@ -135,4 +157,10 @@ export const CAMP_TERRAIN_LABELS=Object.freeze(Object.fromEntries(Object.entries
 export function campBaseRouteArrows(routes=[]){
  const directed=new Map();for(const route of routes){const path=Array.isArray(route)?route:route?.path;if(!Array.isArray(path))continue;for(let i=1;i<path.length;i++){const from=path[i-1],to=path[i];if(typeof from!=='string'||typeof to!=='string'||from===to)continue;const a=nodeAt(from);if(!a?.neighbors?.includes(to))continue;directed.set(from+'>'+to,{from,to});}}
  return [...directed.values()].map(arrow=>({...arrow,paired:directed.has(arrow.to+'>'+arrow.from)}));
+}
+
+/** The undirected highlight is shared even when several routes use an edge. */
+export function campBaseRouteEdges(arrows=[]){
+ const unique=new Map();for(const arrow of arrows){const key=[arrow.from,arrow.to].sort().join('>');if(!unique.has(key))unique.set(key,{from:arrow.from,to:arrow.to,paired:arrow.paired,key});}
+ return [...unique.values()];
 }

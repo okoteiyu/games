@@ -253,3 +253,6 @@
 .camp-supplies .camp-supply-meta { display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px 5px;max-inline-size:100%;font-size:9px;line-height:1.45; }
 .camp-supplies .camp-supply-meta>span { color:#919c7d;font:inherit;white-space:nowrap; }
 .camp-supplies .camp-supply-meta>[data-camp-owned] { color:#83916d; }
+
+/* The goal is the first preparation decision, before supplies and bag slots. */
+.camp-dialog__body>.camp-destination:first-child{margin-top:0;padding-top:0;border-top:0;margin-bottom:18px;padding-bottom:15px;border-bottom:1px dashed #c4cbae}
