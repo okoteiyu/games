@@ -14,10 +14,10 @@ export const CAMP_SUPPLIES=Object.freeze({
  medical_kit:supply('medical_kit','医療キット',2,2,false,'イベント終了時、HPが半分以下なら最大HPの30%を回復する。','#cb9598','＋'),
  compass:supply('compass','コンパス',1,1,false,'各エリアを進む時間を0.6倍にする。','#9eabbd','◇'),
  moai_compass:supply('moai_compass','モアイコンパス',1,1,false,'今の物資で進める道から、モアイ郷までの必要物資が最小になるルートを案内する。目標地点の設定や移動速度は変えない。','#c4b476','⌖'),
- gloves:supply('gloves','グローブ',1,3,true,'1個で悪路を2回通れる。往路も帰路も1回ずつ使う。使える間は怪我イベントの発生率を0.7倍にする。','#b6a18d','✋',CAMP_TOOL_USES_PER_ITEM),
+ gloves:supply('gloves','グローブ',1,2,true,'1個で悪路を2回通れる。往路も帰路も1回ずつ使う。使える間は怪我イベントの発生率を0.7倍にする。','#b6a18d','✋',CAMP_TOOL_USES_PER_ITEM),
  goggles:supply('goggles','ゴーグル',1,3,true,'1個で見通しの悪いルートを2回通れる。往路も帰路も1回ずつ使う。使える間は怪我の発生率を0.7倍にする。','#8caeb5','∞',CAMP_TOOL_USES_PER_ITEM),
  rope:supply('rope','ロープ',1,3,true,'1個で崖の険しいルートを2回通れる。往路も帰路も1回ずつ使う。','#c4ad7d','⌁',CAMP_TOOL_USES_PER_ITEM),
- mask:supply('mask','マスク',1,3,true,'1個で毒ガスのルートを2回通れる。往路も帰路も1回ずつ使う。','#afa7bd','◒',CAMP_TOOL_USES_PER_ITEM)
+ mask:supply('mask','ガスマスク',1,3,true,'1個で毒ガスのルートを2回通れる。往路も帰路も1回ずつ使う。','#afa7bd','◒',CAMP_TOOL_USES_PER_ITEM)
 });
 /** Bag entries count physical items; a live journey counts available tool uses. */
 export function campRuntimeSupplies(itemCounts){
