@@ -64,7 +64,7 @@ export function creatureStats(speciesId,level){
  const {ranks}=checkedCreature(speciesId);integer(level,'character level',1,106);
  return Object.fromEntries(STAT_KEYS.map(key=>[key,parameterValue(ranks[key],level,key)]));
 }
-export function parameterValue(rank,level,stat='attack'){integer(rank,'parameter rank',0,15);integer(level,'character level',1,106);if(!STAT_KEYS.includes(stat))throw new RangeError('Unknown parameter.');return normalizeStat(stat,(rank===0?1:rank*level*6/10)*(stat==='hp'?5:1));}
+export function parameterValue(rank,level,stat='attack'){integer(rank,'parameter rank',0,24);integer(level,'character level',1,106);if(!STAT_KEYS.includes(stat))throw new RangeError('Unknown parameter.');return normalizeStat(stat,(rank===0?1:rank*level*6/10)*(stat==='hp'?5:1));}
 function auraStatValues(stats,auraId='okoteiyu',auraLevel=1){
  if(auraId===null)return Object.fromEntries(STAT_KEYS.map(key=>[key,finite(stats[key],key)]));
  const aura=checkedCreature(auraId);integer(auraLevel,'aura level',1,auraId==='okoteiyu'?1:30);
