@@ -143,8 +143,8 @@ export class CampExpedition{
   this.rainForNextCrossing=false;Object.assign(this.state,{nextNodeId:next.id,crossingHours:hours,crossingHoursElapsed:0,travelProgress:0,waitingForNight:hours>knownHours+EPS,movementMode});
  }
  medical(reason){
-  const s=this.state;if(!s.supplies.medical_kit||!(s.maxHp>0)||!(s.hp>0)||s.hp>s.maxHp*.5)return false;
-  const amount=Math.min(s.maxHp-s.hp,s.maxHp*.3);if(amount<=0)return false;s.hp+=amount;this.emit('heal',{amount,hp:s.hp,maxHp:s.maxHp,reason});return true;
+  const s=this.state;if(reason!=='battle'||!s.supplies.medical_kit||!(s.maxHp>0)||!(s.hp>0))return false;
+  const amount=Math.min(s.maxHp-s.hp,s.maxHp*.15);if(amount<=0)return false;s.hp+=amount;this.emit('heal',{amount,hp:s.hp,maxHp:s.maxHp,reason});return true;
  }
  consume(id,amount=1){if(amount<=0)return;const used=Math.min(this.state.supplies[id]||0,amount);if(used<=0)return;this.state.supplies[id]-=used;this.emit('supply',{supplyId:id,amount:used,remaining:this.state.supplies[id],unit:isCampDurableTool(id)?'uses':'items'});}
  arrive(){
@@ -166,8 +166,8 @@ export class CampExpedition{
   this.visited.add(node.id);this.route.push(node.id);this.completeGuidanceIfReached();this.emit('arrive',{terrain:node.terrain,newlyDiscovered,fromNodeId,backtracking});
   // Separate draws allow a weather/wildlife event and a battle at one vertex.
   if(this.random()<.3){
-   if(this.random()<.5){this.rainForNextCrossing=true;this.emit('weather',{kind:'rain',multiplier:1.5});this.medical('rain');}
-   else{const used=s.supplies.food>0?1:0;this.consume('food',used);this.emit('wildlife',{consumedFood:used});this.medical('wildlife');}
+   if(this.random()<.5){this.rainForNextCrossing=true;this.emit('weather',{kind:'rain',multiplier:1.5});}
+   else{const used=s.supplies.food>0?1:0;this.consume('food',used);this.emit('wildlife',{consumedFood:used});}
   }
   if(this.destination.nodeId===node.id&&!this.hasActiveGuidance()){this.finalize('destination');return;}
   if(this.random()<.5){s.phase='encounter';this.emit('encounter',{playerLevel:s.playerLevel,levelRange:{min:s.playerLevel-5,max:s.playerLevel+3}});return;}
@@ -192,7 +192,7 @@ export class CampExpedition{
   const s=this.state;if(s.phase!=='travel')return false;
   s.dayHoursRemaining=0;
   if(s.day>=CAMP_MAX_DAYS){this.finalize('time-limit');return true;}
-  if(s.supplies.survival_kit){const extended=this.random()<.3&&s.supplies.food<CAMP_MAX_DAYS-s.day;if(extended)s.supplies.food++;this.emit('survival',{extended,addedDays:extended?1:0});this.medical('survival');}
+  if(s.supplies.survival_kit){const extended=this.random()<.3&&s.supplies.food<CAMP_MAX_DAYS-s.day;if(extended)s.supplies.food++;this.emit('survival',{extended,addedDays:extended?1:0});}
   if(s.supplies.food<=0){this.finalize('supplies');return true;}
   s.phase='night';this.emit('night',{duration:2});return true;
  }

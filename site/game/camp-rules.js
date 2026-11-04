@@ -14,7 +14,7 @@ export const CAMP_SUPPLIES=Object.freeze({
  phone:supply('phone','スマホ',1,1,false,'出発時に使う穏やかポイントを2減らす。','#8da9bb','▯'),
  battery:supply('battery','バッテリー',1,1,true,'1個につき、出発時に使う穏やかポイントをさらに1減らす。最大4個まで持ち込める。','#7f9c8f','▰',1,4),
  survival_kit:supply('survival_kit','サバイバルキット',2,3,false,'日付が変わるたび、30%の確率で行動可能日数が1日増える。','#92aa78','✦'),
- medical_kit:supply('medical_kit','医療キット',2,2,false,'イベント終了時、HPが半分以下なら最大HPの30%を回復する。','#cb9598','＋'),
+ medical_kit:supply('medical_kit','医療キット',2,2,false,'キャンプ道中の戦闘終了ごとに最大HPの15%を回復する。HPが0のときは発動しない。','#cb9598','＋'),
  compass:supply('compass','コンパス',1,1,false,'各エリアを進む時間を0.6倍にする。','#9eabbd','◇'),
  moai_compass:supply('moai_compass','モアイコンパス',1,1,false,'今の物資でモアイ郷まで進める探索最適経路を案内する。到達後は案内を終え、設定した目標へ探索を続ける。ルート誘導アイテムは合計1個まで。','#c4b476','⌖'),
  gloves:supply('gloves','グローブ',1,2,true,'1個で悪路を2回通れる。来た道を戻るときは使用回数が減らない。使える間は怪我イベントの発生率を0.7倍にする。','#b6a18d','✋',CAMP_TOOL_USES_PER_ITEM),
