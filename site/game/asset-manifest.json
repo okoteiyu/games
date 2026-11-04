@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形と共通UI画像。専用確認ページだけの素材は除外。",
   "fileCount": 174,
-  "totalBytes": 160097830,
+  "totalBytes": 160874138,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -1277,28 +1277,28 @@
       "sha256": "f0580c60fc8d571a980eaba3bf544191ce11a731ff3cb64620a908652424582c"
     },
     {
-      "url": "assets/outdoor/room.glb?v=a0d832b0dbfd0f16e68720caf178624b12efa2db9d70f59098fd92d0475a8735",
+      "url": "assets/outdoor/room.glb?v=2abe526efe2f22f1fef82e7aa9f98b0f82012200db2c2dac33327658d5c879a2",
       "label": "拠点の屋外",
       "type": "binary",
-      "bytes": 5374304,
+      "bytes": 6146988,
       "priority": 2,
-      "sha256": "a0d832b0dbfd0f16e68720caf178624b12efa2db9d70f59098fd92d0475a8735"
+      "sha256": "2abe526efe2f22f1fef82e7aa9f98b0f82012200db2c2dac33327658d5c879a2"
     },
     {
       "url": "assets/outdoor/metadata.json",
       "label": "屋外の設定",
       "type": "json",
-      "bytes": 11052,
+      "bytes": 12320,
       "priority": 2,
-      "sha256": "71c62f28352cf909808f90091c9c56c144ca972983bde9b72a7914593483e9e5"
+      "sha256": "d047fa879224643fe7ca40fb69d9cf824999c0bcb2785534894745159167a6d8"
     },
     {
       "url": "assets/outdoor/preview.webp",
       "label": "屋外のプレビュー",
       "type": "image",
-      "bytes": 14928,
+      "bytes": 17284,
       "priority": 3,
-      "sha256": "a312640bf94be29e570d5310c82f76d932c775d7c4627b054614059c47c8e739"
+      "sha256": "34da4882f2e96ce14334ee2d55b6e39c81f8075ab7b631673ac13570e0dea456"
     },
     {
       "url": "assets/battle3d/great_fairy.glb?v=595665cfb125e5511d677b701b16677148f10fcc2013a175ecca4d298cf9c6a7",

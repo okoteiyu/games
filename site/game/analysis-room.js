@@ -6,11 +6,17 @@ import {isModalBlocked} from './modal-layer.js';
 import {INTERIOR_ROOMS} from './interior-rules.js';
 import {interiorInspections} from './interior-inspections.js';
 import {currentTimeOfDay} from './world-time.js';
+import {setPaintedText,releasePaintedLabels} from './painted-label.js';
 
 const number=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const smooth=value=>{const t=clamp(value,0,1);return t*t*(3-2*t);};
 const findNode=(root,name)=>root?.getObjectByName(name)||root?.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name));
+const vectorRecord=value=>Array.isArray(value)&&value.length===3&&value.every(Number.isFinite);
+function outdoorCameraRecord(value){
+ if(!value||!vectorRecord(value.position)||!vectorRecord(value.target)||!vectorRecord(value.up)||!Number.isFinite(value.fov)||value.fov<=0||value.fov>=180||!Number.isFinite(value.near)||value.near<=0||!Number.isFinite(value.far)||value.far<=value.near||!Number.isFinite(value.zoom)||value.zoom<=0)return null;
+ return {...value,position:[...value.position],target:[...value.target],up:[...value.up],look:{yaw:number(value.look?.yaw),pitch:number(value.look?.pitch)},view:value.view?{...value.view}:null};
+}
 function visitingSnapshot(player={}){
  const support=equippedSupportIds(player.equipment||{}).includes('moai_kun')?['moai_kun']:[],helper=support.length?{id:'moai_kun',phase:'idle',guardUsed:false}:null,hp=Math.max(1,number(player.stats?.hp,1));
  return {phase:'visiting',time:0,enemies:[],targetId:null,super:{active:false},supports:helper?[helper]:[],support:helper,player:{...player,id:'player',speciesId:'okoteiyu',name:'おこていゆ',hp,maxHp:hp,action:null,superActive:false,auraId:null,equipment:{support,defense:null}}};
@@ -48,8 +54,10 @@ export class AnalysisRoomView extends BattleView{
   listen(this.canvas,'pointerup',release);listen(this.canvas,'pointercancel',release);
   listen(this.canvas,'lostpointercapture',event=>{this.lookPointers.delete(event.pointerId);this.lookDrag=null;if(!this.lookPointers.size)this.lookMulti=false;});
   listen(this.canvas,'keydown',event=>{
+   if(event.key==='Escape'&&this.cameraMode==='top'&&this.toggleOutdoorTopView()){event.preventDefault();return;}
    if(event.key==='Escape'&&this.exitInspection()){event.preventDefault();return;}
    const step=Math.PI/24,change={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,step],ArrowDown:[0,-step]}[event.key];
+   if(change&&this.cameraMode==='top'&&this.canUseRoomInput()){event.preventDefault();return;}
    if(change&&this.rotateEntrance(...change))event.preventDefault();
   });
   listen(this.canvas,'webglcontextlost',()=>this.cancelLookPointers());listen(this.canvas,'blur',()=>this.cancelLookPointers());listen(document,'visibilitychange',()=>this.cancelLookPointers());listen(window,'blur',()=>this.cancelLookPointers());
@@ -63,9 +71,10 @@ export class AnalysisRoomView extends BattleView{
  rotateEntrance(yaw,pitch){
   if(!this.canLookAround()||!Number.isFinite(yaw)||!Number.isFinite(pitch))return false;
   const outdoor=this.roomDefinition.id==='outdoor',limit=outdoor?Math.PI:Math.PI*.49;
+  this.entranceCameraOverride=null;
   this.entranceLook.yaw=outdoor?THREE.MathUtils.euclideanModulo(this.entranceLook.yaw+yaw+Math.PI,Math.PI*2)-Math.PI:clamp(this.entranceLook.yaw+yaw,-limit,limit);this.entranceLook.pitch=clamp(this.entranceLook.pitch+pitch,outdoor?-1.25:-.5,.7);this.fitCamera();this.render();return true;
  }
- setActive(active){if(!active){this.cancelLookPointers();this.inspection=null;this.inspectionTransition=null;this.cameraMode='entrance';}super.setActive(active);}
+ setActive(active){if(!active){this.cancelLookPointers();this.inspection=null;this.inspectionTransition=null;this.cameraMode='entrance';this.outdoorReturnCamera=null;this.entranceCameraOverride=null;}super.setActive(active);}
  destroy(){this.cancelLookPointers();this.inspection=null;this.inspectionTransition=null;super.destroy();}
  prepareInspections(){
   this.inspectionTargets=[];this.scene.updateMatrixWorld(true);
@@ -131,6 +140,8 @@ export class AnalysisRoomView extends BattleView{
   this.cancelLookPointers();this.inspection=null;this.inspectionTransition=null;const room=this.roomDefinition,saved=presentationState?.roomId&&presentationState.roomId!==room.id?null:presentationState?.analysisRoom;
   const outdoor=room.id==='outdoor';this.entranceLook={yaw:clamp(number(saved?.entranceLook?.yaw),-Math.PI*(outdoor?1:.49),Math.PI*(outdoor?1:.49)),pitch:clamp(number(saved?.entranceLook?.pitch,-.06),outdoor?-1.25:-.5,.7)};
   const generation=this.fieldGeneration=(this.fieldGeneration||0)+1;this.loading=true;this.ready=false;this.lastError=null;this.snapshot=snapshot;this.stageOptions={...stage,presentation:room.id};this.time=number(snapshot.time);this.cutin=null;this.presentationId=stage.presentationId??null;this.cameraMode='entrance';this.supportView.setVisible(false);if(this.canvas)this.canvas.style.visibility='hidden';this.onStatus(room.title+'を準備しています…');
+  this.outdoorReturnCamera=outdoor?outdoorCameraRecord(saved?.outdoorReturnCamera):null;this.entranceCameraOverride=outdoor?outdoorCameraRecord(saved?.entranceCameraOverride):null;
+  if(outdoor&&saved?.cameraMode==='top'&&this.outdoorReturnCamera)this.cameraMode='top';
   try{
    this.createRenderer();
    const assetBase=new URL('./assets/'+room.assetDirectory+'/',import.meta.url);
@@ -149,7 +160,7 @@ export class AnalysisRoomView extends BattleView{
    this.loading=false;this.ready=true;this.updatePose();this.resize();this.render();this.onStatus('');return true;
   }catch(error){if(this.destroyed||generation!==this.fieldGeneration)return false;this.loading=false;this.ready=false;this.lastError=error?.message||String(error);this.onStatus('');this.onError(error);return false;}
  }
- capturePresentationState(){return {version:1,presentationId:this.presentationId,roomId:this.roomDefinition.id,analysisRoom:{cameraMode:this.cameraMode||'entrance',entranceLook:{...this.entranceLook},inspection:this.getInspectionState()}};}
+ capturePresentationState(){return {version:1,presentationId:this.presentationId,roomId:this.roomDefinition.id,analysisRoom:{cameraMode:this.cameraMode||'entrance',entranceLook:{...this.entranceLook},inspection:this.getInspectionState(),outdoorReturnCamera:outdoorCameraRecord(this.outdoorReturnCamera),entranceCameraOverride:outdoorCameraRecord(this.entranceCameraOverride)}};}
  applyRoomView(){
   if(!this.fieldScene||!this.metadata)return;
   // Keep the closed room visible, including shells used by authoring previews.
@@ -168,13 +179,32 @@ export class AnalysisRoomView extends BattleView{
  }
  targetSelectionAvailable(){return false;}
  canOrbitCamera(){return false;}
+ canToggleOutdoorTopView(){return this.roomDefinition.id==='outdoor'&&['entrance','top'].includes(this.cameraMode)&&!this.inspectionTransition&&this.canUseRoomInput();}
+ toggleOutdoorTopView(){
+  if(!this.canToggleOutdoorTopView())return false;this.cancelLookPointers();
+  if(this.cameraMode==='top'){
+   if(!this.outdoorReturnCamera)return false;
+   this.entranceLook={...this.outdoorReturnCamera.look};this.entranceCameraOverride=outdoorCameraRecord(this.outdoorReturnCamera);this.cameraMode='entrance';
+  }else{
+   this.outdoorReturnCamera=outdoorCameraRecord({position:this.camera.position.toArray(),target:this.cameraAim.toArray(),up:this.camera.up.toArray(),fov:this.camera.fov,near:this.camera.near,far:this.camera.far,zoom:this.camera.zoom,view:this.camera.view,look:{...this.entranceLook}});this.entranceCameraOverride=null;this.cameraMode='top';
+  }
+  this.fitCamera();this.render();return true;
+ }
+ outdoorTopPose(){
+  const bounds=this.metadata.room?.bounds,min=bounds?.min||[-20,0,-10],max=bounds?.max||[20,9,13],width=Math.max(1,max[0]-min[0]),depth=Math.max(1,max[2]-min[2]),fov=50,aspect=this.width/this.height;
+  // Fit the highest roof plane, not just the ground footprint. The north-up
+  // vector avoids lookAt's collinear world-up ambiguity at a true vertical view.
+  const distance=Math.max(width/aspect,depth)/(2*Math.tan(THREE.MathUtils.degToRad(fov/2)))*1.12,height=max[1]+distance,x=(min[0]+max[0])/2,z=(min[2]+max[2])/2;
+  return {position:new THREE.Vector3(x,height,z),target:new THREE.Vector3(x,0,z),up:new THREE.Vector3(0,0,-1),fov,near:.05,far:Math.max(number(this.metadata.camera?.far,180),height+Math.max(width,depth)*2),zoom:1};
+ }
  entrancePose(){
+  if(this.roomDefinition.id==='outdoor'&&this.entranceCameraOverride){const saved=this.entranceCameraOverride;return {...saved,position:new THREE.Vector3(...saved.position),target:new THREE.Vector3(...saved.target),up:new THREE.Vector3(...saved.up)};}
   const center=this.metadata.entrance?.center||[0,0,2.2],authored=this.metadata.entrance?.camera,{pitch}=this.entranceLook,position=authored?.position?new THREE.Vector3(...authored.position):new THREE.Vector3(center[0],center[1]+Math.min(1.35,number(this.metadata.entrance?.height,2.45)*.6),center[2]-.16),direction=this.roomDefinition.id==='outdoor'&&authored?.target?new THREE.Vector3(...authored.target).sub(position):null,yaw=this.entranceLook.yaw+(direction?Math.atan2(direction.x,-direction.z):number(authored?.yaw));
   return {position,target:position.clone().add(new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(4)),fov:this.roomDefinition.id==='outdoor'?clamp(number(authored?.fov,76),45,90):72};
  }
  fitCamera(){
   if(!this.ready||!this.metadata||!this.width||!this.height)return;
-  let pose=this.cameraMode==='inspection'&&this.inspection?this.inspectionPose(this.inspection):this.entrancePose();
+  let pose=this.cameraMode==='top'&&this.roomDefinition.id==='outdoor'?this.outdoorTopPose():this.cameraMode==='inspection'&&this.inspection?this.inspectionPose(this.inspection):this.entrancePose();
   const transition=this.inspectionTransition;
   if(transition){
    const p=clamp(transition.elapsed/transition.duration,0,1),t=smooth(p),points=transition.points;let position;
@@ -184,7 +214,7 @@ export class AnalysisRoomView extends BattleView{
    else position=points[2].clone().lerp(points[3],smooth((p-.8)/.2));
    pose={position,target:transition.start.target.clone().lerp(transition.end.target,t),fov:THREE.MathUtils.lerp(transition.start.fov,transition.end.fov,t)};
   }
-  this.camera.position.copy(pose.position);this.cameraAim=pose.target.clone();this.camera.lookAt(this.cameraAim);this.camera.clearViewOffset();this.camera.zoom=1;this.camera.fov=pose.fov;this.camera.near=this.cameraMode==='inspection'?.025:number(this.metadata.camera?.near,.03);this.camera.far=number(this.metadata.camera?.far,80);this.camera.aspect=this.width/this.height;this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld(true);
+  this.camera.position.copy(pose.position);this.cameraAim=pose.target.clone();this.camera.up.copy(pose.up||new THREE.Vector3(0,1,0));this.camera.lookAt(this.cameraAim);this.camera.clearViewOffset();if(pose.view?.enabled)this.camera.setViewOffset(pose.view.fullWidth,pose.view.fullHeight,pose.view.offsetX,pose.view.offsetY,pose.view.width,pose.view.height);this.camera.zoom=pose.zoom??1;this.camera.fov=pose.fov;this.camera.near=pose.near??(this.cameraMode==='inspection'?.025:number(this.metadata.camera?.near,.03));this.camera.far=pose.far??number(this.metadata.camera?.far,80);this.camera.aspect=this.width/this.height;this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld(true);
  }
  updatePose(){
   if(!this.ready||!this.snapshot)return;this.sampleActor(this.actors.player,this.snapshot.player,'player');this.supportView.sample({...this.snapshot,phase:this.roomDefinition.id},this.actors,this.time,{enabled:this.active,camera:this.camera});this.scene.updateMatrixWorld(true);
@@ -201,8 +231,8 @@ export class AnalysisRoomView extends BattleView{
    this.inspection.notified=true;if(this.inspection.source==='tap')this.onInspect(this.getInspectionState());
   }
  }
- render(){if(!this.ready||!this.active||this.contextLost||this.destroyed||!this.renderer)return;this.renderer.render(this.scene,this.camera);this.canvas.dataset.presentation=this.roomDefinition.id;this.canvas.dataset.cameraMode=this.cameraMode;this.canvas.setAttribute('aria-label',this.cameraMode==='inspection'?this.roomDefinition.title+'・'+(this.inspection?.definition.label||'物')+'の詳細観測。ビューをタップすると入口の視点へ戻ります。':this.roomDefinition.title+'の3Dビュー。'+(this.roomDefinition.id==='outdoor'?'入口側から':'入口から')+'スワイプ・ドラッグ・方向キーで見回せます。'+(this.inspectionTargets.length?'正面の冷蔵庫をタップすると詳細観測できます。':''));this.canvas.style.visibility='visible';this.renderFrames++;}
- getDiagnostics(){return {roomId:this.roomDefinition.id,ready:this.ready,loading:this.loading,active:this.active,contextLost:this.contextLost,error:this.lastError,renderFrames:this.renderFrames,time:this.time,cameraMode:this.cameraMode||'entrance',entranceLook:{...this.entranceLook},inspectionTarget:this.inspection?.targetId||null,inspectionState:this.getInspectionState(),inspectionTransition:this.inspectionTransition?{phase:this.inspectionTransition.phase,elapsed:this.inspectionTransition.elapsed,duration:this.inspectionTransition.duration}:null,inspectionObjects:this.inspectionTargets.map(t=>({targetId:t.targetId,objectId:t.objectId,rootName:t.rootName})),metadata:this.metadata||null,size:{width:this.width||0,height:this.height||0},camera:{position:this.camera.position.toArray(),target:this.cameraAim?.toArray()||null,fov:this.camera.fov},player:this.actors.player?{position:this.actors.player.anchor.position.toArray(),height:this.actors.player.height,currentClip:this.actors.player.currentClip}:null,support:this.supportView.getDiagnostics()};}
+ render(){if(!this.ready||!this.active||this.contextLost||this.destroyed||!this.renderer)return;this.renderer.render(this.scene,this.camera);this.canvas.dataset.presentation=this.roomDefinition.id;this.canvas.dataset.cameraMode=this.cameraMode;this.canvas.setAttribute('aria-label',this.cameraMode==='top'?this.roomDefinition.title+'の敷地を真上から見ています。元の視点ボタン、またはEscapeキーで戻れます。':this.cameraMode==='inspection'?this.roomDefinition.title+'・'+(this.inspection?.definition.label||'物')+'の詳細観測。ビューをタップすると入口の視点へ戻ります。':this.roomDefinition.title+'の3Dビュー。'+(this.roomDefinition.id==='outdoor'?'入口側から':'入口から')+'スワイプ・ドラッグ・方向キーで見回せます。'+(this.inspectionTargets.length?'正面の冷蔵庫をタップすると詳細観測できます。':''));this.canvas.style.visibility='visible';this.renderFrames++;}
+ getDiagnostics(){return {roomId:this.roomDefinition.id,ready:this.ready,loading:this.loading,active:this.active,contextLost:this.contextLost,error:this.lastError,renderFrames:this.renderFrames,time:this.time,cameraMode:this.cameraMode||'entrance',entranceLook:{...this.entranceLook},inspectionTarget:this.inspection?.targetId||null,inspectionState:this.getInspectionState(),inspectionTransition:this.inspectionTransition?{phase:this.inspectionTransition.phase,elapsed:this.inspectionTransition.elapsed,duration:this.inspectionTransition.duration}:null,inspectionObjects:this.inspectionTargets.map(t=>({targetId:t.targetId,objectId:t.objectId,rootName:t.rootName})),metadata:this.metadata||null,size:{width:this.width||0,height:this.height||0},camera:{position:this.camera.position.toArray(),target:this.cameraAim?.toArray()||null,up:this.camera.up.toArray(),quaternion:this.camera.quaternion.toArray(),fov:this.camera.fov,near:this.camera.near,far:this.camera.far,zoom:this.camera.zoom},outdoorTopView:{active:this.cameraMode==='top',returnCamera:outdoorCameraRecord(this.outdoorReturnCamera)},player:this.actors.player?{position:this.actors.player.anchor.position.toArray(),height:this.actors.player.height,currentClip:this.actors.player.currentClip}:null,support:this.supportView.getDiagnostics()};}
 
 }
 
@@ -211,26 +241,28 @@ export class AnalysisRoomUI{
   this.roomDefinition=INTERIOR_ROOMS[roomId];if(!this.roomDefinition)throw new RangeError('見学する部屋が見つかりません。');Object.assign(this,{view,homeElement,readPlayer,isPaused,onMap,onReturn,onInspect,onError});this.active=false;this.loading=false;this.failed=false;this.generation=0;
   this.container=document.createElement('div');this.container.id=roomId==='analysis-room'?'analysisRoomScene':'interiorRoomScene';this.container.className='analysis-room-scene';
   this.status=document.createElement('div');this.status.className='analysis-room-status';this.status.setAttribute('role','status');this.status.hidden=true;this.status.innerHTML='<span></span><button type="button" hidden>もう一度読み込む</button>';this.container.append(this.status);this.status.querySelector('button').addEventListener('click',()=>{if(!this.isPaused()&&!isModalBlocked())this.show();});
+  this.topViewButton=document.createElement('button');this.topViewButton.type='button';this.topViewButton.className='analysis-room-topview';this.topViewButton.dataset.outdoorTopView='';this.topViewButton.hidden=true;this.topViewButton.setAttribute('aria-pressed','false');this.topViewButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4Z M8 6V3h8v3 M8 10h8v6H8Z"/><path d="M2 10v6m20-6v6M9 22h6"/></svg><span class="analysis-room-topview__label"></span>';this.topViewLabel=this.topViewButton.querySelector('span');this.container.append(this.topViewButton);this.topViewButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();if(this.blocked()||!this.ordinaryOutdoorVisit())return;if(this.controller.toggleOutdoorTopView())this.updateControls();});
   this.badge=document.createElement('div');this.badge.className='analysis-room-badge';this.badge.hidden=true;this.badge.innerHTML='<span></span><strong></strong>';view.element.append(this.badge);
   this.panel=document.createElement('section');this.panel.id=roomId==='analysis-room'?'analysisRoomChoices':'interiorRoomChoices';this.panel.className='lower-right analysis-room-actions';this.panel.hidden=true;this.panel.setAttribute('aria-label','コンピュータ室での移動');this.panel.innerHTML='<nav aria-label="コンピュータ室の選択肢"><button type="button" data-analysis-map><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2ZM9 3v16M15 5v16"/></svg><span>建物マップを開く</span><b aria-hidden="true">›</b></button><button type="button" data-analysis-home><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M6 9v12h12V9M10 21v-7h4v7"/></svg><span>おこていゆハウスへ戻る</span><b aria-hidden="true">›</b></button></nav>';homeElement.after(this.panel);this.mapButton=this.panel.querySelector('[data-analysis-map]');this.returnButton=this.panel.querySelector('[data-analysis-home]');this.mapButton.addEventListener('click',()=>{if(!this.blocked())this.onMap(this.mapButton);});this.returnButton.addEventListener('click',()=>{if(this.active&&!this.isPaused()&&!isModalBlocked())this.onReturn(this.returnButton);});
  }
  get ready(){return Boolean(this.active&&this.controller?.ready&&!this.controller.contextLost&&!this.loading&&!this.failed);}
  blocked(){return !this.ready||this.isPaused()||isModalBlocked()||document.hidden;}
+ ordinaryOutdoorVisit(){return this.roomDefinition.id==='outdoor'&&!this.view.element.closest('[data-story-exploring="true"],[data-conversation-active="true"]');}
  async show(roomId=this.roomDefinition.id){
-  const definition=INTERIOR_ROOMS[roomId];if(!definition)return false;this.roomDefinition=definition;this.badge.querySelector('span').textContent=definition.floorLabel;this.badge.querySelector('strong').textContent=definition.title;this.panel.setAttribute('aria-label',definition.title+'での移動');this.panel.querySelector('nav').setAttribute('aria-label',definition.title+'の選択肢');
+  const definition=INTERIOR_ROOMS[roomId];if(!definition)return false;this.roomDefinition=definition;this.container.dataset.room=definition.id;this.badge.querySelector('span').textContent=definition.floorLabel;this.badge.querySelector('strong').textContent=definition.title;this.panel.setAttribute('aria-label',definition.title+'での移動');this.panel.querySelector('nav').setAttribute('aria-label',definition.title+'の選択肢');
   this.view.clear();this.active=true;this.loading=true;this.failed=false;const generation=++this.generation;this.snapshot=visitingSnapshot(this.readPlayer());this.container.classList.add('is-loading');this.view.surface.append(this.container);this.homeElement.hidden=true;this.panel.hidden=false;this.badge.hidden=true;this.status.hidden=false;this.status.querySelector('span').textContent=this.roomDefinition.title+'を準備しています…';this.status.querySelector('button').hidden=true;this.updateControls();
   this.controller??=new AnalysisRoomView({container:this.container,roomDefinition:this.roomDefinition,isPresentationPaused:()=>this.isPaused(),onInspect:event=>{if(this.active&&this.ready){this.updateControls();this.onInspect(event,this.controller);}},onStatus:text=>{if(this.active){this.status.querySelector('span').textContent=text?this.roomDefinition.title+'を準備しています…':'';this.status.hidden=!text;}},onError:error=>{if(this.active)this.showError(error);}});
   this.controller.roomDefinition=this.roomDefinition;const ready=await this.controller.load(this.snapshot,{presentation:this.roomDefinition.id});if(!this.active||generation!==this.generation)return false;this.loading=false;this.failed=!ready;if(ready){this.controller.setActive(true);this.container.classList.remove('is-loading');this.status.hidden=true;}this.updateControls();return ready;
  }
- updateControls(){const inspection=this.controller?.getInspectionState();this.badge.querySelector('span').textContent=inspection?'詳細観測':this.roomDefinition.floorLabel;this.badge.querySelector('strong').textContent=inspection?inspection.label+' · タップで戻る':this.roomDefinition.title;this.panel.hidden=!this.active;this.badge.hidden=!this.ready;if(this.blocked())this.controller?.cancelLookPointers();this.mapButton.disabled=!this.ready||document.hidden;this.mapButton.setAttribute('aria-disabled',String(this.blocked()));this.returnButton.disabled=!this.active||document.hidden;this.returnButton.setAttribute('aria-disabled',String(!this.active||this.isPaused()||isModalBlocked()));}
+ updateControls(){const inspection=this.controller?.getInspectionState();this.badge.querySelector('span').textContent=inspection?'詳細観測':this.roomDefinition.floorLabel;this.badge.querySelector('strong').textContent=inspection?inspection.label+' · タップで戻る':this.roomDefinition.title;this.panel.hidden=!this.active;this.badge.hidden=!this.ready;if(this.blocked())this.controller?.cancelLookPointers();this.mapButton.disabled=!this.ready||document.hidden;this.mapButton.setAttribute('aria-disabled',String(this.blocked()));this.returnButton.disabled=!this.active||document.hidden;this.returnButton.setAttribute('aria-disabled',String(!this.active||this.isPaused()||isModalBlocked()));this.topViewButton.hidden=!this.ready||!this.ordinaryOutdoorVisit();this.topViewButton.disabled=this.blocked()||!this.controller?.canToggleOutdoorTopView();const top=this.controller?.cameraMode==='top';this.topViewButton.setAttribute('aria-pressed',String(top));this.topViewButton.setAttribute('aria-label',top?'切り替える前の視点に戻る':'敷地全体を真上から見る');if(!this.topViewButton.hidden)setPaintedText(this.topViewLabel,top?'元の視点':'真上',{background:'#f8f5e8',align:'center',fitText:true,immutableImage:true});}
  advance(dt){if(!this.active)return;this.updateControls();if(!this.blocked())this.controller.advance(dt);}
  async recoverAfterInterruption(){
   if(!this.active||!this.controller)return false;const generation=this.generation;this.loading=true;this.container.classList.add('is-loading');this.status.hidden=false;this.status.querySelector('span').textContent=this.roomDefinition.title+'の表示を復旧しています…';this.updateControls();const ready=await this.controller.recoverAfterInterruption(this.snapshot,{presentation:this.roomDefinition.id});if(!this.active||generation!==this.generation)return false;this.loading=false;this.failed=!ready;if(ready){this.controller.setActive(true);this.container.classList.remove('is-loading');this.status.hidden=true;}this.updateControls();return ready;
  }
  showError(error){this.loading=false;this.failed=true;this.status.hidden=false;this.status.querySelector('span').textContent=this.roomDefinition.title+'を表示できませんでした。通信環境を確認して、もう一度お試しください。';this.status.querySelector('button').hidden=false;this.badge.hidden=true;this.updateControls();this.onError(error);}
- deactivate(){this.active=false;this.generation++;this.controller?.setActive(false);this.controller?.cancelPendingLoad();this.loading=false;this.panel.hidden=true;this.badge.hidden=true;this.status.hidden=true;this.container.remove();}
+ deactivate(){this.active=false;this.generation++;this.controller?.setActive(false);this.controller?.cancelPendingLoad();this.loading=false;this.panel.hidden=true;this.badge.hidden=true;this.status.hidden=true;this.topViewButton.hidden=true;this.container.remove();}
  getDiagnostics(){return {active:this.active,ready:this.ready,loading:this.loading,failed:this.failed,generation:this.generation,view:this.controller?.getDiagnostics()||null};}
- destroy(){this.deactivate();this.controller?.destroy();this.panel.remove();this.badge.remove();this.container.replaceChildren();}
+ destroy(){this.deactivate();this.controller?.destroy();this.panel.remove();this.badge.remove();releasePaintedLabels(this.container);this.container.replaceChildren();}
 }
 
 // Additional interiors share one UI/controller to bound WebGL contexts.

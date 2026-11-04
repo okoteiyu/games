@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "R213",
+  "revision": "R240",
   "id": "outdoor",
   "title": "おこていゆハウスの敷地",
   "floor": "outdoor",
@@ -326,13 +326,13 @@
   ],
   "model": {
     "url": "room.glb",
-    "bytes": 5374304,
-    "sha256": "a0d832b0dbfd0f16e68720caf178624b12efa2db9d70f59098fd92d0475a8735"
+    "bytes": 6146988,
+    "sha256": "2abe526efe2f22f1fef82e7aa9f98b0f82012200db2c2dac33327658d5c879a2"
   },
   "appearance": {
     "surfaces": "embedded original image PBR color/normal/roughness-metallic",
-    "textureSetCount": 8,
-    "textureImageCount": 24,
+    "textureSetCount": 9,
+    "textureImageCount": 25,
     "principalHouseWindowSides": [
       "east"
     ],
@@ -398,7 +398,7 @@
     "parcelLocker": true,
     "securityAppearanceOnly": true,
     "roadClearanceRevision": "R210-site-frontage-only",
-    "geometryReuse": "Existing R210 site meshes and PBR retained; R213 front-wall Japanese lettering added.",
+    "geometryReuse": "Original site/structure retained; R240 appearance zones and fine facade-only trim added.",
     "outsideScopeBackgroundOnly": true,
     "defaultCameraView": "warehouse south front from the street",
     "houseFrontLettering": {
@@ -432,10 +432,50 @@
         ]
       },
       "dimensionsAreArtProductionValues": true
+    },
+    "facadeDesign": {
+      "revision": "R240",
+      "house": {
+        "upper": "warm ivory mineral plaster #E5DDCB",
+        "lower": "muted sage greige stone #919C91",
+        "accent": "embedded original oak PBR, narrow entry/corner battens",
+        "details": [
+          "floor reveal",
+          "fine stone courses",
+          "corner edges"
+        ],
+        "letteringGeometryUnchanged": true
+      },
+      "warehouse": {
+        "upper": "warm mineral grey #D2D4C8",
+        "lower": "slate #677D78",
+        "details": [
+          "panel bays",
+          "portal oak margins",
+          "thin horizontal joints"
+        ]
+      },
+      "perimeter": "limestone upper / stone plinth with shallow course joints",
+      "preserves": [
+        "shared layout/structural footprints",
+        "roof forms/heights",
+        "east-only windows",
+        "security entries/shutters/readers",
+        "lettering",
+        "ground and front-road-only scope"
+      ],
+      "dimensionsAreArtProductionValues": true,
+      "exportTextures": {
+        "existingUnchangedPayloadCount": 22,
+        "reusedOriginalOakImages": 3,
+        "totalEmbeddedImages": 25,
+        "unusedBaseColorImagesPruned": 2,
+        "allMaterialTexturesEmbedded": true
+      }
     }
   },
   "animationCount": 0,
-  "meshBatchCount": 60,
+  "meshBatchCount": 68,
   "source": "private editable Blender scene and original procedural PBR texture source",
   "status": "ready",
   "previews": [
@@ -443,18 +483,18 @@
       "url": "preview.webp",
       "width": 960,
       "height": 960,
-      "bytes": 14928,
-      "sha256": "a312640bf94be29e570d5310c82f76d932c775d7c4627b054614059c47c8e739",
+      "bytes": 17284,
+      "sha256": "34da4882f2e96ce14334ee2d55b6e39c81f8075ab7b631673ac13570e0dea456",
       "camera": "Outdoor Entry Camera"
     }
   ],
   "geometryDiagnostics": {
-    "uniqueGltfMeshes": 60,
-    "meshInstances": 60,
-    "uniqueVertices": 116266,
-    "uniqueTriangles": 83170,
-    "embeddedImageCount": 24,
-    "embeddedImageBytes": 1100809,
+    "uniqueGltfMeshes": 68,
+    "meshInstances": 68,
+    "uniqueVertices": 132333,
+    "uniqueTriangles": 91258,
+    "embeddedImageCount": 25,
+    "embeddedImageBytes": 1296701,
     "dimensionsAreArtProductionValues": true
   },
   "threeDScope": {

@@ -20,3 +20,15 @@
 
 .analysis-room-scene canvas[data-camera-mode="inspection"]{cursor:pointer;}
 .analysis-room-badge strong{min-inline-size:0;overflow-wrap:anywhere;}
+
+/* The exterior keeps its doorway view; this small second view is opt-in. */
+.analysis-room-topview{position:absolute;z-index:2;inset-inline-start:12px;inset-block-start:52px;display:flex;align-items:center;justify-content:center;gap:5px;min-block-size:40px;max-inline-size:calc(100% - 24px);padding:6px 9px;border:1px solid #b8ab8c;border-radius:11px 5px;background:#f8f5e8;box-shadow:0 2px 7px #35482b26,inset 0 1px #fff;color:#68734f;font:700 12px/18px system-ui,sans-serif;cursor:pointer;touch-action:manipulation;}
+.analysis-room-topview>svg{flex:none;inline-size:20px;block-size:20px;fill:none;stroke:currentColor;stroke-width:1.45;stroke-linejoin:round;stroke-linecap:round;}
+.analysis-room-topview__label{position:relative;display:block;inline-size:4.1em;block-size:18px;overflow:hidden;}
+.analysis-room-topview__label>.painted-label-image{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:fill;}
+.analysis-room-topview__label>.house-label-text{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+.analysis-room-topview[aria-pressed="true"]{border-color:#899965;box-shadow:0 2px 7px #35482b26,inset 0 0 0 1px #d4ddbc;}
+.analysis-room-topview:hover:not(:disabled){border-color:#8d9b6b;}.analysis-room-topview:focus-visible{outline:2px solid #899d5c;outline-offset:2px;}.analysis-room-topview:disabled{opacity:.5;cursor:default;}
+.analysis-room-topview[hidden],[data-story-exploring="true"] .analysis-room-topview,[data-conversation-active="true"] .analysis-room-topview{display:none!important;}
+.main-view[data-message-visible="true"] .analysis-room-topview{visibility:hidden;}
+@media(max-height:540px){.analysis-room-topview{inset-inline-start:9px;inset-block-start:45px;}}
