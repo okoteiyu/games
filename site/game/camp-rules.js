@@ -9,7 +9,7 @@ export const CAMP_SUPPLIES=Object.freeze({
  food:supply('food','携帯食料',1,2,true,'1個で1日分の行動ができる。「あなた」の分は消費しない。何個でも持ち込める。','#d4ab67','▣'),
  flashlight:supply('flashlight','懐中電灯',1,2,false,'洞窟のルートを進める。1日の活動時間が16時間になる。','#dfc770','☼'),
  phone:supply('phone','スマホ',1,1,false,'出発時に使う穏やかポイントを2減らす。','#8da9bb','▯'),
- battery:supply('battery','バッテリー',1,1,true,'出発時に使う穏やかポイントをさらに1減らす。最大4個まで持ち込める。','#7f9c8f','▰',1,4),
+ battery:supply('battery','バッテリー',1,1,true,'1個につき、出発時に使う穏やかポイントをさらに1減らす。最大4個まで持ち込める。','#7f9c8f','▰',1,4),
  survival_kit:supply('survival_kit','サバイバルキット',2,3,false,'日付が変わるたび、30%の確率で行動可能日数が1日増える。','#92aa78','✦'),
  medical_kit:supply('medical_kit','医療キット',2,2,false,'イベント終了時、HPが半分以下なら最大HPの30%を回復する。','#cb9598','＋'),
  compass:supply('compass','コンパス',1,1,false,'各エリアを進む時間を0.6倍にする。','#9eabbd','◇'),
@@ -54,7 +54,7 @@ export function campBagSummary(placements){
  const bag=validateCampBag(placements),counts=Object.fromEntries(Object.keys(CAMP_SUPPLIES).map(id=>[id,0]));let occupied=0;
  for(const placement of bag){counts[placement.supplyId]++;const item=CAMP_SUPPLIES[placement.supplyId];occupied+=item.width*item.height;}
  const runtime=campRuntimeSupplies(counts),toolUses=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,runtime[id]]));
- return {counts,toolUses,occupied,capacity:BAG_WIDTH*BAG_HEIGHT,foodDays:Math.min(CAMP_MAX_DAYS,counts.food),calmCost:7-(counts.phone?2:0)-(counts.battery?1:0),activityHoursPerDay:counts.flashlight?16:14,injuryProbabilityMultiplier:(counts.gloves ? .7 : 1)*(counts.goggles ? .7 : 1)};
+ return {counts,toolUses,occupied,capacity:BAG_WIDTH*BAG_HEIGHT,foodDays:Math.min(CAMP_MAX_DAYS,counts.food),calmCost:7-(counts.phone?2:0)-counts.battery,activityHoursPerDay:counts.flashlight?16:14,injuryProbabilityMultiplier:(counts.gloves ? .7 : 1)*(counts.goggles ? .7 : 1)};
 }
 export function campDepartureCost(placements){return campBagSummary(placements).calmCost;}
 export function createCampProgress(){return {version:1,bagLayoutVersion:2,bags:[[],[],[]],unpackedBags:[[],[],[]],adjustedBags:[false,false,false],selectedBag:0,discovered:[CAMP_WORLD.startId],expeditions:0};}
