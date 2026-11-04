@@ -21,7 +21,7 @@ export class CampExpedition{
   this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=false;
   const supplies=campRuntimeSupplies(summary.counts);supplies.food--;
   const supplyUnits=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,'uses']));
-  this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null};
+  this.state={worldId:world.id,startId,destination,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null,targetDetourDistance:null};
  }
  random(){const value=Number(this.rng());if(!Number.isFinite(value))throw new TypeError('キャンプの乱数が正しくありません。');return Math.max(0,Math.min(1-Number.EPSILON,value));}
  pick(items){return items.length?items[Math.floor(this.random()*items.length)]:null;}
@@ -59,7 +59,7 @@ export class CampExpedition{
   const current=this.nodeIndex.get(this.state.nodeId),distances=this.goalDistances??this.depths,distance=distances.get(current.id);
   return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>{
    const nextDistance=node?distances.get(node.id):undefined;
-   const direction=Number.isFinite(nextDistance)&&Number.isFinite(distance)&&(this.goalDistances?nextDistance<=distance:nextDistance>=distance);
+   const direction=Number.isFinite(nextDistance)&&Number.isFinite(distance)&&(this.goalDistances||nextDistance>=distance);
    return node&&!this.tripReached.has(node.id)&&direction&&canTraverseCampNode(node,this.state.supplies)&&(ignoreTime||this.hasTimeFor(node));
   });
  }
@@ -77,11 +77,28 @@ export class CampExpedition{
   return Infinity;
  }
  unknownWithinFour(candidate){return Number.isFinite(this.unknownDistanceWithinFour(candidate));}
+ targetReturnNode(){
+  if(!this.goalDistances||this.state.targetDetourDistance===null||this.activePath.length<2)return null;
+  const parent=this.nodeIndex.get(this.activePath.at(-2)),distance=this.goalDistances.get(this.state.nodeId),nextDistance=parent?this.goalDistances.get(parent.id):undefined;
+  return parent&&Number.isFinite(distance)&&Number.isFinite(nextDistance)&&nextDistance<=distance&&this.canRetraceNode(parent)&&this.hasTimeFor(parent)?parent:null;
+ }
  chooseNextNode(){
-  let candidates=this.candidateNodes();if(!candidates.length)return null;
-  // Targeted travel never consults map discovery. Exploration alone follows
-  // the first hop of a nearest reachable unknown point within four moves.
-  if(!this.goalDistances){const options=candidates.map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));if(Number.isFinite(nearest))candidates=options.filter(option=>option.distance===nearest).map(option=>option.node);}
+  let candidates=this.candidateNodes();
+  if(this.goalDistances){
+   // The two direction groups get equal probability, independently of their
+   // sizes. If a group has no legal move, use the other rather than get stuck.
+   // After a detour, the actual parent may be a toward/same-distance return;
+   // historical visits and arbitrary already-reached shortcuts stay excluded.
+   const parent=this.targetReturnNode();if(parent)candidates.push(parent);
+   if(!candidates.length)return null;
+   const distance=this.goalDistances.get(this.state.nodeId),toward=candidates.filter(node=>this.goalDistances.get(node.id)<=distance),away=candidates.filter(node=>this.goalDistances.get(node.id)>distance),preferToward=this.random()<.5;
+   candidates=preferToward?(toward.length?toward:away):(away.length?away:toward);
+   return this.pick(candidates);
+  }
+  if(!candidates.length)return null;
+  // Exploration alone follows the first hop of a nearest reachable unknown
+  // point within four moves, with the original RNG behavior unchanged.
+  const options=candidates.map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));if(Number.isFinite(nearest))candidates=options.filter(option=>option.distance===nearest).map(option=>option.node);
   return this.pick(candidates);
  }
  guidedMove(){
@@ -101,7 +118,7 @@ export class CampExpedition{
   if(this.state.phase!=='travel'||this.state.nextNodeId)return;
   if(this.destination.nodeId===this.state.nodeId){this.finalize('destination');return;}
   const guided=this.guidedMove();if(guided?.unavailable){this.finalize('compass-route-unavailable');return;}
-  let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??'forward';
+  let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??(this.goalDistances&&next&&this.tripReached.has(next.id)?'backtrack':'forward');
   if(!next){
    // Backtracking is the sole allowed revisit. It retraces the active ancestry
    // one edge at a time. Durable uses are included in the outward passage,
@@ -131,6 +148,11 @@ export class CampExpedition{
   const newlyDiscovered=!this.visited.has(node.id);
   if(!backtracking)for(const [id,amount]of Object.entries(campTraversalConsumption(node)))this.consume(id,amount);
   s.nodeId=node.id;s.nextNodeId=null;s.crossingHours=0;s.crossingHoursElapsed=0;s.travelProgress=0;s.distance++;s.movementMode=null;
+  if(this.goalDistances){
+   const before=this.goalDistances.get(fromNodeId),after=this.goalDistances.get(node.id);
+   if(!backtracking&&after>before&&s.targetDetourDistance===null)s.targetDetourDistance=before;
+   if(s.targetDetourDistance!==null&&after<=s.targetDetourDistance)s.targetDetourDistance=null;
+  }
   if(backtracking)this.activePath.pop();else{this.activePath.push(node.id);this.tripReached.add(node.id);}
   this.visited.add(node.id);this.route.push(node.id);this.emit('arrive',{terrain:node.terrain,newlyDiscovered,fromNodeId,backtracking});
   // Separate draws allow a weather/wildlife event and a battle at one vertex.

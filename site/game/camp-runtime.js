@@ -3,6 +3,7 @@ import {CampUI} from './camp-ui.js';
 import {CampNightView} from './camp-night.js';
 import {chooseCampEncounter,chooseCampGuardianLevel} from './camp-encounters.js';
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode,getCampDestinationAt} from './camp-world.js';
+import {isCampDestinationUnlocked} from './camp-destination-access.js';
 import {getCampRegion,getCampRegionAt} from './camp-regions.js';
 import {CREATURES,playerStats} from './game-session.js';
 import {isBuildingVisitScene} from './interior-rules.js';
@@ -67,6 +68,7 @@ export class CampRuntime{
  emit(event){this.entries.push(event);if(this.entries.length>250)this.entries.shift();this.game.onCampEvent?.(event);}
  requestStart({bag,destination='none'}={}){
   const g=this.game;if(!this.canDepart()||g.isPaused()||document.hidden)return {ok:false,message:'ホーム画面で、支度ができてから出発しよう。'};
+  if(!isCampDestinationUnlocked(destination,g.session.state.camp.discovered))return {ok:false,reason:'destination-unvisited',message:'まだ訪れていない目標地点は選べません。まずは探索で見つけよう。'};
   let engine;try{engine=new CampExpedition({bag,destination,playerLevel:g.session.player.level,discovered:g.session.state.camp.discovered,rng:()=>g.session.random(),onEvent:event=>this.onEvent(event)});}catch(error){return {ok:false,message:error.message};}
   const result=g.session.requestCamp({bag,destination,relaxStreak:g.house.getConsecutiveRelaxActions(),spendCalmPoints:count=>g.house.spendCalmPoints(count)});
   if(!result.ok)return {...result,message:result.reason==='not-enough-calm'?'穏やかポイントが足りません。':'今はキャンプに出発できません。'};
@@ -80,7 +82,11 @@ export class CampRuntime{
  onEvent(event){
   if(!this.active)return;this.emit(event);
   if(event.type==='heal'){this.hp=event.hp;this.maxHp=event.maxHp;this.updateHealth();}
-  if(event.type==='arrive'){this.setCampLocation(event.nodeId);this.checkpoint();}
+  if(event.type==='arrive'){
+   const destination=getCampDestinationAt(event.nodeId),wasUnlocked=destination&&isCampDestinationUnlocked(destination.id,this.game.session.state.camp.discovered);
+   this.setCampLocation(event.nodeId);this.checkpoint();
+   if(destination&&!wasUnlocked&&isCampDestinationUnlocked(destination.id,this.game.session.state.camp.discovered))this.emit({type:'destination-discovered',destinationId:destination.id,name:destination.name,nodeId:event.nodeId,day:event.day,activityHours:event.activityHours});
+  }
   else if(event.type==='encounter')this.startEncounter(event);
   else if(event.type==='night')this.startNight();
   else if(event.type==='final')this.startFinal();
@@ -102,7 +108,7 @@ export class CampRuntime{
  }
  startFinal(){
   const g=this.game;if(!this.active||this.finalStarted||this.finalIntro||!this.engine)return false;
-  const s=this.engine.snapshot(),actualDestination=getCampDestinationAt(s.nodeId),id=actualDestination?.guardianSpeciesId||'great_fairy',species=CREATURES[id];
+  const s=this.engine.snapshot(),actualDestination=getCampDestinationAt(s.nodeId),targetReached=s.finalReason==='destination'&&actualDestination?.id===s.destination,id=targetReached?actualDestination.guardianSpeciesId:'great_fairy',species=CREATURES[id];
   if(s.phase!=='final')return false;
   if(!species){this.engine.abort('unavailable');g.toast('最終地点のモデルを準備できませんでした。ホームへ戻れます。');this.ui.show(this.engine.snapshot());return;}
   const destination=actualDestination||CAMP_DESTINATIONS[s.destination],arrival=s.finalReason==='destination',place=destination&&destination.id!=='none'?destination.name:'目標地点';

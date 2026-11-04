@@ -8,6 +8,7 @@ import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superC
 import {currentTimeOfDay} from './world-time.js';
 import {createCampProgress,normalizeCampProgress,validateCampBag,campDepartureCost} from './camp-rules.js';
 import {CAMP_DESTINATIONS} from './camp-world.js';
+import {isCampDestinationUnlocked} from './camp-destination-access.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,validateSupportSelection,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 export {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,supportSelectionChange,validateSupportSelection,SUPPORT_SLOT_LIMIT,SUPPORT_TAG_LABELS,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 import {getRegionAt} from './patrol-map.js';
@@ -282,6 +283,7 @@ export class GameSession{
   if(!this.state.visitorName)return {ok:false,reason:'visitor-name-required'};
   if(this.state.pendingAngerEvent)return {ok:false,reason:'anger-event-pending'};
   if(!Object.hasOwn(CAMP_DESTINATIONS,destination))return {ok:false,reason:'unknown-destination'};
+  if(!isCampDestinationUnlocked(destination,this.state.camp.discovered))return {ok:false,reason:'destination-unvisited'};
   let normalized;try{normalized=validateCampBag(bag);}catch{return {ok:false,reason:'invalid-bag'};}
   if(!normalized.some(item=>item.supplyId==='food'))return {ok:false,reason:'food-required'};
   const calmPointsCost=campDepartureCost(normalized);
