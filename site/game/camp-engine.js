@@ -26,10 +26,11 @@ export class CampExpedition{
  random(){const value=Number(this.rng());if(!Number.isFinite(value))throw new TypeError('キャンプの乱数が正しくありません。');return Math.max(0,Math.min(1-Number.EPSILON,value));}
  pick(items){return items.length?items[Math.floor(this.random()*items.length)]:null;}
  distances(origin){const out=new Map([[origin,0]]),queue=[origin];for(let i=0;i<queue.length;i++)for(const id of this.nodeIndex.get(queue[i]).neighbors)if(!out.has(id)){out.set(id,out.get(queue[i])+1);queue.push(id);}return out;}
- context({hp,maxHp,power}={}){
+ context({hp,maxHp,power,playerLevel}={}){
   if(Number.isFinite(maxHp)&&maxHp>0)this.state.maxHp=maxHp;
   if(Number.isFinite(hp)&&hp>=0)this.state.hp=Math.min(hp,this.state.maxHp??hp);
   if(Number.isFinite(power)&&power>=0)this.state.power=power;
+  if(Number.isInteger(playerLevel)&&playerLevel>=1&&playerLevel<=106)this.state.playerLevel=playerLevel;
  }
  emit(type,payload={}){
   const event={type,day:this.state.day,activityHours:this.state.activityHours,nodeId:this.state.nodeId,...payload};
@@ -47,6 +48,12 @@ export class CampExpedition{
   const cost=this.crossingHoursFor(node,{counts,rain});
   // Even perfect survival-kit draws cannot create a sixteenth activity day.
   return cost<=maxHours+EPS&&(cost<=hours+EPS||Boolean(counts.survival_kit&&this.state.day<CAMP_MAX_DAYS));
+ }
+ canRetraceNode(node){
+  // A paid outward passage includes its return. Exhausted durable tools cannot
+  // strand the party on its actual ancestry path; flashlight gates still apply.
+  const counts={...this.state.supplies};for(const id of CAMP_DURABLE_TOOL_IDS)counts[id]=Math.max(1,counts[id]||0);
+  return canTraverseCampNode(node,counts);
  }
  candidateNodes({ignoreTime=false}={}){
   const current=this.nodeIndex.get(this.state.nodeId),distances=this.goalDistances??this.depths,distance=distances.get(current.id);
@@ -97,12 +104,13 @@ export class CampExpedition{
   let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??'forward';
   if(!next){
    // Backtracking is the sole allowed revisit. It retraces the active ancestry
-   // one edge at a time and uses the destination's ordinary conditions/costs.
+   // one edge at a time. Durable uses are included in the outward passage,
+   // while destination terrain, time, rain and nonconsumed gates still apply.
    const parentId=this.activePath.length>1?this.activePath[this.activePath.length-2]:null;
    next=parentId?this.nodeIndex.get(parentId):null;movementMode='backtrack';
    if(!next){this.finalize(this.candidateNodes({ignoreTime:true}).length?'supplies':'no-route');return;}
    if(this.goalDistances&&!(this.goalDistances.get(next.id)<=this.goalDistances.get(this.state.nodeId))){this.finalize('no-route');return;}
-   if(!canTraverseCampNode(next,this.state.supplies)){this.finalize('return-tools');return;}
+   if(!this.canRetraceNode(next)){this.finalize('return-tools');return;}
    if(!this.hasTimeFor(next)){this.finalize('supplies');return;}
   }
   const hours=this.crossingHoursFor(next),knownHours=this.remainingActivityHours();
@@ -115,13 +123,13 @@ export class CampExpedition{
  consume(id,amount=1){if(amount<=0)return;const used=Math.min(this.state.supplies[id]||0,amount);if(used<=0)return;this.state.supplies[id]-=used;this.emit('supply',{supplyId:id,amount:used,remaining:this.state.supplies[id],unit:isCampDurableTool(id)?'uses':'items'});}
  arrive(){
   const s=this.state,node=this.nodeIndex.get(s.nextNodeId);if(!node){this.finalize('no-route');return;}
-  if(!canTraverseCampNode(node,s.supplies)){this.finalize('supplies');return;}
   const fromNodeId=s.nodeId,backtracking=s.movementMode==='backtrack';
   if(backtracking){
    if(this.activePath.length<2||this.activePath.at(-1)!==fromNodeId||this.activePath.at(-2)!==node.id){this.finalize('no-route');return;}
   }else if(this.tripReached.has(node.id)){this.finalize('no-route');return;}
+  if(!(backtracking?this.canRetraceNode(node):canTraverseCampNode(node,s.supplies))){this.finalize('supplies');return;}
   const newlyDiscovered=!this.visited.has(node.id);
-  for(const [id,amount]of Object.entries(campTraversalConsumption(node)))this.consume(id,amount);
+  if(!backtracking)for(const [id,amount]of Object.entries(campTraversalConsumption(node)))this.consume(id,amount);
   s.nodeId=node.id;s.nextNodeId=null;s.crossingHours=0;s.crossingHoursElapsed=0;s.travelProgress=0;s.distance++;s.movementMode=null;
   if(backtracking)this.activePath.pop();else{this.activePath.push(node.id);this.tripReached.add(node.id);}
   this.visited.add(node.id);this.route.push(node.id);this.emit('arrive',{terrain:node.terrain,newlyDiscovered,fromNodeId,backtracking});
@@ -131,7 +139,7 @@ export class CampExpedition{
    else{const used=s.supplies.food>0?1:0;this.consume('food',used);this.emit('wildlife',{consumedFood:used});this.medical('wildlife');}
   }
   if(this.destination.nodeId===node.id){this.finalize('destination');return;}
-  if(this.random()<.5){s.phase='encounter';this.emit('encounter',{playerLevel:s.playerLevel,levelRange:{min:Math.max(1,s.playerLevel-8),max:Math.max(1,s.playerLevel-2)}});return;}
+  if(this.random()<.5){s.phase='encounter';this.emit('encounter',{playerLevel:s.playerLevel,levelRange:{min:s.playerLevel-5,max:s.playerLevel+3}});return;}
   if(s.dayHoursRemaining<=EPS)this.endDay();else this.planNext();
  }
  tick(deltaSeconds,context={}){

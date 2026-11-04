@@ -1,7 +1,7 @@
 import {CampExpedition} from './camp-engine.js';
 import {CampUI} from './camp-ui.js';
 import {CampNightView} from './camp-night.js';
-import {chooseCampEncounter} from './camp-encounters.js';
+import {chooseCampEncounter,chooseCampGuardianLevel} from './camp-encounters.js';
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode} from './camp-world.js';
 import {getCampRegion,getCampRegionAt} from './camp-regions.js';
 import {CREATURES,playerStats} from './game-session.js';
@@ -42,7 +42,11 @@ export class CampRuntime{
  }
  battleContext(nodeId){const context=this.nodeContext(nodeId);return {region:'camp',campRegionId:context.regionId,campRegionName:context.regionName,campTerrainId:context.terrainId,campNodeId:context.nodeId,campDestinationId:context.destinationId,timeOfDay:'day'};}
  setCampLocation(nodeId){this.game.setLocation(this.nodeContext(nodeId).regionName);}
- refresh(){this.updateHealth();const g=this.game,key=JSON.stringify([g.scene,g.house.getConsecutiveRelaxActions(),g.session.state.camp,g.session.state.pendingAngerEvent]);if(this.preparationKey!==key){this.preparationKey=key;this.ui.refresh();}}
+ refresh(){this.updateHealth();this.updateBattleStatus();const g=this.game,key=JSON.stringify([g.scene,g.house.getConsecutiveRelaxActions(),g.session.state.camp,g.session.state.pendingAngerEvent]);if(this.preparationKey!==key){this.preparationKey=key;this.ui.refresh();}}
+ updateBattleStatus(){
+  const g=this.game,battle=g.session.state.battle,ui=g.battleUI;
+  this.ui.setBattleActive(Boolean(this.active&&!this.finalStarted&&g.scene==='battle'&&battle?.kind==='camp'&&ui.active&&ui.embedded&&!this.actionArea.hidden&&!ui.panel.hidden));
+ }
  updateHealth(){
   const battle=this.game.session.state.battle,finalBattle=Boolean(this.active&&(this.finalStarted||battle?.kind==='camp-final'));
   this.actionArea.dataset.finalBattle=String(finalBattle);this.health.hidden=!this.active||finalBattle;
@@ -87,14 +91,14 @@ export class CampRuntime{
   if(this.finalIntro){this.presentFinalIntroduction();return true;}
   if(this.game.scene==='camp-night'){this.night.tick(dt);return true;}
   if(this.game.scene!=='camp')return false;
-  const state=this.engine.tick(dt,{hp:this.hp,maxHp:this.maxHp});this.hp=state.hp;this.maxHp=state.maxHp;this.ui.update(state);this.updateHealth();return true;
+  const state=this.engine.tick(dt,{hp:this.hp,maxHp:this.maxHp,playerLevel:this.game.session.player.level});this.hp=state.hp;this.maxHp=state.maxHp;this.ui.update(state);this.updateHealth();return true;
  }
  startNight(){const g=this.game;if(!this.engine||g.scene!=='camp')return;g.scene='camp-night';this.setStatus('night');this.ui.hide();g.view.clear();this.night.start({player:g.session.player});g.sync();this.checkpoint();}
  wake(){const g=this.game;if(!this.active||g.scene!=='camp-night'||this.engine?.snapshot().phase!=='night')return;this.night.hide();g.view.clear();g.scene='camp';this.setCampLocation();this.setStatus();this.ui.show(this.engine.snapshot());this.engine.resumeAfterNight();this.ui.update(this.engine.snapshot());this.checkpoint();g.sync();}
  startEncounter(event){
   const g=this.game,context=this.nodeContext(event?.nodeId),enemy=chooseCampEncounter(g.session.player.level,CREATURES,()=>g.session.random(),context);
   if(!enemy){this.engine.resolveEncounter({won:true,hp:this.hp,maxHp:this.maxHp});return;}
-  this.statusPanel.hidden=true;this.ui.update(this.engine.snapshot());g.startBattle(enemy,{encounterType:'camp',campEmbedded:true,...this.battleContext(context.nodeId),playerHp:this.hp});this.updateHealth();
+  this.statusPanel.hidden=true;this.ui.update(this.engine.snapshot());g.startBattle(enemy,{encounterType:'camp',campEmbedded:true,...this.battleContext(context.nodeId),playerHp:this.hp});this.updateHealth();this.updateBattleStatus();
  }
  startFinal(){
   const g=this.game;if(!this.active||this.finalStarted||this.finalIntro||!this.engine)return false;
@@ -116,8 +120,8 @@ export class CampRuntime{
    pending.waitingForRead=true;g.say({...pending.messages[pending.index],kind:'narration',category:'narration',speaker:'ナレーション',campFinalIntro:{serial:pending.serial,index:pending.index}});return true;
   }
   const s=this.engine.snapshot(),id=pending.speciesId,species=CREATURES[id];
-  this.finalIntro=null;this.finalStarted=true;this.updateHealth();
-  const level=Math.max(species.levelBand?.min||1,Math.min(species.levelBand?.max||106,g.session.player.level+3));
+  this.finalIntro=null;this.finalStarted=true;this.updateHealth();this.updateBattleStatus();
+  const level=chooseCampGuardianLevel(g.session.player.level,species,()=>g.session.random());
   this.emit({type:'guardian',name:species.name,nodeId:s.nodeId,day:s.day,activityHours:s.activityHours});
   this.ui.hide();this.night.hide();this.statusPanel.hidden=true;
   g.startBattle({speciesId:id,level,id:'camp-guardian'},{encounterType:'camp-final',...this.battleContext(s.nodeId),playerHp:this.hp});return true;
@@ -137,8 +141,9 @@ export class CampRuntime{
   // Commit real rewards while no battle exists: resolving the journey may
   // synchronously start its final battle and close the checkpoint window.
   this.checkpoint();
+  this.engine.context({hp:this.hp,maxHp:this.maxHp,playerLevel:g.session.player.level});
   this.ui.show(this.engine.snapshot());this.engine.resolveEncounter({won:snapshot.result==='win',hp:this.hp,maxHp:this.maxHp});
-  const current=this.engine.snapshot();this.hp=current.hp;this.maxHp=current.maxHp;this.ui.update(current);this.updateHealth();this.checkpoint();this.settling=false;g.sync();return true;
+  const current=this.engine.snapshot();this.hp=current.hp;this.maxHp=current.maxHp;this.ui.update(current);this.updateHealth();this.updateBattleStatus();this.checkpoint();this.settling=false;g.sync();return true;
  }
  get canCheckpoint(){return this.active&&['camp','camp-night'].includes(this.game.scene)&&!this.game.session.state.battle;}
  returnHome(){

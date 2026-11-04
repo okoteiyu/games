@@ -21,15 +21,34 @@ export function campHabitatMatches(creature,context={}){
  if(creature.campHabitats===undefined)return true;
  return validateCampHabitats(creature.campHabitats).some(entry=>entry.destinationId!==undefined?entry.destinationId===context.destinationId:entry.regionId===context.regionId&&entry.terrainIds.includes(context.terrainId));
 }
-/** Current random encounters remain normal species in their native level bands. */
+const validatePlayerLevel=level=>{if(!Number.isInteger(level)||level<1||level>106)throw new RangeError('キャンプのレベルが正しくありません。');};
+function nativeBand(creature){
+ if(!creature||typeof creature!=='object')throw new TypeError('キャンプの珍生物が正しくありません。');
+ const min=creature.levelBand?.min??1,max=creature.levelBand?.max??106;
+ if(!Number.isSafeInteger(min)||!Number.isSafeInteger(max)||min<1||max<min)throw new RangeError('珍生物の固有レベル帯が正しくありません。');
+ return {min,max};
+}
+const clampToBand=(level,band)=>Math.max(band.min,Math.min(band.max,level));
+function randomValue(rng){
+ if(typeof rng!=='function')throw new TypeError('キャンプの乱数が正しくありません。');
+ const n=Number(rng());if(!Number.isFinite(n))throw new TypeError('キャンプの乱数が正しくありません。');
+ return Math.min(1-Number.EPSILON,Math.max(0,n));
+}
+/** Draw from the player-relative interval, then clamp to the species' band.
+ * min/max describe possible final levels; rawMin/rawMax retain the draw range. */
 export function campEncounterCandidates(playerLevel,creatures,context={}){
- if(!Number.isInteger(playerLevel)||playerLevel<1||playerLevel>106)throw new RangeError('キャンプのレベルが正しくありません。');
- const minimum=Math.max(1,playerLevel-8),maximum=Math.max(1,playerLevel-2);
- return Object.values(creatures).filter(creature=>creature.category==='normal'&&campHabitatMatches(creature,context)).map(creature=>({creature,min:Math.max(minimum,creature.levelBand?.min??1),max:Math.min(maximum,creature.levelBand?.max??106)})).filter(candidate=>candidate.min<=candidate.max);
+ validatePlayerLevel(playerLevel);
+ const regionId=Object.hasOwn(CAMP_REGIONS,context.regionId)?context.regionId:'wilds',rawMin=playerLevel-5,rawMax=playerLevel+3;
+ return Object.values(creatures).filter(creature=>(creature.category==='normal'||regionId!=='wilds'&&creature.category==='threat')&&campHabitatMatches(creature,context)).map(creature=>{const band=nativeBand(creature);return {creature,min:clampToBand(rawMin,band),max:clampToBand(rawMax,band),rawMin,rawMax};});
 }
 export function chooseCampEncounter(playerLevel,creatures,rng=Math.random,context={}){
  const candidates=campEncounterCandidates(playerLevel,creatures,context);if(!candidates.length)return null;
- const random=()=>{const n=Number(rng());if(!Number.isFinite(n))throw new TypeError('キャンプの乱数が正しくありません。');return Math.min(1-Number.EPSILON,Math.max(0,n));};
- const candidate=candidates[Math.floor(random()*candidates.length)];
- return {speciesId:candidate.creature.id,level:candidate.min+Math.floor(random()*(candidate.max-candidate.min+1)),id:'camp-opponent'};
+ const candidate=candidates[Math.floor(randomValue(rng)*candidates.length)],rawLevel=candidate.rawMin+Math.floor(randomValue(rng)*(candidate.rawMax-candidate.rawMin+1));
+ return {speciesId:candidate.creature.id,level:clampToBand(rawLevel,nativeBand(candidate.creature)),id:'camp-opponent'};
+}
+/** A guardian is selected separately; one inclusive +3..+6 level draw occurs
+ * when its final battle starts, with the same native-band clamping policy. */
+export function chooseCampGuardianLevel(playerLevel,creature,rng=Math.random){
+ validatePlayerLevel(playerLevel);const band=nativeBand(creature),rawLevel=playerLevel+3+Math.floor(randomValue(rng)*4);
+ return clampToBand(rawLevel,band);
 }
