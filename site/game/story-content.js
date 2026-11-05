@@ -39,7 +39,7 @@ export const STORY_CHAPTERS=Object.freeze([
      scene("ch0-03-09-invite","house","おこていゆも「あなた」を気に入ったみたいだし、ここに住んでもらって、活動に協力してもらうことにしましょう。",{"expression": "happy", "speaker": "管理人A", "sourceSceneId": "ch0-03-09", "portrait": "manager_a", "category": "conversation"}),
      {"id":"ch0-03-home","type":"choice","sourceSceneId":"ch0-03-home","prompt":"あなたの返事を、おこていゆも待っている。","options":[{"label":"よよよよろしくお願いします。"},{"label":"よ、よろしくお願いします。"}]},
      scene("ch0-03-10","computer-room","あなたはおこていゆハウス 2F の住人になった。",{"sourceSceneId": "ch0-03-10"}),
-     {"id":"ch0-register-name","sourceSceneId":"ch0-03-10","type":"registration","stage":"computer-room","text":""},
+     {"id":"ch0-register-name","sourceSceneId":"ch0-03-10","type":"registration","stage":"house","text":""},
      scene("ch0-03-22","house","仕方ないから、協力してもらうか🍀🌀☺️",{"speaker": "", "sourceSceneId": "ch0-03-22", "category": "innerThought"})
     ]
    }
