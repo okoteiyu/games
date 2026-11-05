@@ -42,8 +42,8 @@ export function outdoorMapDrawing({selected=null}={}){
   // Roads are outside the fence; only working approaches interrupt the lawn.
   rect(...streetRect,'#cdd0c8','data-outdoor-feature="street"')+
   rect(...sidewalkRect,'#e3dece','data-outdoor-feature="sidewalk"')+
-  `<path d="M${streetRect[0]} 960h${streetRect[2]}" stroke="#b4b6a7" stroke-width="4"/><path d="M${streetRect[0]} 1040h${streetRect[2]}" stroke="#f4f1df" stroke-width="6" stroke-dasharray="60 44"/>`+
-  text(1670,1092,'住宅街の道',54)+
+  `<path d="M${streetRect[0]} ${streetRect[1]}h${streetRect[2]}" stroke="#b4b6a7" stroke-width="4"/><path d="M${streetRect[0]} ${streetRect[1]+streetRect[3]/2}h${streetRect[2]}" stroke="#f4f1df" stroke-width="6" stroke-dasharray="60 44"/>`+
+  text(1670,streetRect[1]+streetRect[3]*.825,'住宅街の道',54)+
   layout.walkways.map(path=>`<path data-outdoor-path="${path.id}" d="${line(path.points)}" fill="none" stroke="#d8d1bd" stroke-width="${path.width}"/>`).join('')+
   // Thick outer walls and a continuous opaque roof distinguish the enclosed link.
   `<g data-outdoor-feature="enclosed-corridor" data-enclosed="true" data-windows="false"><path data-outdoor-path="warehouse-freight" d="${corridor}" fill="none" stroke="#777f75" stroke-width="${corridorWidth+14}" stroke-linecap="butt" stroke-linejoin="miter"/><path d="${corridor}" fill="none" stroke="#c5c8bd" stroke-width="${corridorWidth}" stroke-linecap="butt" stroke-linejoin="miter"/><path d="${corridor}" fill="none" stroke="#e1e2d6" stroke-width="5" stroke-linecap="butt" stroke-linejoin="miter"/>`+

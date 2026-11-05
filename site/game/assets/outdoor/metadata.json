@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "R240",
+  "revision": "R248",
   "id": "outdoor",
   "title": "おこていゆハウスの敷地",
   "floor": "outdoor",
@@ -8,21 +8,21 @@
   "units": "meters",
   "dimensionsAreArtProductionValues": true,
   "sharedLayoutSource": "outdoor-layout.js",
-  "sharedLayoutSha256": "2aabff27622cd239fdfd03a71dac741c0fb099508c4b8e4eac90bb43b8978672",
+  "sharedLayoutSha256": "ca0322ae85c74f4eef9f7ef17149a497dde217916303e886e0822400f6c01309",
   "room": {
-    "width": 39.07999610900879,
-    "depth": 21.739999771118164,
+    "width": 41.07999801635742,
+    "depth": 23.739999771118164,
     "height": 8.463727340102196,
     "bounds": {
       "min": [
-        -19.539997100830078,
+        -20.539997100830078,
         -0.10999999940395355,
-        -9.339999198913574
+        -10.339999198913574
       ],
       "max": [
-        19.53999900817871,
+        20.540000915527344,
         8.353727340698242,
-        12.40000057220459
+        13.40000057220459
       ]
     }
   },
@@ -31,7 +31,7 @@
     "center": [
       10.8,
       0,
-      7.68
+      8.68
     ],
     "height": 2.3,
     "heroStand": [
@@ -90,21 +90,21 @@
       "role": "terrain",
       "actualBounds": {
         "min": [
-          -19.399999618530273,
+          -20.399999618530273,
           -0.10999999940395355,
-          -9.199999809265137
+          -10.199999809265137
         ],
         "max": [
-          19.399999618530273,
+          20.399999618530273,
           0.0,
-          7.679999351501465
+          8.679999351501465
         ]
       },
       "footprint": [
-        -19.399999618530273,
-        -9.199999809265137,
-        38.79999923706055,
-        16.8799991607666
+        -20.399999618530273,
+        -10.199999809265137,
+        40.79999923706055,
+        18.8799991607666
       ]
     },
     {
@@ -121,14 +121,14 @@
         "max": [
           11.720000267028809,
           0.04600000008940697,
-          9.199999809265137
+          10.199999809265137
         ]
       },
       "footprint": [
         -17.100000381469727,
         3.1999998092651367,
         28.820000648498535,
-        6.0
+        7.0
       ]
     },
     {
@@ -138,20 +138,20 @@
       "role": "street",
       "actualBounds": {
         "min": [
-          -19.399999618530273,
+          -20.399999618530273,
           -0.054999999701976776,
-          7.619999885559082
+          8.619999885559082
         ],
         "max": [
-          19.399999618530273,
+          20.399999618530273,
           0.12999999523162842,
-          12.40000057220459
+          13.40000057220459
         ]
       },
       "footprint": [
-        -19.399999618530273,
-        7.619999885559082,
-        38.79999923706055,
+        -20.399999618530273,
+        8.619999885559082,
+        40.79999923706055,
         4.780000686645508
       ]
     },
@@ -258,21 +258,21 @@
       "role": "perimeter",
       "actualBounds": {
         "min": [
-          -19.539997100830078,
+          -20.539997100830078,
           0.0,
-          -9.339999198913574
+          -10.339999198913574
         ],
         "max": [
-          19.53999900817871,
+          20.540000915527344,
           2.2850000858306885,
-          8.232500076293945
+          9.232500076293945
         ]
       },
       "footprint": [
-        -19.539997100830078,
-        -9.339999198913574,
-        39.07999610900879,
-        17.57249927520752
+        -20.539997100830078,
+        -10.339999198913574,
+        41.07999801635742,
+        19.57249927520752
       ]
     },
     {
@@ -326,8 +326,8 @@
   ],
   "model": {
     "url": "room.glb",
-    "bytes": 6146988,
-    "sha256": "2abe526efe2f22f1fef82e7aa9f98b0f82012200db2c2dac33327658d5c879a2"
+    "bytes": 6169744,
+    "sha256": "1c59d63af882762db83bf83477eafbed910b4eb53709840d42e6769d011bb40a"
   },
   "appearance": {
     "surfaces": "embedded original image PBR color/normal/roughness-metallic",
@@ -398,7 +398,7 @@
     "parcelLocker": true,
     "securityAppearanceOnly": true,
     "roadClearanceRevision": "R210-site-frontage-only",
-    "geometryReuse": "Original site/structure retained; R240 appearance zones and fine facade-only trim added.",
+    "geometryReuse": "Structural building/corridor/mail/landscape meshes and PBR retained; perimeter/ground/accesses/frontage resized R248.",
     "outsideScopeBackgroundOnly": true,
     "defaultCameraView": "warehouse south front from the street",
     "houseFrontLettering": {
@@ -457,12 +457,12 @@
       },
       "perimeter": "limestone upper / stone plinth with shallow course joints",
       "preserves": [
-        "shared layout/structural footprints",
         "roof forms/heights",
         "east-only windows",
         "security entries/shutters/readers",
         "lettering",
-        "ground and front-road-only scope"
+        "ground and front-road-only scope",
+        "structural building footprints; perimeter widened R248"
       ],
       "dimensionsAreArtProductionValues": true,
       "exportTextures": {
@@ -472,6 +472,16 @@
         "unusedBaseColorImagesPruned": 2,
         "allMaterialTexturesEmbedded": true
       }
+    },
+    "perimeterSetback": {
+      "revision": "R248",
+      "outwardMetres": 1,
+      "mapUnits": 50,
+      "allFourSides": true,
+      "buildingsUnchanged": true,
+      "frontageSouthShiftMetres": 1,
+      "noNewNeighborGeometry": true,
+      "dimensionsAreArtProductionValues": true
     }
   },
   "animationCount": 0,
@@ -483,22 +493,22 @@
       "url": "preview.webp",
       "width": 960,
       "height": 960,
-      "bytes": 17284,
-      "sha256": "34da4882f2e96ce14334ee2d55b6e39c81f8075ab7b631673ac13570e0dea456",
+      "bytes": 19354,
+      "sha256": "2fdad70b85b4b4cb57272247fc45ba77971b214b8055f84907838b35fd8a11b4",
       "camera": "Outdoor Entry Camera"
     }
   ],
   "geometryDiagnostics": {
     "uniqueGltfMeshes": 68,
     "meshInstances": 68,
-    "uniqueVertices": 132333,
-    "uniqueTriangles": 91258,
+    "uniqueVertices": 132985,
+    "uniqueTriangles": 91582,
     "embeddedImageCount": 25,
     "embeddedImageBytes": 1296701,
     "dimensionsAreArtProductionValues": true
   },
   "threeDScope": {
-    "revision": "R210",
+    "revision": "R248",
     "included": [
       "headquarters grounds",
       "frontage road",
@@ -512,26 +522,26 @@
     ],
     "outside": "scene background only; no geometry",
     "siteMapRect": [
-      30,
-      40,
-      1940,
-      844
+      -20,
+      -10,
+      2040,
+      944
     ],
     "roadMapRect": [
-      30,
-      960,
-      1940,
+      -20,
+      1010,
+      2040,
       160
     ],
     "sidewalkMapRect": [
-      30,
-      884,
-      1940,
+      -20,
+      934,
+      2040,
       76
     ],
     "shared2DLayoutUnchanged": false,
     "dimensionsAreArtProductionValues": true,
-    "mapViewRevision": "R212"
+    "mapViewRevision": "R248"
   },
   "cameraRevision": "R212"
 }

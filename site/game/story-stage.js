@@ -112,7 +112,7 @@ export class StoryStage {
     'training-hall':{actorPosition:[.3,0,.3],cameraWide:{position:[.75,.78,2.7],target:[.25,.13,-.2],fov:48}},
     // Greet the arriving hero on the paved approach, outside the closed gate.
     // The security bars remain behind the actors rather than across their face.
-    outdoor:{actorPosition:[10.8,.077,8.65],cameraWide:{position:[11.8,4.8,18],target:[12.8,2.7,.4],fov:52}}
+    outdoor:{actorPosition:[10.8,.077,9.65],cameraWide:{position:[11.8,4.8,19],target:[12.8,2.7,.4],fov:52}}
    }[stage];
    environment={root,metadata,templateKey:assetUrl(definition.url,metadata.glbSha256||metadata.model?.sha256).href,...settings};
    if(stage==='house'){

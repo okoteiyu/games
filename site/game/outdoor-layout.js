@@ -1,13 +1,13 @@
 /** Shared visual layout for the ground-level map and exported 3D exterior. */
 export const OUTDOOR_LAYOUT=Object.freeze({
-  "revision": "R212",
+  "revision": "R248",
   "units": "meters",
   "dimensionsAreArtProductionValues": true,
   "mapViewBox": [
-    -10,
-    0,
-    2020,
-    1160
+    -60,
+    -50,
+    2120,
+    1260
   ],
   "mapUnitsToMeters": 0.02,
   "mapOrigin": [
@@ -21,10 +21,10 @@ export const OUTDOOR_LAYOUT=Object.freeze({
   },
   "site": {
     "rect": [
-      30,
-      40,
-      1940,
-      844
+      -20,
+      -10,
+      2040,
+      944
     ],
     "wallHeight": 1.5
   },
@@ -132,7 +132,7 @@ export const OUTDOOR_LAYOUT=Object.freeze({
       470,
       660,
       840,
-      224
+      274
     ]
   },
   "walkways": [
@@ -141,7 +141,7 @@ export const OUTDOOR_LAYOUT=Object.freeze({
       "points": [
         [
           1540,
-          960
+          1010
         ],
         [
           1540,
@@ -155,7 +155,7 @@ export const OUTDOOR_LAYOUT=Object.freeze({
       "points": [
         [
           260,
-          960
+          1010
         ],
         [
           260,
@@ -169,7 +169,7 @@ export const OUTDOOR_LAYOUT=Object.freeze({
       "points": [
         [
           910,
-          960
+          1010
         ],
         [
           910,
@@ -181,32 +181,32 @@ export const OUTDOOR_LAYOUT=Object.freeze({
   ],
   "street": {
     "rect": [
-      30,
-      960,
-      1940,
+      -20,
+      1010,
+      2040,
       160
     ],
     "sidewalk": [
-      30,
-      884,
-      1940,
+      -20,
+      934,
+      2040,
       76
     ]
   },
   "entry": {
     "mainGate": [
       1475,
-      884,
+      934,
       130
     ],
     "warehouseGate": [
       799,
-      884,
+      934,
       222
     ],
     "freightGate": [
       130,
-      884,
+      934,
       260
     ],
     "mailbox": {
