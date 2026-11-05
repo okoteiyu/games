@@ -7,7 +7,7 @@ import {createFacilityStaff,normalizeFacilityStaff,advanceFacilityStaffShift,set
 import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superConfigurationAcquisition,superConfigurationLevel,superConfigurationMaxLevel,superPrefixDamageMultipliers} from './super-prefix-rules.js';
 import {currentTimeOfDay} from './world-time.js';
 import {createCampProgress,normalizeCampProgress,validateCampBag,campDepartureCost} from './camp-rules.js';
-import {CAMP_DESTINATIONS} from './camp-world.js';
+import {CAMP_DESTINATIONS,getCampNode} from './camp-world.js';
 import {getCampBase,establishCampBase as createCampBase,moveCampBase as selectCampBase,withdrawCampBase as removeCampBase} from './camp-bases.js';
 import {isCampDestinationUnlocked} from './camp-destination-access.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,validateSupportSelection,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
@@ -245,7 +245,7 @@ export class GameSession{
  constructor({rng=Math.random,staffRng=Math.random,onEvent=()=>{},state=null,now=()=>new Date()}={}){
   if(typeof rng!=='function'||typeof staffRng!=='function'||typeof onEvent!=='function')throw new TypeError('Invalid session callbacks.');
   this.rng=rng;this.staffRng=staffRng;this.now=now;this.onEvent=onEvent;this.eventLog=[];
-  this.campHadBattle=false;
+  this.campHadBattle=false;this.campBaseLossSettlement=null;
   this.state={schemaVersion:1,visitorName:null,location:'home',story:createStoryProgress(),player:prototypePlayer(),angerPoints:0,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,pendingAngerEvent:false,angerEvents:0,patrolCount:0,battle:null,lastBattle:null,facilityStaff:state===null?createFacilityStaff({rng:staffRng}):undefined,camp:createCampProgress()};
   if(state!==null)this.importState(state);
  }
@@ -296,18 +296,24 @@ export class GameSession{
   // balance before changing scene or expedition history. No callback means no trip.
   if(typeof spendCalmPoints!=='function')return {ok:false,reason:'calm-payment-required'};
   if(spendCalmPoints(calmPointsCost)!==true)return {ok:false,reason:'not-enough-calm'};
-  this.state.location='camp';this.campHadBattle=false;this.state.camp=progress;
+  this.state.location='camp';this.campHadBattle=false;this.campBaseLossSettlement=null;this.state.camp=progress;
   this.emit('camp-start',{calmPointsCost,calmCostCommitted:true,destination,startBaseId,startId:base.nodeId,expeditions:this.state.camp.expeditions});
   return {ok:true,calmPointsCost,calmCostCommitted:true,bag:clone(normalized),destination,startBaseId,startId:base.nodeId};
  }
  /** Base changes are checkpointed with camp progress; frontier flags are derived. */
- establishCampBase({nodeId,startBaseId=this.state.camp.currentBaseId}={}){
+ canEstablishCampBaseAfterBattle({nodeId,startBaseId=this.state.camp.currentBaseId}={}){
+  if(this.state.pendingAngerEvent)return false;
   const battle=this.state.battle;
-  if(this.state.pendingAngerEvent||this.state.location!=='battle'||battle?.kind!=='camp-final'||battle.phase!=='ended'||battle.result!=='win')return {ok:false,reason:'final-victory-required'};
+  if(this.state.location==='battle'&&battle?.kind==='camp-final'&&battle.phase==='ended'&&['win','loss'].includes(battle.result))return true;
+  const receipt=this.campBaseLossSettlement;
+  return Boolean(this.state.location==='camp'&&!battle&&this.campHadBattle&&receipt&&receipt.expedition===this.state.camp.expeditions&&receipt.nodeId===nodeId&&receipt.startBaseId===startBaseId&&startBaseId===this.state.camp.currentBaseId);
+ }
+ establishCampBase({nodeId,startBaseId=this.state.camp.currentBaseId}={}){
+  if(!this.canEstablishCampBaseAfterBattle({nodeId,startBaseId}))return {ok:false,reason:'camp-ending-required'};
   try{
    const fields=createCampBase(this.state.camp,{nodeId,startBaseId,rng:()=>this.random()});
    this.state.camp=normalizeCampProgress({...this.state.camp,...fields,discovered:[...new Set([...this.state.camp.discovered,nodeId])]});
-   const base=getCampBase(this.state.camp,'base-'+nodeId);this.emit('camp-base-established',{base:clone(base),startBaseId});return {ok:true,base};
+   const base=getCampBase(this.state.camp,'base-'+nodeId);this.campBaseLossSettlement=null;this.emit('camp-base-established',{base:clone(base),startBaseId});return {ok:true,base};
   }catch(error){return {ok:false,reason:'cannot-establish',message:error.message};}
  }
  moveCampBase(id){
@@ -611,8 +617,11 @@ export class GameSession{
   if(['camp','camp-final'].includes(this.state.battle?.kind))return this.endCamp({afterBattle:true});
   const b=this.state.battle;if(!b||b.phase!=='ended')return false;this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};this.state.battle=null;this.state.location='home';this.state.commandsLocked=false;this.state.interferenceUsedSinceBattle=false;this.state.interferenceBonusAvailable=true;this.state.patrolUsedSinceRecovery=false;if(b.kind==='patrol')this.advanceFacilityStaff();this.emit('home-return',{afterBattle:true,resetRelaxStreak:false});return true;
  }
- finishCampBattle({resume=true}={}){
+ finishCampBattle({resume=true,campSite=null}={}){
   const b=this.state.battle;if(!b||b.phase!=='ended'||!['camp','camp-final'].includes(b.kind))return false;
+  // Intermediate defeats clear their battle before the return UI is shown.
+  // Keep only this trip's actual site, never a generic lastBattle or save flag.
+  this.campBaseLossSettlement=b.kind==='camp'&&b.result==='loss'&&getCampNode(campSite?.nodeId)&&campSite?.startBaseId===this.state.camp.currentBaseId&&getCampBase(this.state.camp,campSite.startBaseId)?{expedition:this.state.camp.expeditions,nodeId:campSite.nodeId,startBaseId:campSite.startBaseId}:null;
   this.state.lastBattle={result:b.result,enemy:{speciesId:b.enemy.speciesId,name:b.enemy.name,level:b.enemy.level},enemies:b.enemies.map(enemy=>({speciesId:enemy.speciesId,name:enemy.name,level:enemy.level})),rewards:clone(b.rewards)};
   this.state.battle=null;this.state.location='camp';this.campHadBattle=true;
   this.emit('camp-battle-settled',{result:b.result,rewards:clone(b.rewards),hp:b.player.hp,maxHp:b.player.maxHp});
@@ -627,7 +636,7 @@ export class GameSession{
   const completedBattle=this.campHadBattle;
   this.state.location='home';this.state.commandsLocked=false;
   if(completedBattle){this.state.interferenceUsedSinceBattle=false;this.state.interferenceBonusAvailable=true;this.state.patrolUsedSinceRecovery=false;}
-  this.campHadBattle=false;
+  this.campHadBattle=false;this.campBaseLossSettlement=null;
   this.emit('home-return',{afterBattle:completedBattle,resetRelaxStreak:false,camp:true});return true;
  }
  snapshotBattle(){
@@ -648,7 +657,7 @@ export class GameSession{
  importState(saved){
   if(this.state.location!=='home'||this.state.battle||this.state.pendingAngerEvent)throw new Error('Load only at home, outside an event.');
   const normalized=validateSessionState(saved);
-  this.campHadBattle=false;
+  this.campHadBattle=false;this.campBaseLossSettlement=null;
   this.state={...normalized,commandsLocked:false,interferenceUsedSinceBattle:false,interferenceBonusAvailable:false,patrolUsedSinceRecovery:false,angerPoints:normalized.angerPoints,location:'home',pendingAngerEvent:normalized.pendingAngerEvent??false,battle:null,lastBattle:null};return this.snapshot();
  }
 }

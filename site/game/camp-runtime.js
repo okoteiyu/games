@@ -200,7 +200,7 @@ export class CampRuntime{
   const g=this.game;if(this.settling||!this.active||snapshot?.kind!=='camp'||snapshot.phase!=='ended')return false;this.settling=true;
   this.hadBattle=true;this.emit({type:'battle-rewards',day:this.engine.snapshot().day,activityHours:this.engine.snapshot().activityHours,result:snapshot.result,rewards:snapshot.rewards});
   this.maxHp=playerStats(g.session.player).hp;this.hp=Math.min(snapshot.player.hp,this.maxHp);
-  if(!g.session.finishCampBattle()){this.settling=false;return false;}
+  if(!g.session.finishCampBattle({campSite:{nodeId:this.engine.snapshot().nodeId,startBaseId:this.startBaseId||'house'}})){this.settling=false;return false;}
   for(const unlock of snapshot.rewards?.superUnlocks||[])g.session.acknowledgeSuperUnlock(unlock.id);
   g.battleUI.deactivate();g.scene='camp';this.setCampLocation();g.resultDelay=null;this.statusPanel.hidden=false;
   // Commit real rewards while no battle exists: resolving the journey may
@@ -216,7 +216,7 @@ export class CampRuntime{
  async finishExploration(){
   const g=this.game,phase=this.engine?.snapshot().phase,finalReady=phase==='final'&&g.session.state.battle?.kind==='camp-final'&&g.canReturnHomeAfterBattle();if(!this.active||!this.engine||!done.has(phase)&&!finalReady||this.finishing||g.isPaused()||document.hidden)return false;this.finishing=true;const serial=this.serial,nodeId=this.engine.snapshot().nodeId,startBaseId=this.startBaseId||'house';let installed=null;
   try{
-   const finalBattle=g.session.state.battle,canOfferBase=finalBattle?.kind==='camp-final'&&finalBattle.phase==='ended'&&finalBattle.result==='win'&&g.canReturnHomeAfterBattle();
+   const finalBattle=g.session.state.battle,completedFinal=finalBattle?.kind==='camp-final'&&g.canReturnHomeAfterBattle(),settledLoss=phase==='failed'&&this.engine.snapshot().finalReason==='battle-loss',canOfferBase=(completedFinal||settledLoss)&&g.session.canEstablishCampBaseAfterBattle({nodeId,startBaseId});
    if(canOfferBase&&canEstablishCampBase(g.session.state.camp,nodeId)){
     const approved=await this.baseActions.open({title:'ここにキャンプ拠点を設営しますか？',text:'探索を終えた、この通常エリアに拠点を作れます。\n次のキャンプは、この場所から出発できるようになります。'});
     if(approved===null)return false;if(!this.active||serial!==this.serial)return false;
