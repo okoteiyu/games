@@ -62,17 +62,18 @@ function calculate(o){
  const crossing=(node,first)=>CAMP_TERRAINS[node.terrain].hours*factor*(first&&o.rainNext?1.5:1);
  const foodFor=hours=>Math.max(0,Math.ceil((hours-o.dayHoursRemaining-EPS)/o.dayHours));
  const usedItems=label=>toolIds.reduce((sum,id)=>sum+additionalCopies(id,label[id],o.usedToolUses[id]),0);
- const available=label=>({...o.counts,...Object.fromEntries(toolIds.map(id=>[id,o.counts[id]-label[id]]))});
+ const returnParents=new Map(o.activePath.slice(1).map((id,i)=>[index.get(id),index.get(o.activePath[i])]));
+ const isReturn=(from,next)=>returnParents.get(from)===next;
+ const available=(label,from,next)=>{const counts={...o.counts,...Object.fromEntries(toolIds.map(id=>[id,o.counts[id]-label[id]]))};if(isReturn(from,next))for(const id of toolIds)counts[id]=Math.max(1,counts[id]);return counts;};
  const fits=label=>label.hours<=o.maxHours+EPS&&toolIds.every(id=>label[id]<=o.counts[id]);
- const spend=(label,next)=>{if(!canTraverseCampNode(nodes[next],available(label)))return null;const consumed=campTraversalConsumption(nodes[next]),candidate={node:next,hours:label.hours+crossing(nodes[next],label.steps===0),...Object.fromEntries(toolIds.map(id=>[id,label[id]+consumed[id]])),steps:label.steps+1,parent:label};return fits(candidate)?candidate:null;};
+ const spend=(label,next)=>{if(!canTraverseCampNode(nodes[next],available(label,label.node,next)))return null;const consumed=isReturn(label.node,next)?{}:campTraversalConsumption(nodes[next]),candidate={node:next,hours:label.hours+crossing(nodes[next],label.steps===0),...Object.fromEntries(toolIds.map(id=>[id,label[id]+(consumed[id]??0)])),steps:label.steps+1,parent:label};return fits(candidate)?candidate:null;};
 
  const initial={node:current,hours:0,...Object.fromEntries(toolIds.map(id=>[id,0])),steps:0,parent:null};
- const allowed=nodes.map(node=>!o.tripReached.has(node.id)&&canTraverseCampNode(node,o.counts)),forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
- if(!allowed[goal])return freezeResult(output);
+ const forward=nodes.map(()=>[]),reverse=nodes.map(()=>[]);
  // Guidance optimizes consumption globally; a cheaper detour may temporarily
- // increase hop distance. Current-trip revisits are still limited to the
- // engine's explicit ancestry retreat rather than arbitrary loops.
- for(let i=0;i<nodes.length;i++)if((allowed[i]||i===current)&&goalDistances[i]>=0)for(const next of neighbors[i])if(allowed[next]&&goalDistances[next]>=0){forward[i].push(next);reverse[next].push(i);}
+ // increase hop distance or revisit a reached vertex. Only actual reverse
+ // ancestry edges reuse durable tools; entering it from another edge does not.
+ for(let i=0;i<nodes.length;i++)if(goalDistances[i]>=0)for(const next of neighbors[i])if(goalDistances[next]>=0&&canTraverseCampNode(nodes[next],available(initial,i,next))){forward[i].push(next);reverse[next].push(i);}
  // A reverse time bound ignores consumption, but never overestimates the best
  // remaining time. It avoids exploring the far side of the entire world.
  const remaining=new Float64Array(nodes.length).fill(Infinity),timeHeap=new MinHeap((a,b)=>a.hours-b.hours);remaining[goal]=0;timeHeap.push({node:goal,hours:0});
@@ -95,7 +96,7 @@ function calculate(o){
    const food=foodFor(label.hours),requiredItems=usedItems(label)+food;
    if(!best||requiredItems<best.requiredItems||requiredItems===best.requiredItems&&label.hours<best.activityHours-EPS){
     const path=[];for(let previous=label;previous;previous=previous.parent)path.push(nodes[previous.node].id);path.reverse();
-    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:'forward',requiredItems,explorationCost:requiredItems,activityHours:label.hours,consumption:{food,...Object.fromEntries(toolIds.map(id=>[id,label[id]]))}};
+    best={...output,status:'ready',path,nextNodeId:path[1],movementMode:isReturn(current,index.get(path[1]))?'backtrack':'forward',requiredItems,explorationCost:requiredItems,activityHours:label.hours,consumption:{food,...Object.fromEntries(toolIds.map(id=>[id,label[id]]))}};
    }
   }else for(const next of forward[label.node]){const candidate=spend(label,next);if(candidate)consider(candidate);}
  }

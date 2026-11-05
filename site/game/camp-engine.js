@@ -20,8 +20,8 @@ export class CampExpedition{
   this.rng=rng;this.onEvent=onEvent;this.secondsPerActivityHour=secondsPerActivityHour;this.goalDistances=this.destination.nodeId?this.distances(this.destination.nodeId):null;
   this.moaiCompassDistances=this.guidanceItem&&this.nodeIndex.has(this.guidanceGoalId)?this.distances(this.guidanceGoalId):null;
   this.visited=new Set([startId,...discovered.filter(id=>this.nodeIndex.has(id))]);
-  // Historical discovery is for the map. The current trip has a separate
-  // reached set and a simple ancestry stack so retreat can never reopen a child.
+  // Historical discovery is for the map. This trip keeps its reached set and
+  // a loop-erased ancestry path; objective/guided moves may revisit vertices.
   this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=Boolean(this.guidanceItem&&startId===this.guidanceGoalId);
   const supplies=campRuntimeSupplies(summary.counts);supplies.food--;
   const supplyUnits=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,'uses']));
@@ -59,16 +59,51 @@ export class CampExpedition{
   const counts={...this.state.supplies};for(const id of CAMP_DURABLE_TOOL_IDS)counts[id]=Math.max(1,counts[id]||0);
   return canTraverseCampNode(node,counts);
  }
+ isParentNode(node){return this.activePath.length>1&&this.activePath.at(-2)===node?.id;}
+ isObjectiveNode(node){
+  const distances=this.goalDistances??this.depths,currentDistance=distances.get(this.state.nodeId),nextDistance=distances.get(node?.id);
+  return this.goalDistances?nextDistance<currentDistance:nextDistance>currentDistance;
+ }
+ canEnterNode(node,{ignoreTime=false}={}){return Boolean(node&&(this.isParentNode(node)?this.canRetraceNode(node):canTraverseCampNode(node,this.state.supplies))&&(ignoreTime||this.hasTimeFor(node)));}
  candidateNodes({ignoreTime=false}={}){
-  // Direction is a preference, not a traversal restriction. Only this trip's
-  // already reached vertices are excluded; historical discovery is irrelevant.
+  // Direction stays a preference. Previously reached vertices are also legal
+  // when they strictly advance the current objective; discovery is irrelevant.
   const current=this.nodeIndex.get(this.state.nodeId);
-  return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>node&&!this.tripReached.has(node.id)&&canTraverseCampNode(node,this.state.supplies)&&(ignoreTime||this.hasTimeFor(node)));
+  return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>node&&(!this.tripReached.has(node.id)||this.isObjectiveNode(node))&&this.canEnterNode(node,{ignoreTime}));
+ }
+ unknownDistanceWithinFour(candidate){
+  if(!candidate)return Infinity;
+  // This short search follows the fog/discovery set, not this trip's reached
+  // set. Known connectors may lead to nearby unknown land. Evaluate every
+  // prospective passage with its own remaining uses, time and return path.
+  const advance=(entry,node,first)=>{
+   const backtracking=entry.ancestry.length>1&&entry.ancestry.at(-2)===node.id,counts={...entry.counts},gates={...counts};
+   if(backtracking)for(const id of CAMP_DURABLE_TOOL_IDS)gates[id]=Math.max(1,gates[id]||0);
+   if(!canTraverseCampNode(node,gates)||!this.hasTimeFor(node,{counts,hours:entry.hours,maxHours:entry.maxHours,rain:first&&this.rainForNextCrossing}))return null;
+   const cost=this.crossingHoursFor(node,{counts,rain:first&&this.rainForNextCrossing});
+   if(!backtracking)for(const [id,amount]of Object.entries(campTraversalConsumption(node)))counts[id]-=amount;
+   const ancestry=[...entry.ancestry];if(backtracking)ancestry.pop();else{const ancestor=ancestry.indexOf(node.id);if(ancestor>=0)ancestry.length=ancestor+1;else ancestry.push(node.id);}
+   return {node,counts,hours:entry.hours-cost,maxHours:entry.maxHours-cost,ancestry,distance:entry.distance+1,path:new Set([...entry.path,node.id])};
+  };
+  const initial=advance({counts:this.state.supplies,hours:this.remainingActivityHours(),maxHours:this.maximumActivityHours(),ancestry:this.activePath,distance:0,path:new Set([this.state.nodeId])},candidate,true);
+  if(!initial)return Infinity;
+  const queue=[initial];
+  for(let i=0;i<queue.length;i++){
+   const entry=queue[i];if(!this.visited.has(entry.node.id))return entry.distance;if(entry.distance>=4)continue;
+   for(const id of entry.node.neighbors){if(entry.path.has(id))continue;const next=this.nodeIndex.get(id);if(!next)continue;const advanced=advance(entry,next,false);if(advanced)queue.push(advanced);}
+  }
+  return Infinity;
+ }
+ nearbyUnknownCandidates(){
+  if(this.goalDistances||this.hasActiveGuidance())return [];
+  const current=this.nodeIndex.get(this.state.nodeId),options=current.neighbors.map(id=>this.nodeIndex.get(id)).filter(Boolean).map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));
+  return Number.isFinite(nearest)?options.filter(option=>option.distance===nearest).map(option=>option.node):[];
  }
  chooseNextNode(){
+  this.unknownSelection=null;const unknown=this.nearbyUnknownCandidates();
+  if(unknown.length){const node=this.pick(unknown);this.unknownSelection=node.id;return node;}
   const candidates=this.candidateNodes();if(!candidates.length)return null;
-  const distances=this.goalDistances??this.depths,currentDistance=distances.get(this.state.nodeId);
-  const preferred=candidates.filter(node=>this.goalDistances?distances.get(node.id)<currentDistance:distances.get(node.id)>currentDistance);
+  const preferred=candidates.filter(node=>this.isObjectiveNode(node));
   // One independent coin per decision: on success choose a legal objective
   // route; otherwise choose uniformly from every legal forward route, including
   // those objective routes. An unavailable preference simply uses that fallback.
@@ -90,18 +125,19 @@ export class CampExpedition{
   if(plan.status==='reached'){this.state.guidanceFulfilled=true;this.moaiCompassFulfilled=true;return null;}
   if(plan.status!=='ready')return unavailable;
   const node=this.nodeIndex.get(plan.nextNodeId);
-  if(!node||!this.nodeIndex.get(this.state.nodeId).neighbors.includes(node.id)||this.tripReached.has(node.id)||!canTraverseCampNode(node,this.state.supplies)||!this.hasTimeFor(node))return unavailable;
-  return {node,movementMode:'forward'};
+  if(!node||!this.nodeIndex.get(this.state.nodeId).neighbors.includes(node.id)||!this.canEnterNode(node))return unavailable;
+  return {node,movementMode:this.isParentNode(node)?'backtrack':'forward'};
  }
  planNext(){
   if(this.state.phase!=='travel'||this.state.nextNodeId)return;
+  this.pendingUnknownMove=null;this.unknownSelection=null;
   if(this.destination.nodeId===this.state.nodeId&&!this.hasActiveGuidance()){this.finalize('destination');return;}
   const guided=this.guidedMove();if(guided?.unavailable){this.finalize('compass-route-unavailable');return;}
-  let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??'forward';
+  let next=guided?.node??this.chooseNextNode(),movementMode=guided?.movementMode??(this.isParentNode(next)?'backtrack':'forward');
   if(!next){
-   // Backtracking is the sole allowed revisit. It retraces the active ancestry
-   // one edge at a time. Durable uses are included in the outward passage,
-   // while destination terrain, time, rain and nonconsumed gates still apply.
+   // If no objective/ordinary move is legal, retreat one real ancestry edge.
+   // Durable uses are included in that outward passage; terrain time, rain
+   // and nonconsumed gates still apply.
    const parentId=this.activePath.length>1?this.activePath[this.activePath.length-2]:null;
    next=parentId?this.nodeIndex.get(parentId):null;movementMode='backtrack';
    if(!next){this.finalize(this.candidateNodes({ignoreTime:true}).length?'supplies':'no-route');return;}
@@ -109,6 +145,7 @@ export class CampExpedition{
    if(!this.hasTimeFor(next)){this.finalize('supplies');return;}
   }
   const hours=this.crossingHoursFor(next),knownHours=this.remainingActivityHours();
+  if(this.unknownSelection===next.id)this.pendingUnknownMove={fromNodeId:this.state.nodeId,nodeId:next.id};
   this.rainForNextCrossing=false;Object.assign(this.state,{nextNodeId:next.id,crossingHours:hours,crossingHoursElapsed:0,travelProgress:0,waitingForNight:hours>knownHours+EPS,movementMode});
  }
  medical(reason){
@@ -121,12 +158,18 @@ export class CampExpedition{
   const fromNodeId=s.nodeId,backtracking=s.movementMode==='backtrack';
   if(backtracking){
    if(this.activePath.length<2||this.activePath.at(-1)!==fromNodeId||this.activePath.at(-2)!==node.id){this.finalize('no-route');return;}
-  }else if(this.tripReached.has(node.id)){this.finalize('no-route');return;}
+  }else if(this.tripReached.has(node.id)&&!this.hasActiveGuidance()&&!this.isObjectiveNode(node)&&!(this.pendingUnknownMove?.fromNodeId===fromNodeId&&this.pendingUnknownMove.nodeId===node.id)){this.finalize('no-route');return;}
   if(!(backtracking?this.canRetraceNode(node):canTraverseCampNode(node,s.supplies))){this.finalize('supplies');return;}
   const newlyDiscovered=!this.visited.has(node.id);
+  this.pendingUnknownMove=null;
   if(!backtracking)for(const [id,amount]of Object.entries(campTraversalConsumption(node)))this.consume(id,amount);
   s.nodeId=node.id;s.nextNodeId=null;s.crossingHours=0;s.crossingHoursElapsed=0;s.travelProgress=0;s.distance++;s.movementMode=null;
-  if(backtracking)this.activePath.pop();else{this.activePath.push(node.id);this.tripReached.add(node.id);}
+  if(backtracking)this.activePath.pop();else{
+   // Record the actual edge in route below, but erase any closed ancestry loop
+   // so a later retreat/planner always receives one valid, simple return path.
+   const ancestor=this.activePath.indexOf(node.id);if(ancestor>=0)this.activePath.length=ancestor+1;else this.activePath.push(node.id);
+   this.tripReached.add(node.id);
+  }
   this.visited.add(node.id);this.route.push(node.id);this.completeGuidanceIfReached();this.emit('arrive',{terrain:node.terrain,newlyDiscovered,fromNodeId,backtracking});
   // Separate draws allow a weather/wildlife event and a battle at one vertex.
   if(this.random()<.3){
@@ -172,6 +215,7 @@ export class CampExpedition{
  }
  finalize(reason){
   if(['final','failed','finished'].includes(this.state.phase))return false;
+  this.pendingUnknownMove=null;this.unknownSelection=null;
   Object.assign(this.state,{phase:'final',finalReason:reason,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,waitingForNight:false,movementMode:null});this.emit('final',{destination:this.state.destination,reason});return true;
  }
  finish(result='completed'){if(this.state.phase==='finished')return false;this.state.phase='finished';this.state.finalReason=result;this.emit('finish',{result});return true;}
