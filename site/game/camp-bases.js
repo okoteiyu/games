@@ -66,7 +66,7 @@ export function campBaseEstablishmentIssue(progress,nodeId){
 export function canEstablishCampBase(progress,nodeId){return campBaseEstablishmentIssue(progress,nodeId)===null;}
 function randomUnit(rng){const value=rng();if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>=1)throw new RangeError('拠点配置の乱数が正しくありません。');return value;}
 
-/** Call only after the host has checked a settled camp-ending battle gate. */
+/** Call only after the host has checked the final-scene establishment gate. */
 export function establishCampBase(progress,{nodeId,startBaseId=progress?.currentBaseId??CAMP_FOUNDATION_BASE.id,rng=Math.random}={}){
  const state=normalizeCampBaseProgress(progress),issue=campBaseEstablishmentIssue(state,nodeId);
  if(issue)throw new RangeError('この場所にはキャンプ拠点を設営できません。 ('+issue+')');
