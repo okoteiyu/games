@@ -139,10 +139,12 @@ export class CampMap{
   }c.restore();
  }
  drawBases(c){
-  this.basesDrawn=[];const current=this.state.nodeId;
-  for(const base of this.bases){const node=nodeAt(base.nodeId);if(!node)continue;const p=this.project(node);if(p.x<-50||p.x>this.width+50||p.y<-50||p.y>this.height+50)continue;const size=base.foundation?29:27;c.save();c.translate(p.x,p.y);c.fillStyle=current===node.id?'#fff9dc':'#f8f7e8';c.strokeStyle=base.frontier?'#bd9457':'#829782';c.lineWidth=base.frontier?1.8:1;c.beginPath();c.arc(0,0,size*.58,0,Math.PI*2);c.fill();c.stroke();
+  // Overview markers shrink together, including their ring and frontier dot.
+  // The independent 25px nearest-base tap radius stays comfortably selectable.
+  this.basesDrawn=[];const current=this.state.nodeId,scale=clamp(Math.sqrt(Math.max(.001,this.zoom)/.16),.35,1);
+  for(const base of this.bases){const node=nodeAt(base.nodeId);if(!node)continue;const p=this.project(node);if(p.x<-50||p.x>this.width+50||p.y<-50||p.y>this.height+50)continue;const size=base.foundation?29:27;c.save();c.translate(p.x,p.y);c.scale(scale,scale);c.fillStyle=current===node.id?'#fff9dc':'#f8f7e8';c.strokeStyle=base.frontier?'#bd9457':'#829782';c.lineWidth=base.frontier?1.8:1;c.beginPath();c.arc(0,0,size*.58,0,Math.PI*2);c.fill();c.stroke();
    if(this.baseIcon.complete&&this.baseIcon.naturalWidth)c.drawImage(this.baseIcon,-size/2,-size/2,size,size);else{c.fillStyle='#a1a4a0';c.strokeStyle='#707e74';c.beginPath();c.arc(0,4,10,Math.PI,0);c.lineTo(10,8);c.lineTo(-10,8);c.closePath();c.fill();c.stroke();c.fillStyle='#3f4d44';c.beginPath();c.arc(0,5,4,Math.PI,0);c.lineTo(4,9);c.lineTo(-4,9);c.closePath();c.fill();}
-   if(base.foundation){c.fillStyle='#617455';c.font='600 9px sans-serif';c.textAlign='center';c.fillText('基礎拠点',0,25);}else if(base.frontier){c.fillStyle='#a7814a';c.beginPath();c.arc(12,-11,3.5,0,Math.PI*2);c.fill();}c.restore();this.basesDrawn.push(base.id);
+   if(base.foundation&&this.zoom>=CAMP_DESTINATION_LABEL_MIN_ZOOM){c.fillStyle='#617455';c.font='600 9px sans-serif';c.textAlign='center';c.fillText('基礎拠点',0,25);}else if(base.frontier){c.fillStyle='#a7814a';c.beginPath();c.arc(12,-11,3.5,0,Math.PI*2);c.fill();}c.restore();this.basesDrawn.push(base.id);
   }
  }
  drawFog(target){this.renderer.drawFog(target,this);}

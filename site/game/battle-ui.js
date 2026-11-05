@@ -38,12 +38,12 @@ export class BattleUI{
  /** Automatic camp encounters use the action slot while the expedition map stays visible. */
  setPresentationMode(embedded=false){
   this.embedded=Boolean(embedded);this.container.classList.toggle('battle-scene--camp',this.embedded);this.panel.classList.toggle('battle-actions--camp',this.embedded);this.hud.classList.toggle('battle-hud--camp',this.embedded);
-  this.panel.setAttribute('aria-label',this.embedded?'キャンプ中の自動戦闘':'戦闘中のかけごえ');this.panel.querySelector('.battle-actions__heading').hidden=this.embedded;
+  this.panel.setAttribute('aria-label',this.embedded?'サブ戦闘ビュー':'戦闘中のかけごえ');this.panel.querySelector('.battle-actions__heading').hidden=this.embedded;
   if(this.embedded)this.panel.append(this.hud,this.container);else this.view.element.append(this.hud);
  }
  updateCanvasDescription(){
   const canvas=this.controller?.canvas;if(!canvas)return;
-  canvas.setAttribute('aria-label',this.embedded?'キャンプ中の完全自動戦闘。かけごえを行わず、おこていゆの戦いを見守ります。':'おこていゆと珍生物の戦闘。相手をタップするとロックオン対象を切り替えられます。スワイプすると、おこていゆの周りで視点を回せます。疲れると戦闘が終わります。');
+  canvas.setAttribute('aria-label',this.embedded?'サブ戦闘ビュー。かけごえを行わず、おこていゆチームと相手チームの戦いを見守ります。':'おこていゆと珍生物の戦闘。相手をタップするとロックオン対象を切り替えられます。スワイプすると、おこていゆの周りで視点を回せます。疲れると戦闘が終わります。');
  }
  activateTarget(id){if(this.embedded||this.blocked()||!this.ready||this.ended||document.hidden||!opponents(this.snapshot).some(enemy=>(enemy.id||'enemy')===id&&enemy.hp>0))return false;const result=this.onTarget(id);return result!==false&&result?.ok!==false;}
  cameraInputAvailable(){return Boolean(!this.embedded&&this.ready&&!this.blocked()&&!this.ended&&!document.hidden&&this.snapshot?.phase==='active'&&this.stage?.presentation!=='training-hall'&&this.controller?.stageOptions?.presentation!=='training-hall'&&typeof this.controller?.orbitCamera==='function'&&(this.controller.canOrbitCamera?.()??true));}

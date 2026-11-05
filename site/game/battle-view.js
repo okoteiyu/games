@@ -18,6 +18,9 @@ import {createCampBattleField} from './camp-battle-fields.js';
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const number=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
 const DEFAULT_BATTLE_YAW=-Math.PI/10,DEFAULT_BATTLE_PITCH=Math.PI/10;
+const BATTLE_CAMERA_PROFILE=Object.freeze({id:'battle',yaw:DEFAULT_BATTLE_YAW,pitch:DEFAULT_BATTLE_PITCH});
+const SUB_BATTLE_CAMERA_PROFILE=Object.freeze({id:'camp-sub-battle',yaw:Math.PI/6,pitch:Math.PI/6,fov:42});
+const GROUP_SUB_BATTLE_CAMERA_PROFILE=Object.freeze({id:'camp-sub-battle',yaw:0,pitch:Math.PI/4,fov:42});
 const MIN_BATTLE_PITCH=Math.PI/36,MAX_BATTLE_PITCH=Math.PI*5/12;
 const species=record=>record?.speciesId||record?.id||'horarara_horaran';
 const opponents=snapshot=>snapshot?.enemies||[snapshot?.enemy].filter(Boolean);
@@ -350,7 +353,7 @@ export class BattleView{
   const gradient=context.createRadialGradient(64,64,8,64,64,64);gradient.addColorStop(0,'rgba(255,255,255,0)');gradient.addColorStop(.48,'rgba(255,255,255,.16)');gradient.addColorStop(.70,'rgba(255,255,255,.28)');gradient.addColorStop(1,'rgba(255,255,255,0)');context.fillStyle=gradient;context.fillRect(0,0,128,128);
   const texture=new THREE.CanvasTexture(canvas),sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,color:0xffffff,transparent:true,opacity:.62,depthWrite:false,toneMapped:false}));sprite.position.set(0,height*.51,-.045);sprite.scale.set(height*1.48,height*1.55,1);sprite.name='Battle.SoftAura';return sprite;
  }
- clearStage(){for(const child of [...this.stage.children]){this.stage.remove(child);this.disposeObject(child);}}
+ clearStage(){this.subBattleFieldClip=null;for(const child of [...this.stage.children]){this.stage.remove(child);this.disposeObject(child);}}
  makeStage({region='residential',timeOfDay='day'}={},height=.45){
   this.clearStage();const scale=Math.max(.6,height),forest=region==='forest',city=region==='city';
   const sky=timeOfDay==='morning'?0xe8e4dc:0xe4edf0;this.scene.background=new THREE.Color(sky);this.scene.fog=new THREE.Fog(sky,scale*5,scale*13);
@@ -499,15 +502,16 @@ export class BattleView{
  }
  advance(dt){if(this.destroyed||!this.active||!this.ready||this.loading||this.contextLost||this.isPresentationPaused?.()||typeof document!=='undefined'&&(document.hidden||isModalBlocked()))return;this.updateAtmosphere(dt);if(this.endVisualTime!==null)this.time+=Math.max(0,number(dt));const hadCutin=Boolean(this.cutin);if(this.cutin){this.awakeningState=this.cutin;this.cutin.elapsed=Math.min(this.cutin.duration,this.cutin.elapsed+Math.min(.1,Math.max(0,number(dt))));if(this.cutin.duration-this.cutin.elapsed<1e-9){this.cutin.elapsed=this.cutin.duration;this.cutin=null;}}if(!hadCutin){this.advanceFatigue(dt);this.advanceHitParticles(dt);}this.updatePose();this.fitCamera();this.render();}
  /** Orbit belongs to this battle presentation, not to any actor's motion. */
+ battleCameraProfile(){return this.stageOptions?.campEmbedded===true?(opponents(this.snapshot).length>1?GROUP_SUB_BATTLE_CAMERA_PROFILE:SUB_BATTLE_CAMERA_PROFILE):BATTLE_CAMERA_PROFILE;}
  restoreBattleCamera(saved){
-  const camera=saved?.version===1&&saved.presentationId===this.presentationId?saved.battleCamera:null;
-  this.battleOrbit={yaw:Number.isFinite(camera?.yaw)?camera.yaw:DEFAULT_BATTLE_YAW,pitch:clamp(number(camera?.pitch,DEFAULT_BATTLE_PITCH),MIN_BATTLE_PITCH,MAX_BATTLE_PITCH)};
+  const profile=this.battleCameraProfile(),proposed=saved?.version===1&&saved.presentationId===this.presentationId?saved.battleCamera:null,camera=(proposed?.profile||'battle')===profile.id?proposed:null;
+  this.battleOrbit=this.stageOptions?.campEmbedded===true?{yaw:profile.yaw,pitch:profile.pitch}:{yaw:Number.isFinite(camera?.yaw)?camera.yaw:profile.yaw,pitch:clamp(number(camera?.pitch,profile.pitch),MIN_BATTLE_PITCH,MAX_BATTLE_PITCH)};
   const frame=camera?.frame;
-  this.battleCameraFrame=frame&&Number.isFinite(frame.radius)&&frame.radius>0&&Number.isFinite(frame.fov)&&Number.isFinite(frame.zoom)&&Array.isArray(frame.pivot)&&frame.pivot.length===3&&frame.pivot.every(Number.isFinite)?JSON.parse(JSON.stringify(frame)):null;
+  this.battleCameraFrame=frame&&(frame.profile||'battle')===profile.id&&Number.isFinite(frame.radius)&&frame.radius>0&&Number.isFinite(frame.fov)&&Number.isFinite(frame.zoom)&&Array.isArray(frame.pivot)&&frame.pivot.length===3&&frame.pivot.every(Number.isFinite)?JSON.parse(JSON.stringify(frame)):null;
   this.supportFraming=null;
  }
- captureBattleCamera(){return {version:1,...this.battleOrbit,frame:this.battleCameraFrame?JSON.parse(JSON.stringify(this.battleCameraFrame)):null};}
- canOrbitCamera(){return this.targetSelectionAvailable();}
+ captureBattleCamera(){return {version:1,...(this.stageOptions?.campEmbedded===true?{profile:SUB_BATTLE_CAMERA_PROFILE.id}:{}),...this.battleOrbit,frame:this.battleCameraFrame?JSON.parse(JSON.stringify(this.battleCameraFrame)):null};}
+ canOrbitCamera(){return this.stageOptions?.campEmbedded!==true&&this.targetSelectionAvailable();}
  orbitCamera(deltaX,deltaY){
   if(!this.canOrbitCamera()||!Number.isFinite(deltaX)||!Number.isFinite(deltaY))return false;
   // CSS pixels give mouse and touch the same travel; never alter orbit radius
@@ -539,6 +543,55 @@ export class BattleView{
   }
   return points;
  }
+ /** Full, static roster envelope for the small automatic battle panel. */
+ staticSubBattleCameraPoints(){
+  const player=this.actors.player,points=[],enemies=Object.values(this.actors).filter(actor=>actor!==player);
+  const addBox=(bounds,origin,yaw=0)=>{const rotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),yaw);for(const x of[bounds.min.x,bounds.max.x])for(const y of[bounds.min.y,bounds.max.y])for(const z of[bounds.min.z,bounds.max.z])points.push(new THREE.Vector3(x,y,z).applyQuaternion(rotation).add(origin));};
+  for(const actor of Object.values(this.actors)){
+   const bounds=(actor.cameraBounds||actor.visualBounds||this.trainingActorBounds(actor)).clone(),h=actor.height;
+   // Include the strongest rigid lunge, recoil and idle motion without reading
+   // a live pose. Long weapons retain their actual width and forward extent.
+   bounds.min.add(new THREE.Vector3(-h*.16,-h*.08,-h*.23));bounds.max.add(new THREE.Vector3(h*.16,h*.20,h*.36));
+   if(actor===player){
+    const radius=Math.max(...[bounds.min.x,bounds.max.x].flatMap(x=>[bounds.min.z,bounds.max.z].map(z=>Math.hypot(x,z))));bounds.min.x=bounds.min.z=-radius;bounds.max.x=bounds.max.z=radius;
+    // Billboard aura streams rise above the body, even after the awakening.
+    bounds.max.y=Math.max(bounds.max.y,h*2.2);bounds.min.x=Math.min(bounds.min.x,-h*1.08);bounds.max.x=Math.max(bounds.max.x,h*1.08);
+   }
+   const yaw=actor===player?Math.PI:Math.atan2(player.anchor.position.x-actor.anchor.position.x,player.anchor.position.z-actor.anchor.position.z);addBox(bounds,actor.anchor.position,yaw);
+  }
+  const helperIds=this.supportView?.ids||[],cache=this.supportView?.cache,center=enemies.reduce((sum,actor)=>sum.add(actor.anchor.position),new THREE.Vector3()).multiplyScalar(1/Math.max(1,enemies.length)),forward=center.sub(player.anchor.position);forward.y=0;if(forward.lengthSq()<1e-9)forward.set(0,0,-1);forward.normalize();const side=new THREE.Vector3(forward.z,0,-forward.x),spacing=Math.max(player.height*.55,...helperIds.map(id=>(cache?.get(id)?.height||.2)*.95));
+  for(const [index,id]of helperIds.entries()){
+   const record=cache?.get(id),h=record?.height||.2;
+   if(record&&!record.subBattleBounds){record.facing.updateWorldMatrix(true,true);const inverse=record.facing.matrixWorld.clone().invert(),bounds=new THREE.Box3();record.model.traverse(node=>{if(!node.isMesh)return;node.geometry.computeBoundingBox();bounds.union(node.geometry.boundingBox.clone().applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverse,node.matrixWorld)));});record.subBattleBounds=bounds;}
+   const authored=record?.subBattleBounds,radius=Math.max(h*.72,...(authored?[authored.min.x,authored.max.x].flatMap(x=>[authored.min.z,authored.max.z].map(z=>Math.hypot(x,z))):[])),bounds=new THREE.Box3(new THREE.Vector3(-radius,-h*.08,-radius),new THREE.Vector3(radius,Math.max(h*1.4,authored?.max.y||0),radius));
+   const slotSide=index?(index%2?-Math.ceil(index/2):Math.ceil(index/2))*spacing:0,behind=player.anchor.position.clone().addScaledVector(forward,-(player.height*.80+h*.45+(id==='moai_kun'?0:h*.75))).addScaledVector(side,player.height*.20+slotSide);addBox(bounds,behind);
+   if(id!=='moai_kun')continue;
+   addBox(bounds,player.anchor.position.clone().addScaledVector(side,player.height*.82+h*.12).addScaledVector(forward,-player.height*.10));
+   // Reserve every possible interception/counter path, not just today's target.
+   // Straight travel and the small return arc stay inside these endpoint boxes.
+   const returnRadius=player.height*.65+h*.35,returnBounds=bounds.clone().expandByVector(new THREE.Vector3(returnRadius,h*.35,returnRadius));addBox(returnBounds,player.anchor.position);
+   for(const enemy of enemies){
+    const direction=enemy.anchor.position.clone().sub(player.anchor.position);direction.y=0;direction.normalize();
+    const guard=player.anchor.position.clone().addScaledVector(direction,player.height*.95+h*.40).addScaledVector(side,player.height*.25),auraBounds=new THREE.Box3(new THREE.Vector3(-h*1.6,-h*.08,-h*1.6),new THREE.Vector3(h*1.6,h*3.7,h*1.6));addBox(auraBounds,guard);
+    const clearance=Math.min(Math.max(enemy.height*.40,number(enemy.forwardExtent))+h*.75,Math.max(h*.75,player.anchor.position.distanceTo(enemy.anchor.position)-player.height*.65)),counter=enemy.anchor.position.clone().addScaledVector(direction,-clearance);addBox(bounds.clone().expandByVector(new THREE.Vector3(h*.16,h*.35,h*.16)),counter);
+   }
+  }
+  return points;
+ }
+ subBattleCameraKey(viewport=this.trainingViewport()){const profile=this.battleCameraProfile();return [this.presentationId,this.field?.region,viewport.width,viewport.height,profile.id,profile.yaw,profile.pitch,viewport.top,viewport.bottom].join('|');}
+ buildSubBattleCameraFrame(){
+  const viewport=this.trainingViewport(),profile=this.battleCameraProfile(),direction=this.battleCameraDirection(profile.yaw,profile.pitch),right=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),direction).normalize(),up=new THREE.Vector3().crossVectors(direction,right).normalize(),points=this.staticSubBattleCameraPoints();
+  const player=this.actors.player,enemies=Object.values(this.actors).filter(actor=>actor!==player),enemyCenter=enemies.reduce((sum,actor)=>sum.add(actor.anchor.position).add(new THREE.Vector3(0,actor.height*.5,0)),new THREE.Vector3()).multiplyScalar(1/Math.max(1,enemies.length));
+  const pivot=player.anchor.position.clone().add(new THREE.Vector3(0,player.height*.5,0)).lerp(enemyCenter,.5),fov=profile.fov,tangent=Math.tan(THREE.MathUtils.degToRad(fov/2)),aspect=viewport.width/viewport.height;
+  // A team-balanced aim keeps the two formations on opposite diagonals. Fit
+  // every model corner around that aim, including unusually long opponents.
+  const safeX=.90,safeY=Math.max(.2,Math.min(viewport.maxY,-viewport.minY)-.035);let radius=1.2;
+  for(const point of points){const relative=point.clone().sub(pivot);radius=Math.max(radius,relative.dot(direction)+Math.max(Math.abs(relative.dot(right))/(tangent*aspect*safeX),Math.abs(relative.dot(up))/(tangent*safeY)));}
+  // Reserve a fixed cutaway plane in front of every body and helper. Only
+  // foreground field obstacles use it; the ground and actors remain intact.
+  const foregroundClipDistance=Math.max(.02,Math.min(...points.map(point=>radius-point.clone().sub(pivot).dot(direction)))-.10);
+  return {key:this.subBattleCameraKey(viewport),profile:profile.id,viewport,pivot:pivot.toArray(),radius,fov,zoom:1,foregroundClipDistance,pivotY:0,finalized:this.active,defaultYaw:profile.yaw,defaultPitch:profile.pitch,pointCount:points.length};
+ }
  indoorCameraRadius(pivot,direction,radius){
   const bounds=this.field?.region==='training'?this.field.interiorBounds:null;if(!bounds)return radius;
   // Keep the eye inside the training room. Only a manual orbit toward a wall
@@ -547,6 +600,7 @@ export class BattleView{
   return Math.max(.55,Math.min(radius,limit));
  }
  buildBattleCameraFrame(){
+  if(this.stageOptions?.campEmbedded===true)return this.buildSubBattleCameraFrame();
   const viewport=this.trainingViewport(),player=this.actors.player;if(!player)return null;
   const pivot=player.anchor.position.clone().add(new THREE.Vector3(0,player.height*.5,0)),direction=this.battleCameraDirection(DEFAULT_BATTLE_YAW,DEFAULT_BATTLE_PITCH),right=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),direction).normalize(),up=new THREE.Vector3().crossVectors(direction,right).normalize();
   const points=this.staticBattleCameraPoints(),fov=this.field?.region==='training'?50:40,tangent=Math.tan(THREE.MathUtils.degToRad(fov/2)),aspect=viewport.width/viewport.height;
@@ -560,18 +614,36 @@ export class BattleView{
   for(const point of points){const relative=point.clone().sub(pivot),depth=Math.max(.05,radius-relative.dot(direction)),vertical=relative.dot(up);zoom=Math.min(zoom,.86*depth*tangent*aspect/Math.max(.001,Math.abs(relative.dot(right))),depth*tangent*(vertical>=0?positive:negative)/Math.max(.001,Math.abs(vertical)));}
   return {key:[this.presentationId,this.field?.region,viewport.width,viewport.height].join('|'),viewport,pivot:pivot.toArray(),radius,fov,zoom:clamp(zoom,.12,1),pivotY,finalized:this.active,defaultYaw:DEFAULT_BATTLE_YAW,defaultPitch:DEFAULT_BATTLE_PITCH,pointCount:points.length};
  }
+ fitSubBattleForeground(frame){
+  if(!this.fieldScene||this.stageOptions?.campEmbedded!==true)return;
+  if(this.subBattleFieldClip?.scene!==this.fieldScene){
+   const plane=new THREE.Plane(),materials=new Map();
+   this.fieldScene.traverse(node=>{
+    if(!node.isMesh||['Camp.Arena.Ground','Camp.Normal.Clearing'].includes(node.name))return;
+    // Field materials can be shared with the floor. Independent clones keep
+    // that floor uncut and never add clipping to actors or ordinary battles.
+    const clipped=original=>{if(!materials.has(original)){const copy=original.clone();copy.clippingPlanes=[plane];materials.set(original,copy);}return materials.get(original);};
+    node.material=Array.isArray(node.material)?node.material.map(clipped):clipped(node.material);
+   });
+   this.subBattleFieldClip={scene:this.fieldScene,plane};
+  }
+  const direction=this.battleCameraDirection(),point=this.camera.position.clone().addScaledVector(direction,-frame.foregroundClipDistance);
+  this.subBattleFieldClip.plane.setFromNormalAndCoplanarPoint(direction.negate(),point);
+ }
  fitCamera(){
   if(!this.ready||!this.actors.player||!this.width||!this.height)return;
+  if(this.renderer)this.renderer.localClippingEnabled=this.stageOptions?.campEmbedded===true;
   this.supportFraming=null;
   if(this.field?.region==='training'&&this.stageOptions?.presentation==='training-hall'){
    const viewport=this.trainingViewport();if(this.trainingPlacementCacheKey!==this.trainingPlacementKey(this.field,viewport))this.placeTrainingActors(this.field,viewport);
    const entrance=this.trainingLayout().camera;this.camera.zoom=1;this.camera.clearViewOffset();this.camera.near=number(entrance.near,.01);this.camera.fov=number(entrance.fov,64);this.camera.position.fromArray(entrance.position);this.cameraAim=new THREE.Vector3().fromArray(entrance.target);this.camera.lookAt(this.cameraAim);this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld(true);if(this.scene.fog){this.scene.fog.near=40;this.scene.fog.far=70;}return;
   }
-  const key=[this.presentationId,this.field?.region,this.width,this.height].join('|');
+  const key=this.stageOptions?.campEmbedded===true?this.subBattleCameraKey():[this.presentationId,this.field?.region,this.width,this.height].join('|');
   if(!this.battleCameraFrame||this.battleCameraFrame.key!==key||!this.battleCameraFrame.finalized&&this.active)this.battleCameraFrame=this.buildBattleCameraFrame();
   const frame=this.battleCameraFrame;if(!frame)return;
   this.cameraAim=new THREE.Vector3().fromArray(frame.pivot);const direction=this.battleCameraDirection(),radius=this.indoorCameraRadius(this.cameraAim,direction,frame.radius);
   this.camera.position.copy(this.cameraAim).addScaledVector(direction,radius);this.camera.lookAt(this.cameraAim);this.camera.fov=frame.fov;this.camera.zoom=frame.zoom;this.camera.near=.02;this.camera.far=Math.max(100,frame.radius*5);this.camera.clearViewOffset();this.camera.setViewOffset(this.width,this.height,0,frame.pivotY*this.height/2,this.width,this.height);this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld(true);
+  if(this.stageOptions?.campEmbedded===true)this.fitSubBattleForeground(frame);
   if(this.scene.fog){const height=Math.max(...Object.values(this.actors).map(actor=>actor.height));this.scene.fog.near=this.field?.region==='training'?40:frame.radius+height*3;this.scene.fog.far=this.field?.region==='training'?70:frame.radius+height*22*(this.field?.region==='camp'?number(this.field.fogDepthFactor,1):1);}
  }
  // Kept as a no-op for older diagnostics. Helpers never control the camera.
@@ -586,7 +658,7 @@ export class BattleView{
    this.awakeningStage.sample(this.cutin.elapsed,this.cutin.duration,{width:this.width,height:this.height,pixelRatio:this.renderer.getPixelRatio()});
    this.renderer.render(this.awakeningStage.scene,this.awakeningStage.camera);
   }else{if(this.hasPendingFatigue())this.updatePose();for(const actor of Object.values(this.actors))actor.hitParticles?.setViewport(this.height,this.renderer.getPixelRatio());this.supportView?.setViewport(this.height,this.renderer.getPixelRatio());this.renderer.render(this.scene,this.camera);this.acknowledgeFatigueFrame();}
-  const visiting=this.stageOptions?.presentation==='training-hall',presentation=awakening?'super-awakening':visiting?'training-hall':'battle';if(this.canvas.dataset.presentation!==presentation){this.canvas.dataset.presentation=presentation;this.canvas.setAttribute('aria-label',awakening?'星々が煌めく宇宙で、マッスルポーズを取るスーパーおこていゆ状態への覚醒':visiting?'入口から見渡す地下の訓練所。おこていゆは入口を入ってすぐの場所で待っています。':'おこていゆと珍生物の戦闘。相手をタップするとロックオン対象を切り替えられます。スワイプすると、おこていゆの周りで視点を回せます。疲れると戦闘が終わります。');}
+  const visiting=this.stageOptions?.presentation==='training-hall',embedded=this.stageOptions?.campEmbedded===true,presentation=awakening?'super-awakening':visiting?'training-hall':embedded?'camp-sub-battle':'battle';if(this.canvas.dataset.presentation!==presentation){this.canvas.dataset.presentation=presentation;this.canvas.setAttribute('aria-label',awakening?'星々が煌めく宇宙で、マッスルポーズを取るスーパーおこていゆ状態への覚醒':visiting?'入口から見渡す地下の訓練所。おこていゆは入口を入ってすぐの場所で待っています。':embedded?'サブ戦闘ビュー。かけごえを行わず、おこていゆチームと相手チームの戦いを見守ります。':'おこていゆと珍生物の戦闘。相手をタップするとロックオン対象を切り替えられます。スワイプすると、おこていゆの周りで視点を回せます。疲れると戦闘が終わります。');}
   this.canvas.style.visibility='visible';this.renderFrames++;this.onTargetFrame(this.getLockOnTarget());
  }
  setActive(active){this.active=Boolean(active);if(!this.active){this.supportView?.setVisible(false);this.onTargetFrame(null);for(const actor of this.actorCache.values())actor.hitParticles?.clear();}if(this.active){this.resize();this.updatePose();this.render();}}
@@ -617,7 +689,7 @@ export class BattleView{
   if(renderer){try{renderer.dispose();}catch{}try{renderer.forceContextLoss?.();}catch{}}
  }
  cancelPendingLoad(){if(!this.loading)return false;this.fieldGeneration=(this.fieldGeneration||0)+1;this.loading=false;this.ready=false;this.timeRequest=null;return true;}
- getDiagnostics(){return {lockOn:this.getLockOnTarget(),targetCandidateCount:this.getBattleTargets().length,support:this.supportView?.getDiagnostics()||null,supportCamera:this.supportFraming||null,field:this.field?.id||null,trainingEntranceFixed:this.field?.region==='training'&&this.stageOptions?.presentation==='training-hall',trainingFrame:this.field?.region==='training'?this.trainingFrame||null:null,trainingPlacements:this.field?.region==='training'?this.trainingPlacements||{}:null,camera:{position:this.camera.position.toArray(),target:this.cameraAim?.toArray()||null,fov:this.camera.fov,near:this.camera.near,far:this.camera.far,zoom:this.camera.zoom,quaternion:this.camera.quaternion.toArray(),view:this.camera.view?{...this.camera.view}:null,orbit:{...this.battleOrbit,defaultYaw:DEFAULT_BATTLE_YAW,defaultPitch:DEFAULT_BATTLE_PITCH,pivot:this.cameraAim?.toArray()||null,radius:this.battleCameraFrame?.radius||null,appliedRadius:this.cameraAim?this.camera.position.distanceTo(this.cameraAim):null,pitchMin:MIN_BATTLE_PITCH,pitchMax:MAX_BATTLE_PITCH},frame:this.battleCameraFrame?JSON.parse(JSON.stringify(this.battleCameraFrame)):null},fieldScale:this.fieldScene?.scale.toArray()||null,fieldPosition:this.fieldScene?.position.toArray()||null,awakeningCutin:this.cutin?{...this.cutin}:null,awakeningPresentation:this.awakeningState?{...this.awakeningState}:null,fatigue:this.getFatigueDiagnostics(),hitParticles:this.getHitParticleDiagnostics(),ready:this.ready,loading:this.loading,active:this.active,error:this.lastError,contextLost:this.contextLost,time:this.time,renderFrames:this.renderFrames,size:{width:this.width||0,height:this.height||0},actors:Object.fromEntries(Object.entries(this.actors).map(([role,actor])=>[role,{id:actor.id,height:actor.height,position:actor.anchor.position.toArray(),facingY:actor.facing.rotation.y,currentClip:actor.currentClip,shield:actor.shield?{id:this.snapshot?.player?.equipment?.defense,visible:actor.shield.visible,position:actor.shield.position.toArray(),animations:0}:null,auraId:actor.auraId||null,auraColor:actor.auraColor===undefined?null:'#'+actor.auraColor.toString(16).padStart(6,'0'),auraMaterialCount:actor.auraMaterials?.length||0,creatureAura:actor.creatureAura?.getDiagnostics()||null,hitOffset:actor.hitRoot.position.toArray(),attackOffset:actor.attackRoot.position.toArray(),fixedGroundWorld:actor.fixedGround?.getWorldPosition(new THREE.Vector3()).toArray()||null,meshCount:(()=>{let count=0;actor.model.traverse(node=>{if(node.isMesh)count++;});return count;})()}]))};}
+ getDiagnostics(){return {lockOn:this.getLockOnTarget(),targetCandidateCount:this.getBattleTargets().length,support:this.supportView?.getDiagnostics()||null,supportCamera:this.supportFraming||null,field:this.field?.id||null,trainingEntranceFixed:this.field?.region==='training'&&this.stageOptions?.presentation==='training-hall',trainingFrame:this.field?.region==='training'?this.trainingFrame||null:null,trainingPlacements:this.field?.region==='training'?this.trainingPlacements||{}:null,camera:{position:this.camera.position.toArray(),target:this.cameraAim?.toArray()||null,fov:this.camera.fov,near:this.camera.near,far:this.camera.far,zoom:this.camera.zoom,quaternion:this.camera.quaternion.toArray(),view:this.camera.view?{...this.camera.view}:null,orbit:{...this.battleOrbit,defaultYaw:this.battleCameraProfile().yaw,defaultPitch:this.battleCameraProfile().pitch,pivot:this.cameraAim?.toArray()||null,radius:this.battleCameraFrame?.radius||null,appliedRadius:this.cameraAim?this.camera.position.distanceTo(this.cameraAim):null,pitchMin:MIN_BATTLE_PITCH,pitchMax:MAX_BATTLE_PITCH},frame:this.battleCameraFrame?JSON.parse(JSON.stringify(this.battleCameraFrame)):null},fieldScale:this.fieldScene?.scale.toArray()||null,fieldPosition:this.fieldScene?.position.toArray()||null,awakeningCutin:this.cutin?{...this.cutin}:null,awakeningPresentation:this.awakeningState?{...this.awakeningState}:null,fatigue:this.getFatigueDiagnostics(),hitParticles:this.getHitParticleDiagnostics(),ready:this.ready,loading:this.loading,active:this.active,error:this.lastError,contextLost:this.contextLost,time:this.time,renderFrames:this.renderFrames,size:{width:this.width||0,height:this.height||0},actors:Object.fromEntries(Object.entries(this.actors).map(([role,actor])=>[role,{id:actor.id,height:actor.height,position:actor.anchor.position.toArray(),facingY:actor.facing.rotation.y,currentClip:actor.currentClip,shield:actor.shield?{id:this.snapshot?.player?.equipment?.defense,visible:actor.shield.visible,position:actor.shield.position.toArray(),animations:0}:null,auraId:actor.auraId||null,auraColor:actor.auraColor===undefined?null:'#'+actor.auraColor.toString(16).padStart(6,'0'),auraMaterialCount:actor.auraMaterials?.length||0,creatureAura:actor.creatureAura?.getDiagnostics()||null,hitOffset:actor.hitRoot.position.toArray(),attackOffset:actor.attackRoot.position.toArray(),fixedGroundWorld:actor.fixedGround?.getWorldPosition(new THREE.Vector3()).toArray()||null,meshCount:(()=>{let count=0;actor.model.traverse(node=>{if(node.isMesh)count++;});return count;})()}]))};}
  disposeObject(object){const geometries=new Set(),materials=new Set(),textures=new Set();object?.traverse(node=>{if(node.isInstancedMesh&&node.userData.campInstanced)node.dispose();if(node.geometry)geometries.add(node.geometry);for(const material of Array.isArray(node.material)?node.material:node.material?[node.material]:[]){materials.add(material);for(const value of Object.values(material))if(value?.isTexture)textures.add(value);}});for(const value of geometries)value.dispose();for(const value of materials)value.dispose();for(const value of textures)if(value!==this.shadowTexture)value.dispose();}
  destroy(){if(this.destroyed)return;this.destroyed=true;this.active=false;this.supportView?.dispose();const resources=new THREE.Group();for(const record of this.actorCache.values()){record.hitParticles?.dispose();record.mixer.stopAllAction();resources.add(record.anchor);}for(const template of this.templateCache.values())resources.add(template.scene);this.disposeObject(resources);this.awakeningStage?.dispose();this.clearStage();this.shadowTexture?.dispose();for(const texture of this.auraTextureCache?.values()||[])texture.dispose();this.auraTextureCache?.clear();this.actorCache.clear();this.actorPromises.clear();this.templateCache.clear();this.templatePromises.clear();this.releaseRenderer();}
 }
