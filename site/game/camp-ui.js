@@ -47,10 +47,13 @@ export class CampDestinationPicker{
  constructor({root,readValue,onSelect,readStartId=()=>CAMP_WORLD.startId,readRouteMode=()=> 'target',readDiscovered=()=>[]}){
   Object.assign(this,{root,readValue,onSelect,readStartId,readRouteMode,readDiscovered});this.planResults=new Map();this.planStartId=null;this.planContextKey=null;this.planGeneration=0;this.picker=root.querySelector('[data-camp-destination-picker]');this.trigger=this.picker.querySelector('#campDestination');this.list=this.picker.querySelector('[role="listbox"]');this.cleanups=[];this.destroyed=false;
   const listen=(target,type,callback,options)=>{target.addEventListener(type,callback,options);this.cleanups.push(()=>target.removeEventListener(type,callback,options));};
-  listen(this.picker,'click',event=>{const trigger=event.target.closest('#campDestination');if(trigger){event.preventDefault();if(this.isOpen)this.close({focus:true});else this.open();return;}const option=event.target.closest('[data-camp-destination-option]');if(option)this.select(option);});
+  listen(this.picker,'pointerdown',event=>{const trigger=event.target.closest('#campDestination');this.pointerIntent=trigger?{wasOpen:this.isOpen}:null;},true);
+  listen(this.picker,'pointercancel',()=>{this.pointerIntent=null;});
+  listen(this.picker,'click',event=>{const trigger=event.target.closest('#campDestination');if(trigger){event.preventDefault();event.stopPropagation();const wasOpen=event.detail!==0&&this.pointerIntent?this.pointerIntent.wasOpen:this.isOpen;this.pointerIntent=null;if(wasOpen)this.close({focus:true});else this.open();return;}const option=event.target.closest('[data-camp-destination-option]');if(option){event.preventDefault();event.stopPropagation();this.pointerIntent=null;this.select(option);}});
   listen(this.picker,'keydown',event=>this.onKeyDown(event));
   listen(this.picker,'focusout',event=>{if(this.isOpen&&event.relatedTarget&&!this.picker.contains(event.relatedTarget))this.close();});
-  listen(document,'pointerdown',event=>{if(this.isOpen&&!this.picker.contains(event.target))this.close();},true);
+  listen(document,'pointerdown',event=>{if(!this.trigger.contains(event.target)&&!this.list.contains(event.target)){this.pointerIntent=null;if(this.isOpen)this.close();}},true);
+  listen(document,'click',event=>{if(this.isOpen&&!this.trigger.contains(event.target)&&!this.list.contains(event.target))this.close();});
   listen(root,'cancel',event=>{if(this.isOpen){event.preventDefault();event.stopPropagation();this.close({focus:true});}});
   listen(root,'close',()=>this.close());this.sync();
  }
@@ -61,8 +64,11 @@ export class CampDestinationPicker{
  sync(){
   if(!this.isUnlocked(this.readValue()))this.onSelect('none');
   const selected=CAMP_DESTINATIONS[this.readValue()]||destinationValues()[0];if(!selected)return;
-  this.trigger.value=selected.id;this.picker.querySelector('[data-camp-destination-symbol]').innerHTML=destinationIcon(selected.id);this.picker.querySelector('#campDestinationValue').textContent=selected.name;this.picker.querySelector('#campDestinationDescription').textContent=selected.description||'';
-  for(const option of this.options){const active=option.dataset.campDestinationOption===selected.id,unlocked=this.isUnlocked(option.dataset.campDestinationOption);option.setAttribute('aria-selected',String(active));option.setAttribute('aria-disabled',String(!unlocked));option.title=unlocked?'':'キャンプで一度訪れると、目標に選べます。';option.querySelector('.camp-destination-picker__check').textContent=active?'✓':'';}
+  this.trigger.value=selected.id;const symbol=this.picker.querySelector('[data-camp-destination-symbol]');
+  // Background house updates must not detach the SVG a touch started on.
+  if(symbol.dataset.destinationId!==selected.id){symbol.innerHTML=destinationIcon(selected.id);symbol.dataset.destinationId=selected.id;}
+  setPlanCopy(this.picker.querySelector('#campDestinationValue'),selected.name);setPlanCopy(this.picker.querySelector('#campDestinationDescription'),selected.description||'');
+  for(const option of this.options){const active=option.dataset.campDestinationOption===selected.id,unlocked=this.isUnlocked(option.dataset.campDestinationOption);option.setAttribute('aria-selected',String(active));option.setAttribute('aria-disabled',String(!unlocked));option.title=unlocked?'':'キャンプで一度訪れると、目標に選べます。';setPlanCopy(option.querySelector('.camp-destination-picker__check'),active?'✓':'');}
   this.loadPlans();this.renderPlans();
  }
  loadPlans(){
@@ -105,12 +111,12 @@ export class CampDestinationPicker{
   this.sync();this.trigger.setAttribute('aria-expanded','true');this.list.hidden=false;const options=this.enabledOptions;this.focusOption(position==='first'?options[0]:position==='last'?options.at(-1):options.find(o=>o.getAttribute('aria-selected')==='true')||options[0]);return true;
  }
  close({focus=false}={}){this.trigger.setAttribute('aria-expanded','false');this.list.hidden=true;if(focus&&this.root.open&&this.trigger.isConnected){this.trigger.focus({preventScroll:true});this.ensureVisible(this.trigger);}}
- select(option){if(!this.isOpen||this.destroyed||this.trigger.disabled||!this.options.includes(option))return false;const id=option.dataset.campDestinationOption;if(!Object.hasOwn(CAMP_DESTINATIONS,id)||!this.isUnlocked(id))return false;this.onSelect(id);this.sync();this.close({focus:true});return true;}
+ select(option){if(!this.isOpen||this.destroyed||this.trigger.disabled||!this.options.includes(option))return false;const id=option.dataset.campDestinationOption;if(!Object.hasOwn(CAMP_DESTINATIONS,id)||!this.isUnlocked(id))return false;this.close({focus:true});this.onSelect(id);this.sync();return true;}
  onKeyDown(event){
   if(!['ArrowDown','ArrowUp','Home','End','Escape','Tab','Enter',' '].includes(event.key))return;
   if(event.key==='Tab'){if(this.isOpen)this.close({focus:true});return;}
   if(event.key==='Escape'){if(this.isOpen){event.preventDefault();event.stopPropagation();this.close({focus:true});}return;}
-  if(['Enter',' '].includes(event.key)){event.preventDefault();const option=event.target.closest('[data-camp-destination-option]');if(option&&this.isOpen)this.select(option);else if(event.target===this.trigger){if(this.isOpen)this.close({focus:true});else this.open();}return;}
+  if(['Enter',' '].includes(event.key)){const option=event.target.closest('[data-camp-destination-option]');if(option&&this.isOpen){event.preventDefault();event.stopPropagation();this.select(option);}return;}
   event.preventDefault();if(!this.isOpen){this.open(event.key==='Home'?'first':event.key==='End'?'last':'selected');return;}
   const options=this.enabledOptions,index=options.indexOf(document.activeElement),last=options.length-1,next=event.key==='Home'?0:event.key==='End'?last:event.key==='ArrowDown'?Math.min(last,index+1):Math.max(0,index-1);this.focusOption(options[next]);
  }
