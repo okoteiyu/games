@@ -2,7 +2,7 @@ import {displayedWinChance,winChanceColor} from './win-chance-display.js';
 import {currentTimeOfDay} from './world-time.js';
 import {setPaintedText} from './painted-label.js';
 import { getBattleRegionAt } from './patrol-map.js';
-import { PatrolState,branchWinChance } from './patrol-state.js';
+import { PatrolState,branchWinChance,PATROL_RULES } from './patrol-state.js';
 import { isModalBlocked, tryOpenModal, releaseModal } from './modal-layer.js';
 import { REGION_LABELS } from './patrol-map.js';
 const directions=[['left','左'],['front','前'],['right','右']];
@@ -13,7 +13,7 @@ export class PatrolUI {
   this.renderMount=document.createElement('div');this.renderMount.className='patrol-webgl-mount';
   this.overlayObserver=new MutationObserver(()=>{this.layoutForkArrows();this.scheduleForkLayout();});this.overlayObserver.observe(this.view.element,{attributes:true,attributeFilter:['data-message-visible']});
   this.panel=document.createElement('section');this.panel.className='lower-right patrol-actions';this.panel.id='patrolChoices';this.panel.hidden=true;this.panel.setAttribute('aria-label','道中での選択肢');
-  this.panel.innerHTML='<header class="patrol-actions__heading"><span>こっそり、妖精にお願い</span></header>'+[['eggplant','ナス','🍆'],['tomato','トマト','🍅']].map(([id,label,emoji])=>'<section class="fairy-choice" data-fairy-section="'+id+'"><h2>'+label+'の妖精 <span class="patrol-stock" id="'+id+'Stock">'+emoji+' <b>2</b><small> / 2回</small></span></h2><nav class="patrol-branches" aria-label="'+label+'の妖精にお願いする道">'+directions.map(([direction,text])=>'<button type="button" class="patrol-branch" data-fairy="'+id+'" data-direction="'+direction+'" disabled><span>'+text+'</span><small></small></button>').join('')+'</nav></section>').join('')+'<div class="patrol-window"><p id="patrolWindowText" role="status">道を歩いている</p><div><i></i></div></div><div class="patrol-encounter-actions" hidden><p>珍生物に出会った。</p><button type="button" data-patrol-action="home">ハウスに戻る</button></div>';
+  this.panel.innerHTML='<header class="patrol-actions__heading"><span>こっそり、妖精にお願い</span></header>'+[['eggplant','ナス','🍆',PATROL_RULES.maxThrows],['tomato','トマト','🍅',PATROL_RULES.maxTomatoThrows]].map(([id,label,emoji,limit])=>'<section class="fairy-choice" data-fairy-section="'+id+'"><h2>'+label+'の妖精 <span class="patrol-stock" id="'+id+'Stock">'+emoji+' <b>'+limit+'</b><small> / '+limit+'回</small></span></h2><nav class="patrol-branches" aria-label="'+label+'の妖精にお願いする道">'+directions.map(([direction,text])=>'<button type="button" class="patrol-branch" data-fairy="'+id+'" data-direction="'+direction+'" disabled><span>'+text+'</span><small></small></button>').join('')+'</nav></section>').join('')+'<div class="patrol-window"><p id="patrolWindowText" role="status">道を歩いている</p><div><i></i></div></div><div class="patrol-encounter-actions" hidden><p>珍生物に出会った。</p><button type="button" data-patrol-action="home">ハウスに戻る</button></div>';
 
   this.skipButton=document.createElement('button');this.skipButton.type='button';this.skipButton.className='patrol-skip';this.skipButton.textContent='移動をスキップして戦闘へ';this.panel.querySelector('.patrol-window').append(this.skipButton);
   this.abortButton=document.createElement('button');this.abortButton.type='button';this.abortButton.className='patrol-abort';this.abortButton.dataset.patrolAbort='';this.abortButton.textContent='パトロールを中断';this.abortButton.addEventListener('click',()=>{if(this.active&&!this.isPaused()&&!isModalBlocked())this.onAbort(this.abortButton);});this.panel.querySelector('.patrol-window').append(this.abortButton);

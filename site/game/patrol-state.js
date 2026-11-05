@@ -113,7 +113,7 @@ export class PatrolState {
  throwTomato(nodeId){
   if(this.phase!=='approaching')return {ok:false,reason:'outside-window',snapshot:this.snapshot()};
   if(this.windowUsed)return {ok:false,reason:'already-thrown',snapshot:this.snapshot()};
-  if(this.tomatoThrows>=2)return {ok:false,reason:'no-throws-left',snapshot:this.snapshot()};
+  if(this.tomatoThrows>=PATROL_RULES.maxTomatoThrows)return {ok:false,reason:'no-throws-left',snapshot:this.snapshot()};
   if(this.branches().length<2)return {ok:false,reason:'no-choice',snapshot:this.snapshot()};
   const choices=this.tomatoChoices(nodeId);if(!choices.length)return {ok:false,reason:'no-reachable-target',snapshot:this.snapshot()};
   const choice=this.pick(choices),oldTarget=this.target;this.windowUsed=true;this.tomatoThrows++;this.route=[this.current,...choice.path];this.target=choice.enemy.nodeId;
@@ -129,8 +129,8 @@ export class PatrolState {
   return {ok:true,outcome:enemy?'battle':'arrived',snapshot:this.snapshot()};
  }
  snapshot(){
-  const tomatoNodes=this.phase==='approaching'&&!this.windowUsed&&this.tomatoThrows<2&&this.branches().length>=2?this.branches().filter(b=>this.tomatoChoices(b.nodeId).length).map(b=>b.nodeId):[];
-  return clone({remainingTomatoThrows:2-this.tomatoThrows,maxTomatoThrows:2,canThrowTomato:tomatoNodes.length>0,tomatoAvailableNodes:tomatoNodes,maxMoves:PATROL_RULES.maxMoves,maxThrows:PATROL_RULES.maxThrows,map:this.map,enemies:this.enemies,current:this.current,previous:this.previous,next:this.route[1]||null,target:this.target,moves:this.moves,remainingThrows:PATROL_RULES.maxThrows-this.throws,phase:this.phase,branches:this.phase==='approaching'?this.branches():[],route:this.route,battleEnemy:this.battleEnemy,decision:this.decision,windowUsed:this.windowUsed,canThrow:this.phase==='approaching'&&!this.windowUsed&&this.throws<PATROL_RULES.maxThrows&&this.branches().length>=2});
+  const tomatoNodes=this.phase==='approaching'&&!this.windowUsed&&this.tomatoThrows<PATROL_RULES.maxTomatoThrows&&this.branches().length>=2?this.branches().filter(b=>this.tomatoChoices(b.nodeId).length).map(b=>b.nodeId):[];
+  return clone({remainingTomatoThrows:PATROL_RULES.maxTomatoThrows-this.tomatoThrows,maxTomatoThrows:PATROL_RULES.maxTomatoThrows,canThrowTomato:tomatoNodes.length>0,tomatoAvailableNodes:tomatoNodes,maxMoves:PATROL_RULES.maxMoves,maxThrows:PATROL_RULES.maxThrows,map:this.map,enemies:this.enemies,current:this.current,previous:this.previous,next:this.route[1]||null,target:this.target,moves:this.moves,remainingThrows:PATROL_RULES.maxThrows-this.throws,phase:this.phase,branches:this.phase==='approaching'?this.branches():[],route:this.route,battleEnemy:this.battleEnemy,decision:this.decision,windowUsed:this.windowUsed,canThrow:this.phase==='approaching'&&!this.windowUsed&&this.throws<PATROL_RULES.maxThrows&&this.branches().length>=2});
  }
 }
 
