@@ -1,13 +1,15 @@
 import {CAMP_WORLD,getCampNode} from './camp-world.js';
 import {migrateLegacyCampBag,normalizeUnpackedCampBag} from './camp-bag-migration.js';
 import {normalizeCampBaseProgress} from './camp-bases.js';
+import {normalizeCampDestinationUnlocks} from './camp-destination-access.js';
 export const BAG_WIDTH=6,BAG_HEIGHT=6,CAMP_MAX_DAYS=15;
 export const CAMP_TOOL_USES_PER_ITEM=2;
 export const CAMP_DURABLE_TOOL_IDS=Object.freeze(['gloves','goggles','rope','mask']);
 export const isCampDurableTool=id=>CAMP_DURABLE_TOOL_IDS.includes(id);
 export const CAMP_SUPPLY_CATEGORIES=Object.freeze({support:'サポート',exploration:'探索',resupply:'補給',route_guidance:'ルート誘導'});
-const categoryFor=id=>id==='food'?'resupply':id==='moai_compass'?'route_guidance':['flashlight','gloves','goggles','rope','mask'].includes(id)?'exploration':'support';
-const supply=(id,name,width,height,repeatable,description,color,icon,maxUses=1,maxCount=repeatable?null:1)=>{const category=categoryFor(id);return Object.freeze({id,name,width,height,repeatable,description,color,icon,maxUses,maxCount,category,categoryName:CAMP_SUPPLY_CATEGORIES[category],...(id==='moai_compass'?{routeDestinationId:'moai_village'}:{})});};
+const routeGuidanceDestinations=Object.freeze({moai_compass:'moai_village',sacred_scripture:'holy_dragon_lair'});
+const categoryFor=id=>id==='food'?'resupply':Object.hasOwn(routeGuidanceDestinations,id)?'route_guidance':['flashlight','gloves','goggles','rope','mask'].includes(id)?'exploration':'support';
+const supply=(id,name,width,height,repeatable,description,color,icon,maxUses=1,maxCount=repeatable?null:1)=>{const category=categoryFor(id);return Object.freeze({id,name,width,height,repeatable,description,color,icon,maxUses,maxCount,category,categoryName:CAMP_SUPPLY_CATEGORIES[category],...(Object.hasOwn(routeGuidanceDestinations,id)?{routeDestinationId:routeGuidanceDestinations[id]}:{})});};
 export const CAMP_SUPPLIES=Object.freeze({
  food:supply('food','携帯食料',1,2,true,'1個で1日分の行動ができる。「あなた」の分は消費しない。何個でも持ち込める。','#d4ab67','▣'),
  flashlight:supply('flashlight','懐中電灯',1,2,false,'洞窟のルートを進める。1日の活動時間が16時間になる。','#dfc770','☼'),
@@ -17,6 +19,7 @@ export const CAMP_SUPPLIES=Object.freeze({
  medical_kit:supply('medical_kit','医療キット',2,2,false,'キャンプ道中の戦闘終了ごとに最大HPの15%を回復する。HPが0のときは発動しない。','#cb9598','＋'),
  compass:supply('compass','コンパス',1,1,false,'各エリアを進む時間を0.6倍にする。','#9eabbd','◇'),
  moai_compass:supply('moai_compass','モアイコンパス',1,1,false,'今の物資でモアイ郷まで進める探索最適経路を案内する。到達後は案内を終え、設定した目標へ探索を続ける。ルート誘導アイテムは合計1個まで。','#c4b476','⌖'),
+ sacred_scripture:supply('sacred_scripture','聖天の古文書',2,2,false,'今の物資で聖天の棲家まで進める探索最適経路を案内する。未到達の場所へも案内できる。到達後は案内を終え、設定した目標へ探索を続ける。ルート誘導アイテムは合計1個まで。','#e5d994','▤'),
  gloves:supply('gloves','グローブ',1,2,true,'1個で悪路を2回通れる。来た道を戻るときは使用回数が減らない。使える間は怪我イベントの発生率を0.7倍にする。','#b6a18d','✋',CAMP_TOOL_USES_PER_ITEM),
  goggles:supply('goggles','ゴーグル',1,2,true,'1個で見通しの悪いルートを2回通れる。来た道を戻るときは使用回数が減らない。使える間は怪我の発生率を0.7倍にする。','#8caeb5','∞',CAMP_TOOL_USES_PER_ITEM),
  rope:supply('rope','ロープ',1,3,true,'1個で崖の険しいルートを2回通れる。来た道を戻るときは使用回数が減らない。','#c4ad7d','⌁',CAMP_TOOL_USES_PER_ITEM),
@@ -70,7 +73,7 @@ export function campBagSummary(placements){
  return {counts,toolUses,occupied,capacity:BAG_WIDTH*BAG_HEIGHT,foodDays:Math.min(CAMP_MAX_DAYS,counts.food),calmCost:7-(counts.phone?2:0)-counts.battery,activityHoursPerDay:counts.flashlight?16:14,injuryProbabilityMultiplier:(counts.gloves ? .7 : 1)*(counts.goggles ? .7 : 1)};
 }
 export function campDepartureCost(placements){return campBagSummary(placements).calmCost;}
-export function createCampProgress(){return {version:1,bagLayoutVersion:2,bags:[[],[],[]],unpackedBags:[[],[],[]],adjustedBags:[false,false,false],selectedBag:0,discovered:[CAMP_WORLD.startId],expeditions:0,supplyInventory:createCampSupplyInventory(),...normalizeCampBaseProgress()};}
+export function createCampProgress(){return {version:1,bagLayoutVersion:2,bags:[[],[],[]],unpackedBags:[[],[],[]],adjustedBags:[false,false,false],selectedBag:0,discovered:[CAMP_WORLD.startId],unlockedDestinations:[],expeditions:0,supplyInventory:createCampSupplyInventory(),...normalizeCampBaseProgress()};}
 /** Legacy saves have no camp field and receive a fresh, independent default. */
 export function normalizeCampProgress(value){
  if(value===undefined)return createCampProgress();
@@ -91,7 +94,7 @@ export function normalizeCampProgress(value){
  const selectedBag=value.selectedBag??0;if(!Number.isInteger(selectedBag)||selectedBag<0||selectedBag>2)throw new RangeError('バッグの選択が正しくありません。');
  const discovered=value.discovered??[CAMP_WORLD.startId];if(!Array.isArray(discovered)||discovered.length>CAMP_WORLD.nodes.length||Array.from(discovered).some(id=>typeof id!=='string'||!getCampNode(id)))throw new TypeError('未開の地の記録が正しくありません。');
  const expeditions=value.expeditions??0;if(!Number.isSafeInteger(expeditions)||expeditions<0)throw new RangeError('キャンプ回数が正しくありません。');
- return clone({version:1,bagLayoutVersion:2,bags:normalizedBags,unpackedBags,adjustedBags,selectedBag,discovered:[...new Set([CAMP_WORLD.startId,...discovered])],expeditions,supplyInventory:normalizeCampSupplyInventory(value.supplyInventory),...normalizeCampBaseProgress(value)});
+ return clone({version:1,bagLayoutVersion:2,bags:normalizedBags,unpackedBags,adjustedBags,selectedBag,discovered:[...new Set([CAMP_WORLD.startId,...discovered])],unlockedDestinations:normalizeCampDestinationUnlocks(value.unlockedDestinations,discovered),expeditions,supplyInventory:normalizeCampSupplyInventory(value.supplyInventory),...normalizeCampBaseProgress(value)});
 }
 /** One copy protects the party; multiple goggles do not stack the multiplier. */
 export function canTraverseCampNode(node,counts){

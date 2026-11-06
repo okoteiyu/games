@@ -19,3 +19,11 @@ export const CAMP_DANGER_ZONE_LOCATIONS=Object.freeze([
  Object.freeze({level:95,nodeId:'wild-2142'}),
  Object.freeze({level:100,nodeId:'wild-2129'})
 ]);
+
+/** A fixed unique guardian lives in the lower sacred forest. Reuse a former
+ * non-normal waypoint so no legitimate saved camp base can occupy this site. */
+export const CAMP_HOLY_DRAGON_LOCATION=Object.freeze({
+ id:'holy_dragon_lair',name:'聖天の棲家',nodeId:'wild-1510',
+ guardianSpeciesId:'holy_white_dragon_pegasus',fixedLevel:65,discoverySupplyId:'sacred_scripture',
+ description:'神聖な森の下部にある、聖天龍が棲む場所。'
+});

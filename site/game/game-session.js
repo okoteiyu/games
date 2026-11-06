@@ -1,7 +1,7 @@
 import {REGIONAL_CREATURE_BASES} from './regional-creature-families.js';
 import {MOAI_WARRIOR_BASE} from './moai-warrior-family.js';
 import {ADDED_CREATURES} from './creature-expansion.js';
-import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,opponentAttackParameterMultiplier,selectBattleRankBonus,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
+import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,opponentAttackParameterMultiplier,opponentKiParameterMultiplier,selectBattleRankBonus,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {createStoryProgress,normalizeStoryProgress,hasStoryBattleReward,markStoryBattleReward} from './story-progress.js';
@@ -277,11 +277,11 @@ export class GameSession{
   if(this.state.location!=='home'||this.state.pendingAngerEvent||!Number.isInteger(slot)||slot<0||slot>2)return false;
   this.state.camp.selectedBag=slot;this.emit('camp-bag-selected',{slot});return true;
  }
- updateCampProgress({discovered,expeditions}={}){
+ updateCampProgress({discovered,unlockedDestinations,expeditions}={}){
   if(!['home','camp'].includes(this.state.location)&&!(['camp','camp-final'].includes(this.state.battle?.kind)))return false;
-  if(discovered!==undefined&&!Array.isArray(discovered))return false;
+  if(discovered!==undefined&&!Array.isArray(discovered)||unlockedDestinations!==undefined&&!Array.isArray(unlockedDestinations))return false;
   if(expeditions!==undefined&&(!Number.isSafeInteger(expeditions)||expeditions<this.state.camp.expeditions))return false;
-  const next={...this.state.camp,discovered:discovered===undefined?this.state.camp.discovered:[...new Set([...this.state.camp.discovered,...discovered])],expeditions:expeditions??this.state.camp.expeditions};
+  const next={...this.state.camp,discovered:discovered===undefined?this.state.camp.discovered:[...new Set([...this.state.camp.discovered,...discovered])],unlockedDestinations:unlockedDestinations===undefined?this.state.camp.unlockedDestinations:[...new Set([...(this.state.camp.unlockedDestinations||[]),...unlockedDestinations])],expeditions:expeditions??this.state.camp.expeditions};
   try{this.state.camp=normalizeCampProgress(next);}catch{return false;}
   this.emit('camp-progress');return true;
  }
@@ -292,7 +292,7 @@ export class GameSession{
   const base=getCampBase(this.state.camp,startBaseId);
   if(!base||startBaseId!==this.state.camp.currentBaseId)return {ok:false,reason:'invalid-start-base'};
   if(!Object.hasOwn(CAMP_DESTINATIONS,destination))return {ok:false,reason:'unknown-destination'};
-  if(!isCampDestinationUnlocked(destination,this.state.camp.discovered))return {ok:false,reason:'destination-unvisited'};
+  if(!isCampDestinationUnlocked(destination,this.state.camp.discovered,this.state.camp.unlockedDestinations))return {ok:false,reason:'destination-unvisited'};
   let normalized;try{normalized=validateCampBag(bag);}catch{return {ok:false,reason:'invalid-bag'};}
   if(!normalized.some(item=>item.supplyId==='food'))return {ok:false,reason:'food-required'};
   const calmPointsCost=campDepartureCost(normalized);
@@ -531,9 +531,10 @@ export class GameSession{
    const bodyEffects=CREATURES[actor.speciesId].additionalEffects;
    const first=firstAttackParameterMultipliers(bodyEffects,b.completedAttacks[actorId]);
    const opposingActors=actorId==='player'?b.enemies:[b.player];
-   const attackFactor=opponentAttackParameterMultiplier(opposingActors.filter(opponent=>opponent.hp>0).flatMap(opponent=>[CREATURES[opponent.speciesId].additionalEffects,opponent.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS]));
+   const opposingEffects=opposingActors.filter(opponent=>opponent.hp>0).flatMap(opponent=>[CREATURES[opponent.speciesId].additionalEffects,opponent.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS]);
+   const attackFactor=opponentAttackParameterMultiplier(opposingEffects),kiFactor=opponentKiParameterMultiplier(opposingEffects);
    const base=actorId==='player'?b.playerStatBase:actor.stats;
-   const stats=applySuperStats({...base,attack:base.attack*first.attack*attackFactor,ki:base.ki*first.ki},actorId==='player'&&b.super.active?b.super.multiplier:1);
+   const stats=applySuperStats({...base,attack:base.attack*first.attack*attackFactor,ki:base.ki*first.ki*kiFactor},actorId==='player'&&b.super.active?b.super.multiplier:1);
    const techniqueLevel=actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique);
    const power=techniquePower(action.technique,stats,techniqueLevel);
    const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;

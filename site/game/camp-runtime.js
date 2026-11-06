@@ -4,7 +4,7 @@ import {CampUI} from './camp-ui.js';
 import {CampNightView} from './camp-night.js';
 import {chooseCampEncounter,chooseCampGuardianLevel} from './camp-encounters.js';
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode,getCampDestinationAt} from './camp-world.js';
-import {isCampDestinationUnlocked} from './camp-destination-access.js';
+import {isCampDestinationUnlocked,canDiscoverCampDestinationOnArrival} from './camp-destination-access.js';
 import {getCampRegion,getCampRegionAt} from './camp-regions.js';
 import {CREATURES,playerStats} from './game-session.js';
 import {isBuildingVisitScene} from './interior-rules.js';
@@ -20,7 +20,7 @@ const finalExplorationMessages={
  supplies:'今の物資で進めるのは、ここまで。ふたりは帰り支度を始めた。',
  'time-limit':'長い探索も、そろそろ一区切り。ふたりは帰り支度を始めた。',
  'return-tools':'帰り道を通るための道具が足りなくなってしまった。ふたりが帰り支度を始めると……。',
- 'compass-route-unavailable':'モアイ郷へ向かう道を、今の物資と残り時間では選べない。ふたりが帰り支度を始めると……。',
+ 'compass-route-unavailable':'案内先へ向かう道を、今の物資と残り時間では選べない。ふたりが帰り支度を始めると……。',
  'no-route':'この先へは進めそうにない。ふたりが引き返そうとすると……。'
 };
 /** Keeps exploration presentation separate from ordinary battles and saves. */
@@ -66,7 +66,7 @@ export class CampRuntime{
   const directions=(progress.baseNetwork||[]).flatMap(link=>[[link.fromId,link.toId],[link.toId,link.fromId]]);
   this.baseRoutePromise=(async()=>{for(const [fromId,toId]of directions){if(generation!==this.baseRouteGeneration||this.destroyed)return;const from=byId.get(fromId),to=byId.get(toId);try{const result=await requestCampOptimalRoute({startId:from.nodeId,goalId:to.nodeId,network:true,blockedEdges});if(generation!==this.baseRouteGeneration||this.destroyed)return;if(result?.status==='ready'&&Array.isArray(result.path))this.baseRoutes.push({fromId,toId,path:[...result.path]});}catch(error){this.baseRouteError=error?.message||String(error);}}if(generation===this.baseRouteGeneration&&!this.destroyed){this.ui.refresh();if(this.game.scene==='camp-base')this.updateBaseMap();}})();
  }
- updateBaseMap(){const base=this.departureBase();this.baseMap.update({discovered:this.game.session.state.camp.discovered,nodeId:base.nodeId,bases:listCampBases(this.game.session.state.camp),baseRoutes:this.baseRoutes});this.baseMap.resize();this.baseMap.centerCurrent();}
+ updateBaseMap(){const base=this.departureBase();this.baseMap.update({discovered:this.game.session.state.camp.discovered,unlockedDestinations:this.game.session.state.camp.unlockedDestinations,nodeId:base.nodeId,bases:listCampBases(this.game.session.state.camp),baseRoutes:this.baseRoutes});this.baseMap.resize();this.baseMap.centerCurrent();}
  async visitBase(id){
   const g=this.game,base=getCampBase(g.session.state.camp,id);if(!base||!this.canBrowse()||this.active||g.isPaused()||document.hidden||g.session.state.location!=='home'||g.session.state.battle)return {ok:false,message:'探索や演出が終わってから移動しよう。'};
   if(!g.session.moveCampBase(id))return {ok:false,message:'移動先の拠点を確認できませんでした。'};
@@ -105,7 +105,7 @@ export class CampRuntime{
  emit(event){this.entries.push(event);if(this.entries.length>250)this.entries.shift();this.game.onCampEvent?.(event);}
  requestStart({bag,destination='none'}={}){
   const g=this.game;if(!this.canDepart()||g.isPaused()||document.hidden)return {ok:false,message:'拠点で、支度ができてから出発しよう。'};
-  if(!isCampDestinationUnlocked(destination,g.session.state.camp.discovered))return {ok:false,reason:'destination-unvisited',message:'まだ訪れていない目標地点は選べません。まずは探索で見つけよう。'};
+  if(!isCampDestinationUnlocked(destination,g.session.state.camp.discovered,g.session.state.camp.unlockedDestinations))return {ok:false,reason:'destination-unvisited',message:'まだ訪れていない目標地点は選べません。まずは探索で見つけよう。'};
   const departure=this.departureBase();
   if(g.scene==='house'&&g.session.state.camp.currentBaseId!=='house'&&!g.session.moveCampBase('house'))return {ok:false,message:'出発する拠点を確認できませんでした。'};
   let engine;try{engine=new CampExpedition({bag,destination,startId:departure.nodeId,playerLevel:g.session.player.level,discovered:g.session.state.camp.discovered,rng:()=>g.session.random(),onEvent:event=>this.onEvent(event)});}catch(error){return {ok:false,message:error.message};}
@@ -120,14 +120,14 @@ export class CampRuntime{
   return result;
  }
  begin(){const g=this.game;if(!this.active||!this.engine)return false;g.scene='camp';this.setCampLocation();g.house.leaveHouse();g.homeElement.hidden=true;this.mountActionArea();g.view.clear();this.ui.show(this.engine.snapshot());this.setStatus();this.statusPanel.hidden=false;this.updateHealth();g.onCampStarted?.(this.entries);g.sync();return true;}
- checkpoint(){if(!this.engine)return;this.game.session.updateCampProgress({discovered:this.engine.snapshot().visited});this.game.onCampCheckpoint?.();}
+ checkpoint({unlockedDestinations}={}){if(!this.engine)return;this.game.session.updateCampProgress({discovered:this.engine.snapshot().visited,...(unlockedDestinations?{unlockedDestinations}:{})});this.game.onCampCheckpoint?.();}
  onEvent(event){
   if(!this.active)return;this.emit(event);
   if(event.type==='heal'){this.hp=event.hp;this.maxHp=event.maxHp;this.updateHealth();}
   if(event.type==='arrive'){
-   const destination=getCampDestinationAt(event.nodeId),wasUnlocked=destination&&isCampDestinationUnlocked(destination.id,this.game.session.state.camp.discovered);
-   this.setCampLocation(event.nodeId);this.checkpoint();
-   if(destination&&!wasUnlocked&&isCampDestinationUnlocked(destination.id,this.game.session.state.camp.discovered)){
+   const destination=getCampDestinationAt(event.nodeId),wasUnlocked=destination&&isCampDestinationUnlocked(destination.id,this.game.session.state.camp.discovered,this.game.session.state.camp.unlockedDestinations);
+   this.setCampLocation(event.nodeId);this.checkpoint({unlockedDestinations:destination?.discoverySupplyId&&canDiscoverCampDestinationOnArrival(destination.id,this.engine.snapshot().supplies)?[destination.id]:undefined});
+   if(destination&&!wasUnlocked&&isCampDestinationUnlocked(destination.id,this.game.session.state.camp.discovered,this.game.session.state.camp.unlockedDestinations)){
     this.emit({type:'destination-discovered',destinationId:destination.id,name:destination.name,nodeId:event.nodeId,day:event.day,activityHours:event.activityHours});
     this.discoveryQueue.push({nodeId:event.nodeId,name:destination.name});this.presentDiscovery();
    }

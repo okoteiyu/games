@@ -1,4 +1,5 @@
 import {CAMP_WORLD,CAMP_TERRAINS,CAMP_DESTINATIONS} from './camp-world.js';
+import {isCampDestinationUnlocked} from './camp-destination-access.js';
 import {CAMP_REGIONS,CAMP_REGION_BOUNDS} from './camp-regions.js';
 
 // Geometry and spatial buckets are shared by the atlas and live map. None of
@@ -173,7 +174,7 @@ export class CampMapRenderer{
  drawRegionLabels(c,view){
   this.regionLabelBoxes=[];
   const markerRadius=Math.max(4.5,Math.min(15,campNodeScreenRadius(view.zoom)*1.2));
-  const destinations=Object.values(CAMP_DESTINATIONS).filter(destination=>view.zoom>=CAMP_DESTINATION_LABEL_MIN_ZOOM&&destination.nodeId&&view.discovered?.has(destination.nodeId)).map(destination=>({destination,node:NODES[NODE_INDEX.get(destination.nodeId)]})).filter(entry=>entry.node).map(({destination,node})=>({x:node.x*view.zoom+view.pan.x,y:node.y*view.zoom+view.pan.y,halfWidth:Math.max(34,(destination.name.length*11+18)/2)})).filter(point=>point.x>-100&&point.x<view.width+100&&point.y>-50&&point.y<view.height+50).map(point=>({left:point.x-point.halfWidth,right:point.x+point.halfWidth,top:point.y-markerRadius-26,bottom:point.y-markerRadius-3}));
+  const destinations=Object.values(CAMP_DESTINATIONS).filter(destination=>view.zoom>=CAMP_DESTINATION_LABEL_MIN_ZOOM&&destination.nodeId&&isCampDestinationUnlocked(destination.id,view.discovered,view.unlockedDestinations)).map(destination=>({destination,node:NODES[NODE_INDEX.get(destination.nodeId)]})).filter(entry=>entry.node).map(({destination,node})=>({x:node.x*view.zoom+view.pan.x,y:node.y*view.zoom+view.pan.y,halfWidth:Math.max(34,(destination.name.length*11+18)/2)})).filter(point=>point.x>-100&&point.x<view.width+100&&point.y>-50&&point.y<view.height+50).map(point=>({left:point.x-point.halfWidth,right:point.x+point.halfWidth,top:point.y-markerRadius-26,bottom:point.y-markerRadius-3}));
   for(const region of REGION_LIST){
    const width=(region.bounds.maxX-region.bounds.minX)*view.zoom,height=(region.bounds.maxY-region.bounds.minY)*view.zoom;if(width<70||height<42)continue;
    const point=region.labelPoint||{x:(region.bounds.minX+region.bounds.maxX)/2,y:(region.bounds.minY+region.bounds.maxY)/2},x=point.x*view.zoom+view.pan.x;let y=point.y*view.zoom+view.pan.y;if(x<-100||x>view.width+100||y<-35||y>view.height+35)continue;

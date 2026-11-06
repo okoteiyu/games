@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 231,
-  "totalBytes": 227676610,
+  "fileCount": 234,
+  "totalBytes": 255365688,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=92c317f4a0f915a5c228dcff75bd4a545fdbfb42a2f8a72f05e512d7adcdab49",
+      "url": "assets/battle3d/manifest.json?v=27365bd711c31b82a56bfb61c69bd5beeb74618d073f5af76d5a8ba704533501",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 59036,
+      "bytes": 59668,
       "priority": 2,
-      "sha256": "92c317f4a0f915a5c228dcff75bd4a545fdbfb42a2f8a72f05e512d7adcdab49"
+      "sha256": "27365bd711c31b82a56bfb61c69bd5beeb74618d073f5af76d5a8ba704533501"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1851,6 +1851,30 @@
       "priority": 3,
       "bytes": 9888,
       "sha256": "afced74f8f462d3de60bcc3465afaf35f7061f142887c506e7a3b7b76f1e3263"
+    },
+    {
+      "url": "assets/battle3d/holy_white_dragon_pegasus.glb?v=917e92e0dac100a2f987c29864352c1a72957149606a499b34feec2629d42d1e",
+      "label": "ホーリーホワイトドラゴンペガサス",
+      "type": "binary",
+      "priority": 3,
+      "sha256": "917e92e0dac100a2f987c29864352c1a72957149606a499b34feec2629d42d1e",
+      "bytes": 27655972
+    },
+    {
+      "url": "assets/collection/holy_white_dragon_pegasus.webp",
+      "label": "ホーリーホワイトドラゴンペガサスの写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "5dc70ca4fd97487362ea4ec88f209873a368fa4de4e087ad718fd4995e08fd3f",
+      "bytes": 20854
+    },
+    {
+      "url": "assets/collection/aura-holy_white_dragon_pegasus.webp",
+      "label": "聖天のオーラをまとったおこていゆ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "fd9ef35b982760660c420aa65ba4075dd6da61acdd32450e78fc6596b1ba64d1",
+      "bytes": 11620
     }
   ]
 }

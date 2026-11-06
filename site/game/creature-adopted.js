@@ -1,6 +1,15 @@
 /** Approved visual designs with their confirmed game settings. */
 export const ADOPTED_CREATURE_DEFINITIONS=[
  {
+  id:'holy_white_dragon_pegasus',name:'ホーリーホワイトドラゴンペガサス',description:'聖なる雰囲を感じる強そうな白いドラゴンのペガサス❕',
+  height:3.5,category:'unique',campOnly:true,fixedLevel:65,levelBand:{min:65,max:65},spawnRegions:[],spawnTimes:['day','night'],
+  campHabitats:[{destinationId:'holy_dragon_lair'}],campLocationLabel:'聖天の棲家',
+  ranks:{hp:20,attack:12,ki:15,speed:13},techniques:['energy_ray','tackle'],
+  auraColor:'#fff1a0',auraPalette:['#ffffff','#ffe34a'],auraEmphasis:true,auraDensity:1.6,auraStrength:1.35,
+  additionalEffects:[{type:'opponent_ki_parameter',multiplier:.4,description:'ホーリーホワイトドラゴンペガサスの相手チームが威力計算に使う気を0.4倍にします。攻撃力や技レベルによる加算は変わりません。'}],
+  auraAdditionalEffects:[{type:'opponent_ki_parameter',multiplier:.7,description:'このオーラをまとった珍生物の相手チームが威力計算に使う気を0.7倍にします。攻撃力や技レベルによる加算は変わりません。'}]
+ },
+ {
   id:'koke_atama',name:'コケあたま',description:'おれも頭に何か欲しい‼️',
   height:.4,category:'normal',levelBand:{min:10,max:45},spawnRegions:['forest'],spawnTimes:['day','night'],
   campHabitats:[{regionId:'wilds',terrainIds:['normal','cliff','cave','poor_visibility']}],

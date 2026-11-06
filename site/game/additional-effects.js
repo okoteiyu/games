@@ -21,6 +21,10 @@ export function firstAttackParameterMultipliers(effects=NO_ADDITIONAL_EFFECTS,co
 export function opponentAttackParameterMultiplier(effectLists=[]){
  return effectLists.flatMap(effects=>effects||[]).reduce((value,effect)=>effect?.type==='opponent_attack_parameter'?value*factor(effect.multiplier):value,1);
 }
+/** Opposing, living effect holders reduce only the ki component of power. */
+export function opponentKiParameterMultiplier(effectLists=[]){
+ return effectLists.flatMap(effects=>effects||[]).reduce((value,effect)=>effect?.type==='opponent_ki_parameter'?value*factor(effect.multiplier):value,1);
+}
 /** Pick one opponent per rank effect, once. Always read intrinsic ranks, so two
  * copying opponents cannot recursively raise each other's derived ranks. */
 export function selectBattleRankBonus(effects=NO_ADDITIONAL_EFFECTS,opponents=[],rng=Math.random){

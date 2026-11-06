@@ -2051,6 +2051,27 @@
         ],
         "emphasis": true
       }
+    },
+    "holy_white_dragon_pegasus": {
+      "id": "holy_white_dragon_pegasus",
+      "name": "ホーリーホワイトドラゴンペガサス",
+      "url": "holy_white_dragon_pegasus.glb",
+      "height": 3.5,
+      "height_m": 3.5,
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R275",
+      "fitVisualBounds": true,
+      "softAlpha": false,
+      "sha256": "917e92e0dac100a2f987c29864352c1a72957149606a499b34feec2629d42d1e",
+      "bytes": 27655972
     }
   },
   "commonMotion": {

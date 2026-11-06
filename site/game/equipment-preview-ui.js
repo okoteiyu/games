@@ -14,6 +14,7 @@ export function equipmentPreviewMarkup(player,kind,id){
  }).join('');
  let damage=[['damageDealt','与えるダメージ'],['damageReceived','受けるダメージ']].map(([key,label])=>'<div data-equipment-damage="'+key+'"><dt>'+label+'</dt><dd><span>'+percent(before[key])+'</span><span aria-label="から">→</span><strong>'+percent(after[key])+'</strong></dd></div>').join('');
  if(before.opponentAttackParameter!==1||after.opponentAttackParameter!==1)damage+='<div data-equipment-damage="opponentAttackParameter"><dt>相手が威力計算に使う攻撃力</dt><dd><span>'+percent(before.opponentAttackParameter)+'</span><span>→</span><strong>'+percent(after.opponentAttackParameter)+'</strong></dd></div>';
+ if(before.opponentKiParameter!==1||after.opponentKiParameter!==1)damage+='<div data-equipment-damage="opponentKiParameter"><dt>相手が威力計算に使う気</dt><dd><span>'+percent(before.opponentKiParameter)+'</span><span>→</span><strong>'+percent(after.opponentKiParameter)+'</strong></dd></div>';
  if(before.conditionalRankBonus||after.conditionalRankBonus)damage+='<div data-equipment-damage="conditionalRankBonus"><dt>相手のランクに応じた能力値の加算</dt><dd><span>'+(before.conditionalRankBonus?'あり':'なし')+'</span><span>→</span><strong>'+(after.conditionalRankBonus?'あり':'なし')+'</strong></dd></div>';
  const grouped=[player.equippedAura,kind==='aura'?id:null].some(aura=>CREATURES[aura]?.auraAdditionalEffects.some(effect=>effect.type==='living_opponent_species_group_damage_dealt'));
  if(grouped){

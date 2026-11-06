@@ -282,3 +282,6 @@
 @container camp-actions (max-height:160px){.camp-fairies__choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}.camp-progress-panel .camp-fairy-action{flex-direction:column;gap:2px;min-block-size:43px;padding:4px}.camp-fairy-action__copy{inline-size:100%}.camp-progress-panel .camp-fairy-action__copy strong{display:none}.camp-fairy-action__copy small{inline-size:100%;font-size:9px;block-size:12px;line-height:12px}.camp-fairies__choices~.camp-fairies__cancel{min-block-size:36px}.camp-progress-panel .camp-fairies__heading{min-block-size:18px;block-size:18px;font-size:11px}.camp-fairies{gap:4px}}
 
 @container camp-actions (max-height:130px){.camp-progress-panel .camp-fairies__heading{display:none}.camp-progress-panel .camp-fairies__cancel{min-block-size:34px}}
+
+/* Secret destinations do not reserve a named disabled option before discovery. */
+.camp-destination-picker__option[hidden] { display:none; }

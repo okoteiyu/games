@@ -500,7 +500,8 @@ export class BattleView{
   if(role==='player'){
    this.applyAuraColor(record,state.auraId);
    const creatureAuraActive=auraActive&&record.auraId!=='okoteiyu';
-   if(creatureAuraActive&&!record.creatureAura){record.creatureAura=new CreatureAuraEffects(record.height);record.anchor.add(record.creatureAura.root);}
+   const creatureAuraStyle=auraStyles[record.auraId]||auraStyles.okoteiyu,creatureAuraDensity=creatureAuraStyle.density||1;
+   if(creatureAuraActive&&(!record.creatureAura||record.creatureAura.density!==creatureAuraDensity)){record.creatureAura?.dispose();record.creatureAura=new CreatureAuraEffects(record.height,{density:creatureAuraDensity});record.anchor.add(record.creatureAura.root);}
    record.creatureAura?.sample(this.time,creatureAuraActive,auraStyles[record.auraId]||auraStyles.okoteiyu,{superActive});
    const superConfiguration=superActive?(this.snapshot?.super?.configuration??this.snapshot?.techniques?.superDetails?.configuration??this.snapshot?.techniques?.superConfiguration??'none'):'none';
    this.applySuperAuraColor(record,superConfiguration);

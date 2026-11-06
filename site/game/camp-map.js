@@ -2,6 +2,7 @@ import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS,getCampNode,getCampDestinatio
 import {createPatrolMap} from './patrol-map.js';
 import {CampMapRenderer,campNodeScreenRadius,CAMP_DESTINATION_LABEL_MIN_ZOOM} from './camp-map-renderer.js';
 import {getCampRegion} from './camp-regions.js';
+import {isCampDestinationUnlocked} from './camp-destination-access.js';
 import {CAMP_FAIRIES} from './camp-fairy-data.js';
 const PATROL_MAP=createPatrolMap();
 const PATROL_BY_ID=new Map(PATROL_MAP.nodes.map(node=>[node.id,node]));
@@ -16,7 +17,7 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 /** The atlas and expedition use one projection and one discovery mask. */
 export class CampMap{
  constructor(element,{onCamp=()=>{},onNodeSelect=()=>{},onBaseSelect=()=>{},interactive=true,follow=false}={}){
-  Object.assign(this,{element,onCamp,onNodeSelect,onBaseSelect,interactive,follow});this.discovered=new Set();this.pointers=new Map();this.zoom=1;this.pan={x:0,y:0};this.state={};this.bases=[];this.baseRoutes=[];this.baseKey='';this.dirty=true;this.pendingDraw=true;this.visible=false;this.autoFollow=follow;this.destroyed=false;
+  Object.assign(this,{element,onCamp,onNodeSelect,onBaseSelect,interactive,follow});this.discovered=new Set();this.unlockedDestinations=new Set();this.pointers=new Map();this.zoom=1;this.pan={x:0,y:0};this.state={};this.bases=[];this.baseRoutes=[];this.baseKey='';this.dirty=true;this.pendingDraw=true;this.visible=false;this.autoFollow=follow;this.destroyed=false;
   this.root=document.createElement('div');this.root.className='camp-map';this.root.dataset.interactive=String(interactive);
   this.canvas=document.createElement('canvas');this.canvas.className='camp-map__canvas';this.canvas.tabIndex=interactive?0:-1;this.canvas.setAttribute('role','img');this.canvas.setAttribute('aria-label','森林の奥へ続くワールドマップ。未到達の土地には黒い雲がかかっています。');
   this.root.append(this.canvas);element.append(this.root);this.context=this.canvas.getContext('2d');this.staticCanvas=document.createElement('canvas');this.staticContext=this.staticCanvas.getContext('2d');this.renderer=new CampMapRenderer({onInvalidate:()=>{if(!this.destroyed)this.invalidate();}});
@@ -37,6 +38,7 @@ export class CampMap{
    const bases=state.bases??this.bases,routes=state.baseRoutes??this.baseRoutes,key=JSON.stringify([bases,routes]);
    if(key!==this.baseKey){this.baseKey=key;this.bases=Array.isArray(bases)?bases:[];this.baseRoutes=Array.isArray(routes)?routes:[];this.routeArrows=campBaseRouteArrows(this.baseRoutes);this.routeEdges=campBaseRouteEdges(this.routeArrows);this.dirty=true;if(this.noteNodeId)this.note.textContent=this.describeNode(nodeAt(this.noteNodeId));}
   }
+  if(Object.hasOwn(state,'unlockedDestinations')){const values=state.unlockedDestinations instanceof Set?[...state.unlockedDestinations]:state.unlockedDestinations||[],next=new Set(values);if(next.size!==this.unlockedDestinations.size||[...next].some(id=>!this.unlockedDestinations.has(id))){this.unlockedDestinations=next;this.dirty=true;if(this.noteNodeId)this.note.textContent=this.describeNode(nodeAt(this.noteNodeId));}}
   const visited=state.discovered??state.visited;
   if(visited){
    const values=visited instanceof Set?[...visited]:Array.isArray(visited)?visited:Object.keys(visited),next=new Set(values);
@@ -129,7 +131,7 @@ export class CampMap{
   event.preventDefault();event.stopPropagation();const candidate=this.tapCandidate;this.tapCandidate=null;
   if(this.interactive&&candidate&&!this.pointers.size&&!this.destroyed)this.tap(candidate);
  }
- describeNode(node){const base=node&&this.bases.find(base=>base.nodeId===node.id);if(base)return base.name+(base.foundation?' · キャンプ基礎拠点':base.frontier?' · フロンティア拠点':' · キャンプ拠点');return node&&this.discovered.has(node.id)?(getCampDestinationAt(node.id)?getCampDestinationAt(node.id).name+' · 登録地点':null)||(getCampRegion(node.regionId)?.name||'未開の地')+' · 道中地点 · '+(TERRAINS[node.terrain]?.label||'通常'):'まだ訪れていない土地';}
+ describeNode(node){const base=node&&this.bases.find(base=>base.nodeId===node.id);if(base)return base.name+(base.foundation?' · キャンプ基礎拠点':base.frontier?' · フロンティア拠点':' · キャンプ拠点');return node&&this.discovered.has(node.id)?(getCampDestinationAt(node.id)&&isCampDestinationUnlocked(getCampDestinationAt(node.id).id,this.discovered,this.unlockedDestinations)?getCampDestinationAt(node.id).name+' · 登録地点':null)||(getCampRegion(node.regionId)?.name||'未開の地')+' · 道中地点 · '+(TERRAINS[node.terrain]?.label||'通常'):'まだ訪れていない土地';}
  tap(point){
   if(this.fairySelection){if(this.fairySelection.mode==='flight')return;const target=(this.fairyTargetPositions||[]).find(p=>Math.hypot(p.x-point.x,p.y-point.y)<24);if(target)this.fairySelection.onSelect?.(target.id);return;}
   // Base markers own their tap: do not also open the packing page beneath it.
@@ -148,7 +150,7 @@ export class CampMap{
   this.destinationLabelsDrawn=[];this.registeredMarkersDrawn=[];const occupied=[...(this.renderer.regionLabelBoxes||[])],overlaps=(a,b)=>a.left<b.right+4&&a.right>b.left-4&&a.top<b.bottom+4&&a.bottom>b.top-4;
   const destinations=Object.values(CAMP_DESTINATIONS).sort((a,b)=>Number(b.nodeId===this.state.nodeId||b.nodeId===this.state.targetId)-Number(a.nodeId===this.state.nodeId||a.nodeId===this.state.targetId));
   for(const destination of destinations){
-   if(!destination.nodeId||!this.discovered.has(destination.nodeId))continue;
+   if(!destination.nodeId||!isCampDestinationUnlocked(destination.id,this.discovered,this.unlockedDestinations))continue;
    const node=nodeAt(destination.nodeId);if(!node)continue;const p=this.project(node);if(p.x<-100||p.x>this.width+100||p.y<-50||p.y>this.height+50)continue;
    const radius=Math.max(4.5,Math.min(15,campNodeScreenRadius(this.zoom)*1.2));
    // Reached registered places keep a distinct diamond at overview. Their names
