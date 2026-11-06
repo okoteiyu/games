@@ -1,0 +1,27 @@
+/** Approved visual designs with their confirmed game settings. */
+export const ADOPTED_CREATURE_DEFINITIONS=[
+ {
+  id:'koke_atama',name:'コケあたま',description:'おれも頭に何か欲しい‼️',
+  height:.4,category:'normal',levelBand:{min:10,max:45},spawnRegions:['forest'],spawnTimes:['day','night'],
+  campHabitats:[{regionId:'wilds',terrainIds:['normal','cliff','cave','poor_visibility']}],
+  ranks:{hp:10,attack:6,ki:3,speed:4},techniques:['normal_attack','energy_ray'],auraColor:'#65ad42',
+  additionalEffects:[{type:'first_damage_received',multiplier:.5,description:'戦闘中、最初に受けるダメージを半減します。'}],
+  auraAdditionalEffects:[]
+ },
+ {
+  id:'iron_senpai',name:'アイアンセンパイ',description:'会ったことないけど、なんか先輩っぽいと感じました。',
+  height:.65,category:'normal',levelBand:{min:25,max:65},spawnRegions:['city','residential'],spawnTimes:['day','night'],
+  campHabitats:['wilds','volcano'].map(regionId=>({regionId,terrainIds:['normal','cliff','cave']})),
+  ranks:{hp:12,attack:8,ki:1,speed:3},techniques:['tackle','normal_attack'],auraColor:'#c3cbd3',
+  additionalEffects:[{type:'opponent_attack_parameter',multiplier:.7,description:'アイアンセンパイの相手チームが威力計算に使う攻撃力を0.7倍にします。気や技レベルによる加算は変わりません。'}],
+  auraAdditionalEffects:[{type:'opponent_attack_parameter',multiplier:.8,description:'このオーラをまとった珍生物の相手チームが威力計算に使う攻撃力を0.8倍にします。気や技レベルによる加算は変わりません。'}]
+ },
+ {
+  id:'eyeball_gate',name:'眼球ゲート',description:'出会った瞬間逃げたいと思ったけど、スーパーヒーローとして逃げなかった<(*¯꒳¯*)>',
+  height:1,category:'threat',levelBand:{min:35,max:100},spawnRegions:[],spawnTimes:['day','night'],campOnly:true,
+  campHabitats:['volcano','sacred_forest','meteor_crater','dark_domain'].map(regionId=>({regionId,terrainIds:['normal','rough','cliff','gas','cave','poor_visibility']})),
+  ranks:{hp:15,attack:6,ki:14,speed:9},techniques:['energy_ray','void_wave'],auraColor:'#030305',auraEmphasis:true,
+  additionalEffects:[{type:'random_opponent_rank_bonus',multiplier:.2,description:'戦闘開始時に相手チームから1体を抽選し、その珍生物の各パラメータランクの0.2倍（小数点以下切り捨て）を自身のランクへ加算して、能力値を計算します。相手と加算値は戦闘中固定です。'}],
+  auraAdditionalEffects:[{type:'random_opponent_rank_bonus',multiplier:.15,description:'戦闘開始時に相手チームから1体を抽選し、その珍生物の各パラメータランクの0.15倍（小数点以下切り捨て）を自身のランクへ加算して、能力値を計算します。相手と加算値は戦闘中固定です。'}]
+ }
+];

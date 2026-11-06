@@ -1,4 +1,5 @@
 import {TIME_LABELS} from './world-time.js';
+import {campHabitatDescription} from './camp-encounters.js';
 import {TRAINING_COURSES,eligibleTrainingCreatures} from './game-session.js';
 import {REGION_LABELS} from './patrol-map.js';
 import {availableTechniqueIds,availableSuperConfigurationIds,TECHNIQUES} from './technique-rules.js';
@@ -230,6 +231,10 @@ export class OptionsDialog {
   const player=this.collectionPlayer(),journal=player.journal||{},entries=Object.entries(CREATURES).filter(([id,creature])=>id==='okoteiyu'||Object.hasOwn(CREATURE_CATEGORIES,creature.category)&&hasJournalRecord(journal[id])).map(([id,creature])=>({...journal[id],id,name:creature.name,creature,self:id==='okoteiyu'}));
   if(!entries.some(e=>e.id===this.selectedJournal))this.selectedJournal=entries[0].id;const selected=entries.find(e=>e.id===this.selectedJournal);
   const facts=selected.self?[['レベル',player.level],...Object.entries(player.stats||{}).map(([key,value])=>[({hp:'HP',attack:'攻撃力',ki:'気',speed:'速さ'})[key],value])]:[['固有レベル帯','Lv.'+selected.creature.levelBand.min+(selected.creature.levelBand.min===selected.creature.levelBand.max?'のみ':'〜'+selected.creature.levelBand.max)],['出現エリア',selected.creature.campOnly?(selected.creature.campLocationLabel||'未開の地（キャンプ）'):selected.creature.spawnRegions.map(id=>REGION_LABELS[id]).join('・')],['出現時間帯',(selected.creature.spawnTimes||['day','night']).map(id=>TIME_LABELS[id]).join('・')],['遭遇',count(selected.encounters)+'回'],['撃退',count(selected.defeats)+'回']];
+  if(!selected.self&&selected.creature.campHabitats!==undefined){
+   facts[1]=['出現エリア（パトロール）',selected.creature.spawnRegions.map(id=>REGION_LABELS[id]).join('・')||'なし'];
+   facts.splice(2,0,['キャンプ出現場所',campHabitatDescription(selected.creature)]);
+  }
   this.body.innerHTML='<p class="option-section-intro">この記録帳の珍生物の名前は、おこていゆがつけています。</p><div class="collection-browser journal-browser"><div class="collection-tiles" aria-label="珍生物の一覧">'+entries.map(entry=>'<button class="collection-tile" type="button" data-journal-select="'+entry.id+'" aria-pressed="'+String(entry.id===selected.id)+'">'+this.thumbnail('creature',entry.id,entry.name)+'<span class="collection-tile__name">'+escapeHtml(entry.name)+'</span></button>').join('')+'</div><section class="collection-detail" aria-label="選択した珍生物の詳細">'+this.thumbnail('creature',selected.id,selected.name,'collection-detail__photo')+'<div class="collection-detail__copy"><span class="option-tag">'+escapeHtml(selected.self?'自分自身':CREATURE_CATEGORIES[selected.creature.category]?.label||'')+'</span><h3>'+escapeHtml(selected.name)+'</h3><p>'+escapeHtml(CREATURE_NOTES[selected.id]||'')+'</p><p class="option-note">'+escapeHtml((selected.creature.additionalEffectsStatus==='unknown'?'追加効果：不明':additionalEffectsText(selected.creature.additionalEffects)))+'</p><dl class="collection-facts"><div><dt>身長</dt><dd>'+(Number.isFinite(selected.creature.height)?Number((selected.creature.height*100).toFixed(1))+'cm':'未設定')+'</dd></div>'+facts.map(([name,value])=>'<div><dt>'+name+'</dt><dd>'+escapeHtml(value)+'</dd></div>').join('')+'</dl>'+repertoireMarkup(selected.self?availableTechniqueIds(player):selected.creature.techniques,{player:selected.self?player:null,enemyLevel:selected.lastLevel||1})+(selected.self?superDetailsMarkup(player):'')+'</div></section></div>';
  }
  renderIosGuide(){

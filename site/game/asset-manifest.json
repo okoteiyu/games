@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 177,
-  "totalBytes": 163313789,
+  "fileCount": 186,
+  "totalBytes": 169387731,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=aea6a52243000fcbc2e72e24945b4e44bde6f40c5e51788e829b143563452f03",
+      "url": "assets/battle3d/manifest.json?v=85956b44807275c33485c690117de3c17cbf46fe5eeec877f1ec2acc3b0249b7",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 41689,
+      "bytes": 43415,
       "priority": 2,
-      "sha256": "aea6a52243000fcbc2e72e24945b4e44bde6f40c5e51788e829b143563452f03"
+      "sha256": "85956b44807275c33485c690117de3c17cbf46fe5eeec877f1ec2acc3b0249b7"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1419,6 +1419,78 @@
       "bytes": 153596,
       "priority": 4,
       "sha256": "94dc659fd05f042acdcd76ce454777cd301853ab737f81651b123947273cc72a"
+    },
+    {
+      "url": "assets/battle3d/koke_atama.glb?v=b5adca4c66dc713bf01d5e74aa568a41b568f80b2cc6e6182d544407c3b86c5c",
+      "label": "koke_atamaの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "b5adca4c66dc713bf01d5e74aa568a41b568f80b2cc6e6182d544407c3b86c5c",
+      "bytes": 2170984
+    },
+    {
+      "url": "assets/collection/koke_atama.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "4cd0cf8578bf05da29b0af17144d23e07ae0d7bb6e36acb396f15a78c5f92058",
+      "bytes": 6014
+    },
+    {
+      "url": "assets/collection/aura-koke_atama.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "0bfcdc067dd830f8ba1a970fce27533a0ddd94b8c2c3176552907a2cbcd76a40",
+      "bytes": 7888
+    },
+    {
+      "url": "assets/battle3d/iron_senpai.glb?v=e21f2b34ee29c878ee5a8f550511940f52f0da8fe2a94afe7d31b5a9a6555b96",
+      "label": "iron_senpaiの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "e21f2b34ee29c878ee5a8f550511940f52f0da8fe2a94afe7d31b5a9a6555b96",
+      "bytes": 796344
+    },
+    {
+      "url": "assets/collection/iron_senpai.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "04d7625ec4f40d291f950d6c31137cabf6e0c104b9b058bb6e7e0fe18562ded0",
+      "bytes": 6106
+    },
+    {
+      "url": "assets/collection/aura-iron_senpai.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "f9f58b8cab4038ada973a9eaa70cc1c8b4efa1970922091b7b4fc038e5ecd721",
+      "bytes": 6544
+    },
+    {
+      "url": "assets/battle3d/eyeball_gate.glb?v=f467f04bde73bd001e0ce751e3d5bc634cb4b9539df42c7213793238efbe3959",
+      "label": "eyeball_gateの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "f467f04bde73bd001e0ce751e3d5bc634cb4b9539df42c7213793238efbe3959",
+      "bytes": 3061652
+    },
+    {
+      "url": "assets/collection/eyeball_gate.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "01aae0a77fb663310912e4ae224e6826fecfec70f93fbf8d392ad1cd8ccd3ded",
+      "bytes": 8192
+    },
+    {
+      "url": "assets/collection/aura-eyeball_gate.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "074ff0de36a74e143c7956456599222876a68229372624a9e56af17472100e06",
+      "bytes": 8492
     }
   ]
 }

@@ -17,6 +17,24 @@ export function firstAttackParameterMultipliers(effects=NO_ADDITIONAL_EFFECTS,co
  }
  return result;
 }
+/** Opposing, living effect holders reduce the attack component of power only. */
+export function opponentAttackParameterMultiplier(effectLists=[]){
+ return effectLists.flatMap(effects=>effects||[]).reduce((value,effect)=>effect?.type==='opponent_attack_parameter'?value*factor(effect.multiplier):value,1);
+}
+/** Pick one opponent per rank effect, once. Always read intrinsic ranks, so two
+ * copying opponents cannot recursively raise each other's derived ranks. */
+export function selectBattleRankBonus(effects=NO_ADDITIONAL_EFFECTS,opponents=[],rng=Math.random){
+ const ranks={hp:0,attack:0,ki:0,speed:0},sources=[];
+ const living=opponents.filter(opponent=>opponent.hp>0);
+ for(const effect of effects||[])if(effect?.type==='random_opponent_rank_bonus'&&living.length){
+  const draw=living.length===1?0:Number(rng());
+  if(!Number.isFinite(draw))throw new TypeError('ランク加算の抽選値が正しくありません。');
+  const opponent=living[Math.floor(Math.min(1-Number.EPSILON,Math.max(0,draw))*living.length)],multiplier=factor(effect.multiplier);
+  for(const key of Object.keys(ranks))ranks[key]+=Math.floor(opponent.ranks[key]*multiplier);
+  sources.push(opponent.id);
+ }
+ return {ranks,sources};
+}
 function hasLivingSpeciesGroup(opponents,minimumCount){
  const counts=new Map();
  for(const opponent of opponents)if(opponent.hp>0){
@@ -38,5 +56,11 @@ export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS,{oppone
 }
 /** One qualifying ally enables the effect; further allies do not multiply it. */
 export function additionalDamageReceivedMultiplier(effects=NO_ADDITIONAL_EFFECTS,{actor=null,allies=[],actorHeight=null,attackerHeight=null}={}){
- return effects.reduce((value,effect)=>effect?.type==='damage_received_multiplier'?value*factor(effect.multiplier):effect?.type==='taller_attacker_damage_received'&&Number.isFinite(actorHeight)&&Number.isFinite(attackerHeight)&&attackerHeight>actorHeight?value*factor(effect.multiplier):effect?.type==='living_same_species_ally_damage_received'&&actor?.hp>0&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&ally.speciesId===actor.speciesId)?value*factor(effect.multiplier):value,1);
+ return effects.reduce((value,effect)=>{
+  if(effect?.type==='damage_received_multiplier')return value*factor(effect.multiplier);
+  if(effect?.type==='first_damage_received'&&actor&&!(actor.receivedDamageCount>0))return value*factor(effect.multiplier);
+  if(effect?.type==='taller_attacker_damage_received'&&Number.isFinite(actorHeight)&&Number.isFinite(attackerHeight)&&attackerHeight>actorHeight)return value*factor(effect.multiplier);
+  if(effect?.type==='living_same_species_ally_damage_received'&&actor?.hp>0&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&ally.speciesId===actor.speciesId))return value*factor(effect.multiplier);
+  return value;
+ },1);
 }

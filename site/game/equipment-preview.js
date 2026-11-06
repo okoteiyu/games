@@ -1,5 +1,5 @@
 import {CREATURES,SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,playerStats} from './game-session.js';
-import {additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
+import {additionalDamageMultiplier,additionalDamageReceivedMultiplier,opponentAttackParameterMultiplier} from './additional-effects.js';
 import {supportSelectionChange} from './equipment-rules.js';
 
 function snapshot(player,context){
@@ -8,6 +8,8 @@ function snapshot(player,context){
  const auraEffects=CREATURES[player.equippedAura]?.auraAdditionalEffects;
  return {
   stats:playerStats(player),
+  opponentAttackParameter:opponentAttackParameterMultiplier([bodyEffects,auraEffects]),
+  conditionalRankBonus:(auraEffects||[]).some(effect=>effect.type==='random_opponent_rank_bonus'),
   damageDealt:factors.damageDealt*additionalDamageMultiplier(bodyEffects,context)*additionalDamageMultiplier(auraEffects,context),
   damageReceived:factors.damageReceived*additionalDamageReceivedMultiplier(bodyEffects,{...context,actorHeight:CREATURES.okoteiyu.height})*additionalDamageReceivedMultiplier(auraEffects,{...context,actorHeight:CREATURES.okoteiyu.height})
  };

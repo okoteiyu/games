@@ -1,5 +1,5 @@
 import {ADDED_CREATURES} from './creature-expansion.js';
-import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
+import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,opponentAttackParameterMultiplier,selectBattleRankBonus,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {createStoryProgress,normalizeStoryProgress,hasStoryBattleReward,markStoryBattleReward} from './story-progress.js';
@@ -66,6 +66,10 @@ export function creatureStats(speciesId,level){
  const {ranks}=checkedCreature(speciesId);integer(level,'character level',1,106);
  return Object.fromEntries(STAT_KEYS.map(key=>[key,parameterValue(ranks[key],level,key)]));
 }
+function creatureStatValues(speciesId,level,rankBonus={}){
+ const {ranks}=checkedCreature(speciesId);
+ return Object.fromEntries(STAT_KEYS.map(key=>{const rank=ranks[key]+(rankBonus[key]||0);return [key,(rank===0?1:rank*level*6/10)*(key==='hp'?5:1)];}));
+}
 export function parameterValue(rank,level,stat='attack'){integer(rank,'parameter rank',0,24);integer(level,'character level',1,106);if(!STAT_KEYS.includes(stat))throw new RangeError('Unknown parameter.');return normalizeStat(stat,(rank===0?1:rank*level*6/10)*(stat==='hp'?5:1));}
 function auraStatValues(stats,auraId='okoteiyu',auraLevel=1){
  if(auraId===null)return Object.fromEntries(STAT_KEYS.map(key=>[key,finite(stats[key],key)]));
@@ -104,8 +108,8 @@ function recordJournalEncounter(player,enemy){
  const speciesId=enemy.speciesId,entry=player.journal[speciesId]||{speciesId,name:enemy.name,encounters:0,defeats:0,patrolDefeats:0,lastLevel:enemy.level};
  entry.registered=true;entry.encounters++;entry.lastLevel=enemy.level;player.journal[speciesId]=entry;return entry;
 }
-function playerStatValues(player,{equipment=true}={}){
- const aura=player.auras?.[player.equippedAura],base=auraStatValues(creatureStats('okoteiyu',player.level||1),player.equippedAura??null,aura?.level||1);
+function playerStatValues(player,{equipment=true,rankBonus={}}={}){
+ const aura=player.auras?.[player.equippedAura],base=auraStatValues(creatureStatValues('okoteiyu',player.level||1,rankBonus),player.equippedAura??null,aura?.level||1);
  if(!equipment)return base;
  const factors=equipmentMultipliers(player.equipment);return Object.fromEntries(STAT_KEYS.map(key=>[key,base[key]*factors[key]]));
 }
@@ -376,12 +380,19 @@ export class GameSession{
   if(this.state.location==='battle')throw new Error('A battle is already open.');if(this.state.pendingAngerEvent)throw new Error('Finish the anger event first.');
   if(playerHp!==undefined&&(typeof playerHp!=='number'||!Number.isFinite(playerHp)||playerHp<=0))throw new RangeError('A carried battle HP value must be positive and finite.');
   const members=Array.isArray(encounter)?encounter:encounter?.members||[encounter];integer(members.length,'opponent count',1,3);
-  const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0,nextAttackDamageMultiplier:1});
+  const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},maxHp:stats.hp,hp:stats.hp,receivedDamageCount:0,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0,nextAttackDamageMultiplier:1});
   const enemies=members.map((enemy,index)=>{const speciesId=enemy?.speciesId||enemy?.creatureId;if(!Object.hasOwn(CREATURES,speciesId)||!Object.hasOwn(CREATURE_CATEGORIES,CREATURES[speciesId].category))throw new RangeError('Unsupported prototype opponent.');const level=integer(enemy.level,'opponent level',1,106);return {...actor(index?'enemy-'+(index+1):'enemy',speciesId,level,creatureStats(speciesId,level)),techniqueLevels:Object.fromEntries(CREATURES[speciesId].techniques.map(id=>[id,clampTechniqueLevel(id,level)])),sourceId:enemy.id||null};});
-  const playerStatBase=playerStatValues(this.player);
+  const rankOpponents=actors=>actors.map(opponent=>({...opponent,ranks:CREATURES[opponent.speciesId].ranks}));
+  const playerRankBonus=selectBattleRankBonus([...(CREATURES.okoteiyu.additionalEffects||[]),...(CREATURES[this.player.equippedAura]?.auraAdditionalEffects||[])],rankOpponents(enemies),()=>this.random());
+  const playerStatBase=playerStatValues(this.player,{rankBonus:playerRankBonus.ranks});
+  const playerActor=actor('player','okoteiyu',this.player.level,applySuperStats(playerStatBase));playerActor.rankBonus=playerRankBonus;
+  for(const enemy of enemies){
+   const bonus=selectBattleRankBonus(CREATURES[enemy.speciesId].additionalEffects,rankOpponents([playerActor]),()=>this.random());
+   if(bonus.sources.length){enemy.stats=applySuperStats(creatureStatValues(enemy.speciesId,enemy.level,bonus.ranks));enemy.maxHp=enemy.hp=enemy.stats.hp;enemy.rankBonus=bonus;}
+  }
   const completedAttacks=Object.fromEntries(['player',...enemies.map(enemy=>enemy.id)].map(id=>[id,0]));
   const supports=createBattleSupports(this.player.equipment,this.player);
-  const battle={kind,phase:'active',status:'active',time:0,player:actor('player','okoteiyu',this.player.level,applySuperStats(playerStatBase)),playerStatBase,completedAttacks,supports,support:supports.find(item=>item.id==='moai_kun')||null,enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
+  const battle={kind,phase:'active',status:'active',time:0,player:playerActor,playerStatBase,completedAttacks,supports,support:supports.find(item=>item.id==='moai_kun')||null,enemies,enemy:enemies[0],targetId:enemies[0].id,super:{used:false,pending:false,active:false,until:0,multiplier:1,duration:0},result:null,rewards:null,enemyId:encounter?.id||enemies[0].speciesId};
   if(playerHp!==undefined)battle.player.hp=Math.min(battle.player.maxHp,playerHp);
   this.state.battle=battle;this.state.location='battle';
   for(const id of this.actorIds())this.combatant(id).nextActionAt=this.nextInterval(id);
@@ -503,7 +514,7 @@ export class GameSession{
     const defense={actor:target,allies:b.enemies,actorHeight:CREATURES[target.speciesId].height,attackerHeight:.2};
     const targetBodyEffects=CREATURES[target.speciesId].additionalEffects,targetAuraEffects=NO_ADDITIONAL_EFFECTS;
     const amount=s.reflectDamage*additionalDamageReceivedMultiplier(targetBodyEffects,defense)*additionalDamageReceivedMultiplier(targetAuraEffects,defense);
-    const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;
+    const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;if(amount>0)target.receivedDamageCount++;
     this.emit('damage',{actor:'support',actorName:s.name,supportId:s.id,target:target.id,targetName:target.name,technique:SUPPORT_COUNTER_TECHNIQUE,amount,baseAmount:s.reflectDamage,rawDamage:s.rawDamage,hp:target.hp,maxHp:target.maxHp,time:b.time});
     this.returnSupport();if(target.hp<=0&&this.finishFatigue(target))return;this.autoSuper();
    }
@@ -517,8 +528,10 @@ export class GameSession{
    const target=actorId==='player'?(this.combatant(action.targetId)?.hp>0?this.combatant(action.targetId):this.selectTarget()):b.player;if(!target)return;
    const bodyEffects=CREATURES[actor.speciesId].additionalEffects;
    const first=firstAttackParameterMultipliers(bodyEffects,b.completedAttacks[actorId]);
+   const opposingActors=actorId==='player'?b.enemies:[b.player];
+   const attackFactor=opponentAttackParameterMultiplier(opposingActors.filter(opponent=>opponent.hp>0).flatMap(opponent=>[CREATURES[opponent.speciesId].additionalEffects,opponent.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS]));
    const base=actorId==='player'?b.playerStatBase:actor.stats;
-   const stats=applySuperStats({...base,attack:base.attack*first.attack,ki:base.ki*first.ki},actorId==='player'&&b.super.active?b.super.multiplier:1);
+   const stats=applySuperStats({...base,attack:base.attack*first.attack*attackFactor,ki:base.ki*first.ki},actorId==='player'&&b.super.active?b.super.multiplier:1);
    const techniqueLevel=actorId!=='player'?actor.techniqueLevels[action.technique]:playerTechniqueLevel(this.player,action.technique);
    const power=techniquePower(action.technique,stats,techniqueLevel);
    const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
@@ -533,7 +546,7 @@ export class GameSession{
    actor.nextAttackDamageMultiplier=1;
    const absorbed=target.id==='player'&&this.absorbSupportAttack(actor,power*bodyDamageMultiplier*auraDamageMultiplier*nextAttackDamageMultiplier,amount);
    b.completedAttacks[actorId]++;
-   if(!absorbed){const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;
+   if(!absorbed){const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;if(amount>0)target.receivedDamageCount++;
     if(target.hp>0)for(const effect of techniqueAdditionalEffects(action.technique,techniqueLevel))if(effect.type==='next_attack_damage_multiplier')target.nextAttackDamageMultiplier*=effect.multiplier;
     this.emit('damage',{actor:actorId,actorName:actor.name,target:target.id,targetName:target.name,technique:action.technique,amount,hp:target.hp,maxHp:target.maxHp,time:b.time});
     if(target.id==='player'&&target.hp>0)selfLowBeforeHealing=this.resolveSupportHealing().selfLow;

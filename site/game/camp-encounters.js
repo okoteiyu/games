@@ -21,6 +21,10 @@ export function campHabitatMatches(creature,context={}){
  if(creature.campHabitats===undefined)return true;
  return validateCampHabitats(creature.campHabitats).some(entry=>entry.destinationId!==undefined?entry.destinationId===context.destinationId:entry.regionId===context.regionId&&entry.terrainIds.includes(context.terrainId));
 }
+export function campHabitatDescription(creature){
+ if(creature.campHabitats===undefined)return null;
+ return validateCampHabitats(creature.campHabitats).map(entry=>entry.destinationId!==undefined?CAMP_DESTINATIONS[entry.destinationId].name:CAMP_REGIONS[entry.regionId].name+'（'+entry.terrainIds.map(id=>CAMP_TERRAINS[id].label).join('・')+'）').join(' / ')||'なし';
+}
 const validatePlayerLevel=level=>{if(!Number.isInteger(level)||level<1||level>106)throw new RangeError('キャンプのレベルが正しくありません。');};
 function nativeBand(creature){
  if(!creature||typeof creature!=='object')throw new TypeError('キャンプの珍生物が正しくありません。');
