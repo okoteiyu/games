@@ -161,7 +161,15 @@ export class CampExpedition{
   const normal=avoidNodeId=>{const guided=this.guidedMove({avoidFirstNodeId:avoidNodeId});if(guided?.unavailable)return guided;const node=guided?.node??this.chooseNextNode({avoidNodeId});return {node,movementMode:guided?.movementMode??(this.isParentNode(node)?'backtrack':'forward')};};
   let choice=null;
   if(request?.kind==='tomato'){const node=this.nodeIndex.get(request.toNodeId);if(this.canEnterNode(node))choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward'};}
-  else if(request?.kind==='eggplant'){const alternative=normal(request.toNodeId);if(alternative.node&&!alternative.unavailable)choice=alternative;}
+  else if(request?.kind==='eggplant'){
+   const alternative=normal(request.toNodeId);if(alternative.node&&!alternative.unavailable)choice=alternative;
+   else if(!alternative.unavailable){
+    // Avoiding this edge may require a one-off revisit outside the usual
+    // objective direction. Keep return-only tool costs on the real parent.
+    const candidates=this.nodeIndex.get(this.state.nodeId).neighbors.filter(id=>id!==request.toNodeId).map(id=>this.nodeIndex.get(id)).filter(node=>this.canEnterNode(node)),forward=candidates.filter(node=>!this.isParentNode(node)),node=this.pick(forward.length?forward:candidates);
+    if(node)choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward'};
+   }
+  }
   choice??=normal(null);
   const stop=reason=>{this.resolveFairy(request,null);this.finalize(reason);};
   if(choice.unavailable){stop('compass-route-unavailable');return;}
