@@ -7,6 +7,7 @@ for p in site.rglob('*'):
  checked+=1
  if p.suffix in {'.blend','.blend1','.zip','.pyc'}or any(s in p.parts for s in ['game_design','game-design','__pycache__']):fail.append('Private file: '+str(p))
  if p.stat().st_size>=100*1024*1024:fail.append('GitHub file size limit: '+str(p))
+ if p.stat().st_size>25*1024*1024:fail.append('Shared static hosting file size limit (25 MiB): '+str(p))
  if p.suffix not in {'.html','.js','.css'}:continue
  text=p.read_text()
  urls=[]

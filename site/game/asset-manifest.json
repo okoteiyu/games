@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
   "fileCount": 234,
-  "totalBytes": 255365688,
+  "totalBytes": 250779944,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=27365bd711c31b82a56bfb61c69bd5beeb74618d073f5af76d5a8ba704533501",
+      "url": "assets/battle3d/manifest.json?v=4c09ca999606e2af82c6583613fed627d0f0b8b6c247e730bd7450531e1fd78c",
       "label": "戦闘モデルの設定",
       "type": "json",
       "bytes": 59668,
       "priority": 2,
-      "sha256": "27365bd711c31b82a56bfb61c69bd5beeb74618d073f5af76d5a8ba704533501"
+      "sha256": "4c09ca999606e2af82c6583613fed627d0f0b8b6c247e730bd7450531e1fd78c"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1853,12 +1853,12 @@
       "sha256": "afced74f8f462d3de60bcc3465afaf35f7061f142887c506e7a3b7b76f1e3263"
     },
     {
-      "url": "assets/battle3d/holy_white_dragon_pegasus.glb?v=917e92e0dac100a2f987c29864352c1a72957149606a499b34feec2629d42d1e",
+      "url": "assets/battle3d/holy_white_dragon_pegasus.glb?v=cc63054bf5739bda848ad9dda055abd4e5aa9b3c98c7fbeefd1465e06d3d6c7f",
       "label": "ホーリーホワイトドラゴンペガサス",
       "type": "binary",
       "priority": 3,
-      "sha256": "917e92e0dac100a2f987c29864352c1a72957149606a499b34feec2629d42d1e",
-      "bytes": 27655972
+      "sha256": "cc63054bf5739bda848ad9dda055abd4e5aa9b3c98c7fbeefd1465e06d3d6c7f",
+      "bytes": 23070228
     },
     {
       "url": "assets/collection/holy_white_dragon_pegasus.webp",
