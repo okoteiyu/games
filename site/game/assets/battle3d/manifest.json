@@ -1456,6 +1456,72 @@
       "softAlpha": true,
       "bytes": 3061652,
       "sha256": "f467f04bde73bd001e0ce751e3d5bc634cb4b9539df42c7213793238efbe3959"
+    },
+    "angry_punim": {
+      "id": "angry_punim",
+      "name": "怒プニム",
+      "url": "angry_punim.glb",
+      "height": 0.25,
+      "height_m": 0.25,
+      "height_status": "inherited_from_punim",
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R269",
+      "fitVisualBounds": true,
+      "softAlpha": false,
+      "bytes": 470572,
+      "sha256": "60de630182b7c7289435871f73bb8578a284f06a5c660b140939ac18de6d5f27"
+    },
+    "dark_punim": {
+      "id": "dark_punim",
+      "name": "闇プニム",
+      "url": "dark_punim.glb",
+      "height": 0.25,
+      "height_m": 0.25,
+      "height_status": "inherited_from_punim",
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R269",
+      "fitVisualBounds": true,
+      "softAlpha": false,
+      "bytes": 470576,
+      "sha256": "b5bd30280aa05747d2dedee246c1828fdab709efa4ca5ec0a134191ef38c7d00"
+    },
+    "celestial_punim": {
+      "id": "celestial_punim",
+      "name": "聖天プニム",
+      "url": "celestial_punim.glb",
+      "height": 0.25,
+      "height_m": 0.25,
+      "height_status": "inherited_from_punim",
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R269",
+      "fitVisualBounds": true,
+      "softAlpha": false,
+      "bytes": 470788,
+      "sha256": "00e7a2ea662e5ea2c64d4ee2fb134b8e43c4af87b1e342dcd1b67713f8843c60"
     }
   },
   "commonMotion": {

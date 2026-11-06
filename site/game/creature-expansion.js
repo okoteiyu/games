@@ -1,8 +1,9 @@
 import {CAMP_CREATURE_DEFINITIONS} from './camp-creature.js';
 import {NEW_CREATURE_DEFINITIONS} from './creature-expansion-c.js';
 import {ADOPTED_CREATURE_DEFINITIONS} from './creature-adopted.js';
+import {PUNIM_FAMILY_DEFINITIONS} from './punim-family.js';
 /** Confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
-const definitions=[...CAMP_CREATURE_DEFINITIONS,...NEW_CREATURE_DEFINITIONS,...ADOPTED_CREATURE_DEFINITIONS,
+const definitions=[...CAMP_CREATURE_DEFINITIONS,...NEW_CREATURE_DEFINITIONS,...ADOPTED_CREATURE_DEFINITIONS,...PUNIM_FAMILY_DEFINITIONS,
  {"id":"fake_moai","name":"偽モアイ","description":"モアイに似ているが、何か違う。なぜか違うことがわかるんだ。","category":"threat","height":2.5,"levelBand":{"min":20,"max":100},"spawnRegions":["city","residential","forest"],"spawnTimes":["day","night"],"ranks":{"hp":15,"attack":12,"ki":12,"speed":5},"techniques":["fake_moai_beam","normal_attack"],"auraColor":"#ff7fbe","additionalEffects":[{"type":"living_ally_species_damage_dealt","speciesIds":["moai_king","gold_moai"],"multiplier":0.5,"description":"偽モアイの味方チームに疲れていないモアイの戦士または金モアイがいる間、この偽モアイが与えるダメージが0.5倍になります。重複しません。"}],"auraAdditionalEffects":[{"type":"target_species_exclusion_damage_dealt","excludedSpeciesIds":["moai_king","gold_moai"],"multiplier":1.3,"description":"モアイの戦士・金モアイ以外の相手に与えるダメージが1.3倍になります。"}]},
  {id:'car',name:'カー',description:'一見するとただの車だけど、こいつは車じゃない!!!',category:'normal',height:1.5,levelBand:{min:20,max:100},spawnRegions:['city','residential'],spawnTimes:['day','night'],ranks:{hp:10,attack:5,ki:0,speed:10},techniques:['tackle'],auraColor:'#ffe34a',additionalEffects:[{type:'smaller_target_damage_dealt',multiplier:1.5,description:'自身より身長が小さい相手に与えるダメージが1.5倍になります。'}],auraAdditionalEffects:[{type:'taller_attacker_damage_received',multiplier:.8,description:'自身より身長が大きい相手から受けるダメージが0.8倍になります。'}]},
  {
@@ -77,37 +78,6 @@ const definitions=[...CAMP_CREATURE_DEFINITIONS,...NEW_CREATURE_DEFINITIONS,...A
   ],
   "auraColor": "#16131c",
   "description": "夜に出会ったから透明だと勘違いしてつけた名前。ちなみに強い。"
- },
- {
-  "id": "punim",
-  "name": "プニム",
-  "category": "normal",
-  "height": 0.25,
-  "levelBand": {
-   "min": 1,
-   "max": 100
-  },
-  "spawnRegions": [
-   "forest",
-   "residential",
-   "city"
-  ],
-  "spawnTimes": [
-   "day",
-   "night"
-  ],
-  "ranks": {
-   "hp": 3,
-   "attack": 3,
-   "ki": 3,
-   "speed": 3
-  },
-  "techniques": [
-   "normal_attack",
-   "energy_ray"
-  ],
-  "auraColor": "#ff7fbe",
-  "description": "何だか親近感を覚える珍生物。プニプニしてるからプニム☺️"
  },
  {
   "id": "crystal_striker",

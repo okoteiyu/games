@@ -537,7 +537,7 @@ export class GameSession{
    const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
    const opponents=actorId==='player'?b.enemies:[b.player],allies=target.id==='player'?[b.player]:b.enemies;
    const targetBodyEffects=CREATURES[target.speciesId].additionalEffects,targetAuraEffects=target.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
-   const actorHeight=CREATURES[actor.speciesId].height,targetHeight=CREATURES[target.speciesId].height,offense={opponents,actorHeight,targetHeight,actor,allies:actorId==='player'?[b.player]:b.enemies,targetSpeciesId:target.speciesId},defense={actor:target,allies,actorHeight:targetHeight,attackerHeight:actorHeight};
+   const actorHeight=CREATURES[actor.speciesId].height,targetHeight=CREATURES[target.speciesId].height,offense={opponents,actorHeight,targetHeight,actor,allies:actorId==='player'?[b.player]:b.enemies,targetSpeciesId:target.speciesId,completedAttacks:b.completedAttacks[actorId]},defense={actor:target,allies,actorHeight:targetHeight,attackerHeight:actorHeight};
    const bodyDamageMultiplier=additionalDamageMultiplier(bodyEffects,offense),auraDamageMultiplier=additionalDamageMultiplier(auraEffects,offense);
    const damageMultiplier=bodyDamageMultiplier*auraDamageMultiplier*additionalDamageReceivedMultiplier(targetBodyEffects,defense)*additionalDamageReceivedMultiplier(targetAuraEffects,defense);
    const nextAttackDamageMultiplier=actor.nextAttackDamageMultiplier;

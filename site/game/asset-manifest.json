@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 186,
-  "totalBytes": 169387731,
+  "fileCount": 195,
+  "totalBytes": 170847418,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=85956b44807275c33485c690117de3c17cbf46fe5eeec877f1ec2acc3b0249b7",
+      "url": "assets/battle3d/manifest.json?v=1c88ef0f2ff77ace8ba5bf1a8a42395068ce6a9158819e49f2e0bac8a88b6bdd",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 43415,
+      "bytes": 45230,
       "priority": 2,
-      "sha256": "85956b44807275c33485c690117de3c17cbf46fe5eeec877f1ec2acc3b0249b7"
+      "sha256": "1c88ef0f2ff77ace8ba5bf1a8a42395068ce6a9158819e49f2e0bac8a88b6bdd"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1491,6 +1491,78 @@
       "priority": 3,
       "sha256": "074ff0de36a74e143c7956456599222876a68229372624a9e56af17472100e06",
       "bytes": 8492
+    },
+    {
+      "url": "assets/battle3d/angry_punim.glb?v=60de630182b7c7289435871f73bb8578a284f06a5c660b140939ac18de6d5f27",
+      "label": "怒プニムの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "60de630182b7c7289435871f73bb8578a284f06a5c660b140939ac18de6d5f27",
+      "bytes": 470572
+    },
+    {
+      "url": "assets/collection/angry_punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "ccf7cd9f2698cdad437b462472c4bc4a820d237b0c6a761ae5a82b408b952181",
+      "bytes": 7738
+    },
+    {
+      "url": "assets/collection/aura-angry_punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "fd2db281ca54b8c0f691adb815b50efd9e1a669da7f96c7263861d6f1e29a95e",
+      "bytes": 8530
+    },
+    {
+      "url": "assets/battle3d/dark_punim.glb?v=b5bd30280aa05747d2dedee246c1828fdab709efa4ca5ec0a134191ef38c7d00",
+      "label": "闇プニムの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "b5bd30280aa05747d2dedee246c1828fdab709efa4ca5ec0a134191ef38c7d00",
+      "bytes": 470576
+    },
+    {
+      "url": "assets/collection/dark_punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "9eeda9b26c58787d21f5a2a0b1f7ef2f148c5c96b6dd15a8a0a49ff32eb94ed1",
+      "bytes": 7260
+    },
+    {
+      "url": "assets/collection/aura-dark_punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "9b146214e853f5a31531810c9f0372eef336161ed9d3ce331a890d56ef565feb",
+      "bytes": 8208
+    },
+    {
+      "url": "assets/battle3d/celestial_punim.glb?v=00e7a2ea662e5ea2c64d4ee2fb134b8e43c4af87b1e342dcd1b67713f8843c60",
+      "label": "聖天プニムの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "00e7a2ea662e5ea2c64d4ee2fb134b8e43c4af87b1e342dcd1b67713f8843c60",
+      "bytes": 470788
+    },
+    {
+      "url": "assets/collection/celestial_punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "838523a88f3d6a2621222ca4acd6c981a25ef3fa092fd04bdd6669cdcc56974b",
+      "bytes": 4354
+    },
+    {
+      "url": "assets/collection/aura-celestial_punim.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "91784df677a64cd47dc935a84309d51d4f82675cf81570fbd3458cb521736146",
+      "bytes": 9846
     }
   ]
 }

@@ -44,8 +44,9 @@ function hasLivingSpeciesGroup(opponents,minimumCount){
  return false;
 }
 /** Check living groups at damage completion, independently of the selected target. */
-export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS,{opponents=[],actorHeight=null,targetHeight=null,actor=null,allies=[],targetSpeciesId=null}={}){
+export function additionalDamageMultiplier(effects=NO_ADDITIONAL_EFFECTS,{opponents=[],actorHeight=null,targetHeight=null,actor=null,allies=[],targetSpeciesId=null,completedAttacks=0}={}){
  return effects.reduce((value,effect)=>{
+  if(effect?.type==='first_attack_damage'&&completedAttacks===0)return value*factor(effect.multiplier);
   if(effect?.type==='living_ally_species_damage_dealt'&&actor&&allies.some(ally=>ally.id!==actor.id&&ally.hp>0&&effect.speciesIds.includes(ally.speciesId)))return value*factor(effect.multiplier);
   if(effect?.type==='target_species_exclusion_damage_dealt'&&typeof targetSpeciesId==='string'&&!effect.excludedSpeciesIds.includes(targetSpeciesId))return value*factor(effect.multiplier);
   if(effect?.type==='smaller_target_damage_dealt'&&Number.isFinite(actorHeight)&&Number.isFinite(targetHeight)&&actorHeight>targetHeight)return value*factor(effect.multiplier);
