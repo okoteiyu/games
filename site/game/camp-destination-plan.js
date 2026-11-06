@@ -1,5 +1,6 @@
 import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS} from './camp-world.js';
 import {BAG_WIDTH,BAG_HEIGHT,CAMP_MAX_DAYS,CAMP_SUPPLIES,CAMP_DURABLE_TOOL_IDS,canTraverseCampNode,campTraversalConsumption,validateCampBag} from './camp-rules.js';
+import {campEdgeKey,campBlockedEdges} from './camp-edge-rules.js';
 
 const supplyIds=Object.keys(CAMP_SUPPLIES);
 const consumedIds=CAMP_DURABLE_TOOL_IDS;
@@ -24,7 +25,7 @@ function normalizedOptions(options={}){
  if(typeof destination!=='string'||!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が見つかりません。');
  if(!['target','compass','optimal'].includes(routeMode))throw new RangeError('キャンプの経路の種類が正しくありません。');
  if(!Number.isInteger(maxDays)||maxDays<1||!network&&maxDays>CAMP_MAX_DAYS||!Number.isInteger(width)||width<1||width>BAG_WIDTH||!Number.isInteger(height)||height<1||height>BAG_HEIGHT)throw new RangeError('キャンプの物資容量が正しくありません。');
- return {world,startId,destination,destinations,maxDays,width,height,routeMode,network,capacity:width*height};
+ return {world,startId,destination,destinations,maxDays,width,height,routeMode,network,capacity:width*height,blocked:campBlockedEdges(options.blockedEdges,world.nodes)};
 }
 function freezePlan(value){
  Object.freeze(value.counts);Object.freeze(value.path);for(const p of value.placements)Object.freeze(p);Object.freeze(value.placements);if(value.diagnostics)Object.freeze(value.diagnostics);return Object.freeze(value);
@@ -76,7 +77,7 @@ function* calculate(options){
  const start=index.get(o.startId),goal=index.get(result.destinationNodeId);
  if(start===undefined||goal===undefined)throw new RangeError('キャンプの始点または目的地が見つかりません。');
  for(let i=0;i<nodes.length;i++){
-  neighbors[i]=nodes[i].neighbors.map(id=>{const j=index.get(id);if(j===undefined)throw new TypeError('キャンプの道が正しくありません。');return j;});if(++work%256===0)yield;
+  neighbors[i]=(o.blocked.keys.size?nodes[i].neighbors.filter(id=>!o.blocked.keys.has(campEdgeKey(nodes[i].id,id))):nodes[i].neighbors).map(id=>{const j=index.get(id);if(j===undefined)throw new TypeError('キャンプの道が正しくありません。');return j;});if(++work%256===0)yield;
  }
  goalDistances[goal]=0;const queue=[goal];for(let i=0;i<queue.length;i++){for(const j of neighbors[queue[i]])if(goalDistances[j]<0){goalDistances[j]=goalDistances[queue[i]]+1;queue.push(j);}if(++work%256===0)yield;}
  if(goalDistances[start]<0||!o.network&&!fits('food',o.width,o.height))return freezePlan(result);
@@ -137,11 +138,11 @@ export function planCampDestination(options={}){const iterator=calculate(options
 function cacheEntry(options){
  const o=normalizedOptions(options);let cache=caches.get(o.world);if(!cache){cache=new Map();caches.set(o.world,cache);}
  const ruleKey=Object.values(CAMP_TERRAINS).map(t=>t.id+':'+t.hours).join('|')+';'+supplyIds.map(id=>id+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].repeatable).join('|');
- const key=[o.world.revision??'',o.startId,o.destination,o.destinations[o.destination].nodeId??'',o.routeMode,o.network?1:0,o.maxDays,o.width,o.height,ruleKey].join(';');
+ const key=[o.world.revision??'',o.startId,o.destination,o.destinations[o.destination].nodeId??'',o.routeMode,o.network?1:0,o.maxDays,o.width,o.height,ruleKey,o.blocked.key].join(';');
  if(cache.has(key)){const entry=cache.get(key);cache.delete(key);cache.set(key,entry);return entry;}
  while(cache.size>=64)cache.delete(cache.keys().next().value);
  const destinations=Object.freeze({[o.destination]:Object.freeze({nodeId:o.destinations[o.destination].nodeId??null})});
- const snapshot=Object.freeze({world:o.world,startId:o.startId,destination:o.destination,destinations,routeMode:o.routeMode,network:o.network,maxDays:o.maxDays,capacityWidth:o.width,capacityHeight:o.height});
+ const snapshot=Object.freeze({world:o.world,startId:o.startId,destination:o.destination,destinations,routeMode:o.routeMode,network:o.network,maxDays:o.maxDays,capacityWidth:o.width,capacityHeight:o.height,blockedEdges:o.blocked.pairs});
  const entry={options:snapshot,value:null,promise:null};cache.set(key,entry);return entry;
 }
 export function getCachedCampDestinationPlan(options={}){const entry=cacheEntry(options);return entry.value??(entry.value=planCampDestination(entry.options));}

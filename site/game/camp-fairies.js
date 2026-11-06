@@ -21,7 +21,7 @@ export class CampFairyControls{
  choose(nodeId){
   if(this.mode!=='select'||!this.canRequest()||this.selection?.engine!==this.readEngine())return false;
   const {kind,engine}=this.selection,result=engine.requestFairy(kind,nodeId);if(!result.ok)return false;
-  const map=this.getMap();this.flight={kind,toNodeId:nodeId,fromPoint:{...map.currentPoint()},elapsed:0};this.mode='flight';map.setFairySelection({...this.selection,mode:'flight'});map.setFairyFlight({...this.flight,progress:0});this.refresh();this.onChange();return true;
+  const map=this.getMap();this.flight={kind,fromNodeId:result.mark.fromNodeId,toNodeId:nodeId,fromPoint:{...map.currentPoint()},elapsed:0};this.mode='flight';map.setFairySelection({...this.selection,mode:'flight'});map.setFairyFlight({...this.flight,progress:0});this.refresh();this.onChange();return true;
  }
  tick(dt){
   if(!this.busy)return false;

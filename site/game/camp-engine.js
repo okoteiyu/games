@@ -2,6 +2,7 @@ import {CAMP_WORLD,CAMP_DESTINATIONS,CAMP_TERRAINS} from './camp-world.js';
 import {CAMP_MAX_DAYS,CAMP_SUPPLIES,CAMP_DURABLE_TOOL_IDS,campBagSummary,campRuntimeSupplies,isCampDurableTool,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
 import {planCampNavigation} from './camp-navigation-plan.js';
 import {CAMP_FAIRIES} from './camp-fairy-data.js';
+import {campEdgeKey} from './camp-edge-rules.js';
 const EPS=1e-9,clone=value=>JSON.parse(JSON.stringify(value));
 export const CAMP_SECONDS_PER_ACTIVITY_HOUR=.65;
 /** No combat rules live here: real battles pause and resume this journey. */
@@ -13,6 +14,7 @@ export class CampExpedition{
   const summary=campBagSummary(bag);if(summary.counts.food<1)throw new RangeError('キャンプには携帯食料が必要です。');
   this.world=world;this.nodeIndex=new Map(world.nodes.map(node=>[node.id,node]));if(!this.nodeIndex.has(startId))throw new TypeError('キャンプの始点が見つかりません。');
   if(!Object.hasOwn(destinations,destination))throw new RangeError('キャンプの目的地が正しくありません。');
+  this.blockedEdgeKeys=new Set();this.blockedEdgePairs=[];
   this.startId=startId;this.depths=this.distances(startId);this.destination=destinations[destination];
   this.guidanceItem=Object.values(CAMP_SUPPLIES).find(item=>summary.counts[item.id]&&item.category==='route_guidance')??(summary.counts.moai_compass?CAMP_SUPPLIES.moai_compass:null);
   this.guidanceDestinationId=this.guidanceItem?.routeDestinationId??(this.guidanceItem?.id==='moai_compass'?'moai_village':null);
@@ -26,11 +28,19 @@ export class CampExpedition{
   this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=Boolean(this.guidanceItem&&startId===this.guidanceGoalId);this.fairySelection=null;this.pendingFairy=null;this.pendingFairyMove=null;
   const supplies=campRuntimeSupplies(summary.counts);supplies.food--;
   const supplyUnits=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,'uses']));
-  this.state={worldId:world.id,startId,destination,guidanceItemId:this.guidanceItem?.id??null,guidanceGoalId:this.guidanceGoalId,guidanceFulfilled:this.moaiCompassFulfilled,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null,targetDetourDistance:null,fairyRequests:Object.fromEntries(Object.entries(CAMP_FAIRIES).map(([id,fairy])=>[id,fairy.maxRequests])),fairyMarks:[]};
+  this.state={worldId:world.id,startId,destination,guidanceItemId:this.guidanceItem?.id??null,guidanceGoalId:this.guidanceGoalId,guidanceFulfilled:this.moaiCompassFulfilled,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null,targetDetourDistance:null,fairyRequests:Object.fromEntries(Object.entries(CAMP_FAIRIES).map(([id,fairy])=>[id,fairy.maxRequests])),fairyMarks:[],blockedEdges:[],blockedEdgeException:false};
  }
  random(){const value=Number(this.rng());if(!Number.isFinite(value))throw new TypeError('キャンプの乱数が正しくありません。');return Math.max(0,Math.min(1-Number.EPSILON,value));}
  pick(items){return items.length?items[Math.floor(this.random()*items.length)]:null;}
- distances(origin){const out=new Map([[origin,0]]),queue=[origin];for(let i=0;i<queue.length;i++)for(const id of this.nodeIndex.get(queue[i]).neighbors)if(!out.has(id)){out.set(id,out.get(queue[i])+1);queue.push(id);}return out;}
+ edgeBlocked(a,b){return this.blockedEdgeKeys.size>0&&this.blockedEdgeKeys.has(campEdgeKey(a,b));}
+ routeNeighbors(id){const neighbors=this.nodeIndex.get(id).neighbors;return this.blockedEdgeKeys.size?neighbors.filter(next=>!this.edgeBlocked(id,next)):neighbors;}
+ distances(origin){const out=new Map([[origin,0]]),queue=[origin];for(let i=0;i<queue.length;i++)for(const id of this.routeNeighbors(queue[i]))if(!out.has(id)){out.set(id,out.get(queue[i])+1);queue.push(id);}return out;}
+ blockEdge(a,b){
+  const key=campEdgeKey(a,b);if(this.blockedEdgeKeys.has(key))return;
+  this.blockedEdgeKeys.add(key);this.blockedEdgePairs.push(a<b?[a,b]:[b,a]);this.state.blockedEdges=this.blockedEdgePairs.map(pair=>[...pair]);
+  this.depths=this.distances(this.startId);this.goalDistances=this.destination.nodeId?this.distances(this.destination.nodeId):null;
+  this.moaiCompassDistances=this.guidanceGoalId&&this.nodeIndex.has(this.guidanceGoalId)?this.distances(this.guidanceGoalId):null;
+ }
  context({hp,maxHp,power,playerLevel}={}){
   if(Number.isFinite(maxHp)&&maxHp>0)this.state.maxHp=maxHp;
   if(Number.isFinite(hp)&&hp>=0)this.state.hp=Math.min(hp,this.state.maxHp??hp);
@@ -61,14 +71,20 @@ export class CampExpedition{
   const options=this.fairyRequestOptions(kind);
   if(!options||!options.nodeIds.includes(nodeId)||this.fairySelection&&this.fairySelection.fromNodeId!==options.junctionId)return {ok:false,reason:'unavailable'};
   const mark={kind,fromNodeId:options.junctionId,toNodeId:nodeId,active:true,resolved:false};this.state.fairyRequests[kind]--;this.state.fairyMarks.push(mark);this.pendingFairy=mark;
+  if(kind==='eggplant'){
+   this.blockEdge(mark.fromNodeId,mark.toNodeId);
+   // A route already being travelled was accepted before placement. A changed
+   // distance map must not invalidate that committed passage on arrival.
+   this.pendingFairyMove={fromNodeId:this.state.nodeId,nodeId:this.state.nextNodeId};
+  }
   this.emit('fairy-request',{kind,junctionId:mark.fromNodeId,toNodeId:nodeId});return {ok:true,mark:clone(mark)};
  }
  resolveFairy(mark,next){
   if(!mark||mark.resolved)return;
-  mark.active=false;mark.resolved=true;mark.takenNodeId=next?.id??null;mark.followed=Boolean(next&&(mark.kind==='tomato'?next.id===mark.toNodeId:next.id!==mark.toNodeId));
+  mark.active=mark.kind==='eggplant';mark.resolved=true;mark.takenNodeId=next?.id??null;mark.followed=Boolean(next&&(mark.kind==='tomato'?next.id===mark.toNodeId:next.id!==mark.toNodeId));
   this.emit('fairy-resolution',{kind:mark.kind,junctionId:mark.fromNodeId,toNodeId:mark.toNodeId,takenNodeId:mark.takenNodeId,followed:mark.followed});
  }
- clearFairyRequests(){if(this.pendingFairy){this.pendingFairy.active=false;this.pendingFairy.resolved=true;this.pendingFairy=null;}this.fairySelection=null;this.pendingFairyMove=null;}
+ clearFairyRequests(){if(this.pendingFairy){this.pendingFairy.active=this.pendingFairy.kind==='eggplant';this.pendingFairy.resolved=true;this.pendingFairy=null;}this.fairySelection=null;this.pendingFairyMove=null;}
  remainingActivityHours(){const s=this.state;return s.dayHoursRemaining+Math.min(s.supplies.food,CAMP_MAX_DAYS-s.day)*s.dayHours;}
  maximumActivityHours(){const s=this.state;return s.dayHoursRemaining+Math.max(0,CAMP_MAX_DAYS-s.day)*s.dayHours;}
  crossingHoursFor(node,{counts=this.state.supplies,rain=this.rainForNextCrossing}={}){return (CAMP_TERRAINS[node.terrain]?.hours??6)*(counts.compass ? .6 : 1)*(rain?1.5:1);}
@@ -93,10 +109,10 @@ export class CampExpedition{
   // Direction stays a preference. Previously reached vertices are also legal
   // when they strictly advance the current objective; discovery is irrelevant.
   const current=this.nodeIndex.get(this.state.nodeId);
-  return current.neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>node&&(!this.tripReached.has(node.id)||this.isObjectiveNode(node))&&this.canEnterNode(node,{ignoreTime}));
+  return this.routeNeighbors(current.id).map(id=>this.nodeIndex.get(id)).filter(node=>node&&(!this.tripReached.has(node.id)||this.isObjectiveNode(node))&&this.canEnterNode(node,{ignoreTime}));
  }
  unknownDistanceWithinFour(candidate){
-  if(!candidate)return Infinity;
+  if(!candidate||this.edgeBlocked(this.state.nodeId,candidate.id))return Infinity;
   // This short search follows the fog/discovery set, not this trip's reached
   // set. Known connectors may lead to nearby unknown land. Evaluate every
   // prospective passage with its own remaining uses, time and return path.
@@ -114,13 +130,13 @@ export class CampExpedition{
   const queue=[initial];
   for(let i=0;i<queue.length;i++){
    const entry=queue[i];if(!this.visited.has(entry.node.id))return entry.distance;if(entry.distance>=4)continue;
-   for(const id of entry.node.neighbors){if(entry.path.has(id))continue;const next=this.nodeIndex.get(id);if(!next)continue;const advanced=advance(entry,next,false);if(advanced)queue.push(advanced);}
+   for(const id of this.routeNeighbors(entry.node.id)){if(entry.path.has(id))continue;const next=this.nodeIndex.get(id);if(!next)continue;const advanced=advance(entry,next,false);if(advanced)queue.push(advanced);}
   }
   return Infinity;
  }
  nearbyUnknownCandidates(){
   if(this.goalDistances||this.hasActiveGuidance())return [];
-  const current=this.nodeIndex.get(this.state.nodeId),options=current.neighbors.map(id=>this.nodeIndex.get(id)).filter(Boolean).map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));
+  const current=this.nodeIndex.get(this.state.nodeId),options=this.routeNeighbors(current.id).map(id=>this.nodeIndex.get(id)).filter(Boolean).map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));
   return Number.isFinite(nearest)?options.filter(option=>option.distance===nearest).map(option=>option.node):[];
  }
  chooseNextNode({avoidNodeId=null}={}){
@@ -145,7 +161,7 @@ export class CampExpedition{
   const goalId=this.guidanceGoalId;
   const unavailable={unavailable:true};
   if(!goalId||!this.nodeIndex.has(goalId)||!this.moaiCompassDistances)return unavailable;
-  const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,counts:this.state.supplies,usedToolUses:Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,Math.max(0,(this.state.initialToolUses[id]??0)-(this.state.supplies[id]??0))])),day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing,avoidFirstNodeId});
+  const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,counts:this.state.supplies,usedToolUses:Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,Math.max(0,(this.state.initialToolUses[id]??0)-(this.state.supplies[id]??0))])),day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing,avoidFirstNodeId,blockedEdges:this.blockedEdgePairs});
   if(plan.status==='reached'){this.state.guidanceFulfilled=true;this.moaiCompassFulfilled=true;return null;}
   if(plan.status!=='ready')return unavailable;
   const node=this.nodeIndex.get(plan.nextNodeId);
@@ -157,20 +173,25 @@ export class CampExpedition{
   this.pendingUnknownMove=null;this.pendingFairyMove=null;this.unknownSelection=null;
   if(this.destination.nodeId===this.state.nodeId&&!this.hasActiveGuidance()){this.finalize('destination');return;}
   const request=this.pendingFairy?.fromNodeId===this.state.nodeId?this.pendingFairy:null;
-  if(request){this.pendingFairy=null;request.active=false;}
+  if(request){this.pendingFairy=null;request.active=request.kind==='eggplant';}
   const normal=avoidNodeId=>{const guided=this.guidedMove({avoidFirstNodeId:avoidNodeId});if(guided?.unavailable)return guided;const node=guided?.node??this.chooseNextNode({avoidNodeId});return {node,movementMode:guided?.movementMode??(this.isParentNode(node)?'backtrack':'forward')};};
   let choice=null;
-  if(request?.kind==='tomato'){const node=this.nodeIndex.get(request.toNodeId);if(this.canEnterNode(node))choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward'};}
-  else if(request?.kind==='eggplant'){
-   const alternative=normal(request.toNodeId);if(alternative.node&&!alternative.unavailable)choice=alternative;
-   else{
-    // Avoiding this edge may require a one-off revisit outside the usual
-    // objective direction. Keep return-only tool costs on the real parent.
-    const candidates=this.nodeIndex.get(this.state.nodeId).neighbors.filter(id=>id!==request.toNodeId).map(id=>this.nodeIndex.get(id)).filter(node=>this.tripReached.has(node?.id)&&this.canEnterNode(node)),forward=candidates.filter(node=>!this.isParentNode(node)),node=this.pick(forward.length?forward:candidates);
-    if(node)choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward'};
-   }
+  const legal=this.blockedEdgeKeys.size?this.nodeIndex.get(this.state.nodeId).neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>this.canEnterNode(node)):[],open=legal.filter(node=>!this.edgeBlocked(this.state.nodeId,node.id));
+  if(request?.kind==='tomato'){const node=this.nodeIndex.get(request.toNodeId);if(this.canEnterNode(node)&&(!this.edgeBlocked(this.state.nodeId,node.id)||!open.length))choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward',blockedEdgeException:this.edgeBlocked(this.state.nodeId,node.id)};}
+  if(!choice&&this.blockedEdgeKeys.size&&!open.length&&legal.length){
+   // Only an actual lack of another traversable road permits bypass. Being
+   // visited, unfavoured, or absent from a guidance plan is not a tool gate.
+   const forward=legal.filter(node=>!this.isParentNode(node)),node=this.pick(forward.length?forward:legal);
+   choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward',allowRevisit:true,blockedEdgeException:true};
   }
   choice??=normal(null);
+  const parentId=this.activePath.length>1?this.activePath.at(-2):null,needsEscape=request?.kind==='eggplant'||parentId&&(this.edgeBlocked(this.state.nodeId,parentId)||!this.canEnterNode(this.nodeIndex.get(parentId)));
+  if(this.blockedEdgeKeys.size&&(!choice.node||choice.unavailable)&&open.length&&needsEscape){
+   // Revisit a legal unblocked road rather than using a blocked parent merely
+   // because ordinary/goal candidates were exhausted at this junction.
+   const forward=open.filter(node=>!this.isParentNode(node)),node=this.pick(forward.length?forward:open);
+   choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward',allowRevisit:true};
+  }
   const stop=reason=>{this.resolveFairy(request,null);this.finalize(reason);};
   if(choice.unavailable){stop('compass-route-unavailable');return;}
   let next=choice.node,movementMode=choice.movementMode;
@@ -181,13 +202,14 @@ export class CampExpedition{
    const parentId=this.activePath.length>1?this.activePath[this.activePath.length-2]:null;
    next=parentId?this.nodeIndex.get(parentId):null;movementMode='backtrack';
    if(!next){stop(this.candidateNodes({ignoreTime:true}).length?'supplies':'no-route');return;}
+   if(this.edgeBlocked(this.state.nodeId,next.id)){stop('no-route');return;}
    if(!this.canRetraceNode(next)){stop('return-tools');return;}
    if(!this.hasTimeFor(next)){stop('supplies');return;}
   }
   const hours=this.crossingHoursFor(next),knownHours=this.remainingActivityHours();
   if(this.unknownSelection===next.id)this.pendingUnknownMove={fromNodeId:this.state.nodeId,nodeId:next.id};
-  if(request)this.pendingFairyMove={fromNodeId:this.state.nodeId,nodeId:next.id};
-  this.rainForNextCrossing=false;Object.assign(this.state,{nextNodeId:next.id,crossingHours:hours,crossingHoursElapsed:0,travelProgress:0,waitingForNight:hours>knownHours+EPS,movementMode});
+  if(request||choice.allowRevisit)this.pendingFairyMove={fromNodeId:this.state.nodeId,nodeId:next.id};
+  this.rainForNextCrossing=false;Object.assign(this.state,{nextNodeId:next.id,crossingHours:hours,crossingHoursElapsed:0,travelProgress:0,waitingForNight:hours>knownHours+EPS,movementMode,blockedEdgeException:Boolean(choice.blockedEdgeException)});
   this.resolveFairy(request,next);
  }
  medical(reason){
@@ -205,7 +227,7 @@ export class CampExpedition{
   const newlyDiscovered=!this.visited.has(node.id);
   this.pendingUnknownMove=null;this.pendingFairyMove=null;
   if(!backtracking)for(const [id,amount]of Object.entries(campTraversalConsumption(node)))this.consume(id,amount);
-  s.nodeId=node.id;s.nextNodeId=null;s.crossingHours=0;s.crossingHoursElapsed=0;s.travelProgress=0;s.distance++;s.movementMode=null;
+  s.nodeId=node.id;s.nextNodeId=null;s.crossingHours=0;s.crossingHoursElapsed=0;s.travelProgress=0;s.distance++;s.movementMode=null;s.blockedEdgeException=false;
   if(backtracking)this.activePath.pop();else{
    // Record the actual edge in route below, but erase any closed ancestry loop
    // so a later retreat/planner always receives one valid, simple return path.
@@ -259,7 +281,7 @@ export class CampExpedition{
   if(['final','failed','finished'].includes(this.state.phase))return false;
   this.pendingUnknownMove=null;this.unknownSelection=null;
   this.clearFairyRequests();
-  Object.assign(this.state,{phase:'final',finalReason:reason,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,waitingForNight:false,movementMode:null});this.emit('final',{destination:this.state.destination,reason});return true;
+  Object.assign(this.state,{phase:'final',finalReason:reason,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,waitingForNight:false,movementMode:null,blockedEdgeException:false});this.emit('final',{destination:this.state.destination,reason});return true;
  }
  finish(result='completed'){if(this.state.phase==='finished')return false;this.clearFairyRequests();this.state.phase='finished';this.state.finalReason=result;this.emit('finish',{result});return true;}
  abort(reason='cancelled'){return this.finish(reason);}

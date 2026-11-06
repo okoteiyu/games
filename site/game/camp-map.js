@@ -86,7 +86,7 @@ export class CampMap{
  setFairyFlight(flight){this.fairyFlight=flight;this.requestDraw();}
  drawFairyMarks(c){
   this.fairyMarkersDrawn=[];const groups=new Map();
-  for(const mark of this.state.fairyMarks||[]){if(this.fairyFlight?.kind===mark.kind&&this.fairyFlight.progress<.7)continue;const key=[mark.fromNodeId,mark.toNodeId].sort().join('|');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(mark);}
+  for(const mark of this.state.fairyMarks||[]){if(!mark.resolved&&this.fairyFlight?.kind===mark.kind&&this.fairyFlight.fromNodeId===mark.fromNodeId&&this.fairyFlight.toNodeId===mark.toNodeId&&this.fairyFlight.progress<.7)continue;const key=[mark.fromNodeId,mark.toNodeId].sort().join('|');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(mark);}
   for(const marks of groups.values())for(const [index,mark]of marks.entries()){
    const fairy=CAMP_FAIRIES[mark.kind],a=nodeAt(mark.fromNodeId),b=nodeAt(mark.toNodeId);if(!fairy||!a?.neighbors.includes(b?.id))continue;
    const p=this.project(a.id<b.id?a:b),q=this.project(a.id<b.id?b:a),t=.5+(index-(marks.length-1)/2)*Math.min(.4,34/Math.max(1,Math.hypot(q.x-p.x,q.y-p.y))),mid={x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t};c.save();c.globalAlpha=mark.active?1:.60;c.strokeStyle=mark.active?fairy.color:'#8b9287';c.lineWidth=mark.active?4:2;c.setLineDash(mark.active?[]:[4,4]);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(q.x,q.y);c.stroke();c.setLineDash([]);c.fillStyle=mark.active?'#fffdf5':'#edf0e8';c.lineWidth=1.3;c.beginPath();c.roundRect(mid.x-15,mid.y-13,30,26,8);c.fill();c.stroke();c.font='19px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(fairy.icon,mid.x,mid.y+1);c.restore();this.fairyMarkersDrawn.push({...mark,x:mid.x,y:mid.y});
@@ -101,7 +101,7 @@ export class CampMap{
   c.restore();
  }
  drawFairyFlight(c){
-  const flight=this.fairyFlight,goal=nodeAt(flight?.toNodeId);if(!flight||!goal)return;const a=this.project(flight.fromPoint),b=this.project(goal),t=clamp(flight.progress,0,1),u=t*t*(3-2*t),x=a.x+(b.x-a.x)*u,y=a.y+(b.y-a.y)*u-Math.sin(t*Math.PI)*Math.min(60,Math.hypot(b.x-a.x,b.y-a.y)*.3);c.save();c.translate(x,y);c.fillStyle='#ffffffdb';for(const sign of [-1,1]){c.beginPath();c.ellipse(sign*15,-5,10,5,sign*.5,0,Math.PI*2);c.fill();}c.font='27px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(CAMP_FAIRIES[flight.kind].icon,0,0);c.restore();
+  const flight=this.fairyFlight,goal=nodeAt(flight?.toNodeId);if(!flight||!goal)return;const junction=nodeAt(flight.fromNodeId??this.fairySelection?.junctionId),landing=junction?{x:(junction.x+goal.x)/2,y:(junction.y+goal.y)/2}:goal,a=this.project(flight.fromPoint),b=this.project(landing),t=clamp(flight.progress,0,1),u=t*t*(3-2*t),x=a.x+(b.x-a.x)*u,y=a.y+(b.y-a.y)*u-Math.sin(t*Math.PI)*Math.min(60,Math.hypot(b.x-a.x,b.y-a.y)*.3);c.save();c.translate(x,y);c.fillStyle='#ffffffdb';for(const sign of [-1,1]){c.beginPath();c.ellipse(sign*15,-5,10,5,sign*.5,0,Math.PI*2);c.fill();}c.font='27px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(CAMP_FAIRIES[flight.kind].icon,0,0);c.restore();
  }
  unproject(point){return{x:(point.x-this.pan.x)/this.zoom,y:(point.y-this.pan.y)/this.zoom};}
  invalidate(){this.dirty=true;this.requestDraw();}

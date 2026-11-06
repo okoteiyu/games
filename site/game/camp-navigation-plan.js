@@ -1,5 +1,6 @@
 import {CAMP_WORLD,CAMP_TERRAINS} from './camp-world.js';
 import {CAMP_MAX_DAYS,CAMP_SUPPLIES,CAMP_DURABLE_TOOL_IDS,canTraverseCampNode,campTraversalConsumption} from './camp-rules.js';
+import {campEdgeKey,campBlockedEdges} from './camp-edge-rules.js';
 
 const EPS=1e-9,CACHE_LIMIT=64,graphs=new WeakMap(),plans=new WeakMap();
 const toolIds=CAMP_DURABLE_TOOL_IDS,consumables=['food',...toolIds];
@@ -23,12 +24,13 @@ function graphFor(world){
  const neighbors=nodes.map(node=>{if(!CAMP_TERRAINS[node.terrain]||!Array.isArray(node.neighbors))throw new TypeError('キャンプの地点が正しくありません。');return node.neighbors.map(id=>{if(!index.has(id))throw new TypeError('キャンプの道が正しくありません。');return index.get(id);});});
  const graph={nodes,index,neighbors,goalDistances:new Map()};graphs.set(world,graph);return graph;
 }
-function distancesToGoal(graph,goal){
- if(graph.goalDistances.has(goal))return graph.goalDistances.get(goal);
+function distancesToGoal(graph,goal,blocked){
+ const key=blocked.keys.size?goal+':'+blocked.key:goal;
+ if(graph.goalDistances.has(key))return graph.goalDistances.get(key);
  const distances=new Int32Array(graph.nodes.length).fill(-1),queue=[goal];distances[goal]=0;
- for(let i=0;i<queue.length;i++)for(const next of graph.neighbors[queue[i]])if(distances[next]<0){distances[next]=distances[queue[i]]+1;queue.push(next);}
+ for(let i=0;i<queue.length;i++)for(const next of graph.neighbors[queue[i]])if(distances[next]<0&&(!blocked.keys.size||!blocked.keys.has(campEdgeKey(graph.nodes[queue[i]].id,graph.nodes[next].id)))){distances[next]=distances[queue[i]]+1;queue.push(next);}
  while(graph.goalDistances.size>=CACHE_LIMIT)graph.goalDistances.delete(graph.goalDistances.keys().next().value);
- graph.goalDistances.set(goal,distances);return distances;
+ graph.goalDistances.set(key,distances);return distances;
 }
 
 function normalize(options){
@@ -46,7 +48,8 @@ function normalize(options){
  if([...tripReached].some(id=>!graph.index.has(id)))throw new TypeError('コンパスの探索記録が正しくありません。');
  const rainNext=options.rainNext===true,maxHours=dayHoursRemaining+Math.min(counts.food,CAMP_MAX_DAYS-day)*dayHours;
  const avoidFirstNodeId=options.avoidFirstNodeId??null;if(avoidFirstNodeId!==null&&!graph.index.has(avoidFirstNodeId))throw new TypeError('避ける道が見つかりません。');
- return {world,startId,currentNodeId,goalId,counts,usedToolUses,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,graph,avoidFirstNodeId};
+ const blocked=campBlockedEdges(options.blockedEdges,world.nodes);
+ return {world,startId,currentNodeId,goalId,counts,usedToolUses,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,graph,avoidFirstNodeId,blocked};
 }
 
 function freezeResult(value){Object.freeze(value.path);Object.freeze(value.consumption);Object.freeze(value.diagnostics);return Object.freeze(value);}
@@ -58,7 +61,7 @@ function result(o,status){return {status,startId:o.startId,currentNodeId:o.curre
  * in the objective, but still gate passage and modify actual activity time. */
 function calculate(o){
  if(o.currentNodeId===o.goalId||o.tripReached.has(o.goalId))return freezeResult(result(o,'reached'));
- const output=result(o,'unreachable'),{nodes,index,neighbors}=o.graph,current=index.get(o.currentNodeId),goal=index.get(o.goalId),factor=o.counts.compass?.6:1,goalDistances=distancesToGoal(o.graph,goal);
+ const output=result(o,'unreachable'),{nodes,index,neighbors}=o.graph,current=index.get(o.currentNodeId),goal=index.get(o.goalId),factor=o.counts.compass?.6:1,goalDistances=distancesToGoal(o.graph,goal,o.blocked);
  if(goalDistances[current]<0)return freezeResult(output);
  const crossing=(node,first)=>CAMP_TERRAINS[node.terrain].hours*factor*(first&&o.rainNext?1.5:1);
  const foodFor=hours=>Math.max(0,Math.ceil((hours-o.dayHoursRemaining-EPS)/o.dayHours));
@@ -74,7 +77,7 @@ function calculate(o){
  // Guidance optimizes consumption globally; a cheaper detour may temporarily
  // increase hop distance or revisit a reached vertex. Only actual reverse
  // ancestry edges reuse durable tools; entering it from another edge does not.
- for(let i=0;i<nodes.length;i++)if(goalDistances[i]>=0)for(const next of neighbors[i])if(!(i===current&&nodes[next].id===o.avoidFirstNodeId)&&goalDistances[next]>=0&&canTraverseCampNode(nodes[next],available(initial,i,next))){forward[i].push(next);reverse[next].push(i);}
+ for(let i=0;i<nodes.length;i++)if(goalDistances[i]>=0)for(const next of neighbors[i])if((!o.blocked.keys.size||!o.blocked.keys.has(campEdgeKey(nodes[i].id,nodes[next].id)))&&!(i===current&&nodes[next].id===o.avoidFirstNodeId)&&goalDistances[next]>=0&&canTraverseCampNode(nodes[next],available(initial,i,next))){forward[i].push(next);reverse[next].push(i);}
  // A reverse time bound ignores consumption, but never overestimates the best
  // remaining time. It avoids exploring the far side of the entire world.
  const remaining=new Float64Array(nodes.length).fill(Infinity),timeHeap=new MinHeap((a,b)=>a.hours-b.hours);remaining[goal]=0;timeHeap.push({node:goal,hours:0});
@@ -108,7 +111,7 @@ function calculate(o){
 export function planCampNavigation(options={}){
  const o=normalize(options);let cache=plans.get(o.world);if(!cache){cache=new Map();plans.set(o.world,cache);}
  const ruleKey=toolIds.map(id=>id+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+CAMP_SUPPLIES[id].repeatable).join('|');
- const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,o.avoidFirstNodeId??'',...consumables.map(id=>o.counts[id]),...toolIds.map(id=>o.usedToolUses[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
+ const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,o.avoidFirstNodeId??'',o.blocked.key,...consumables.map(id=>o.counts[id]),...toolIds.map(id=>o.usedToolUses[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
  if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}
  const value=calculate(o);while(cache.size>=CACHE_LIMIT)cache.delete(cache.keys().next().value);cache.set(key,value);return value;
 }
