@@ -1685,6 +1685,372 @@
         ],
         "emphasis": true
       }
+    },
+    "angry_great_fairy": {
+      "id": "angry_great_fairy",
+      "name": "怒大妖精",
+      "url": "angry_great_fairy.glb",
+      "height": 0.5,
+      "height_m": 0.5,
+      "canonical_height_m": 0.5,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R272",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 663444,
+      "sha256": "9e259a4b52d559063b7a13ae3805117db02e51ddc87a7d40321d9b534358516f",
+      "idle_description": "A small guardian gently hovers while four leaf-shaped wings breathe in a1.5second loop.",
+      "regionalAura": {
+        "color": 15939632,
+        "palette": [
+          6872465,
+          15939632,
+          16740400,
+          15939632,
+          16756817
+        ],
+        "emphasis": true
+      }
+    },
+    "dark_great_fairy": {
+      "id": "dark_great_fairy",
+      "name": "闇大妖精",
+      "url": "dark_great_fairy.glb",
+      "height": 0.5,
+      "height_m": 0.5,
+      "canonical_height_m": 0.5,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R272",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 663524,
+      "sha256": "dde93dc23813af163701d23231403184d8059d4f58bf90adcaf74a8ea484cee4",
+      "idle_description": "A small guardian gently hovers while four leaf-shaped wings breathe in a1.5second loop.",
+      "regionalAura": {
+        "color": 2560306,
+        "palette": [
+          6872465,
+          2560306,
+          1313568,
+          6828167,
+          3281219
+        ],
+        "emphasis": true
+      }
+    },
+    "celestial_great_fairy": {
+      "id": "celestial_great_fairy",
+      "name": "聖天大妖精",
+      "url": "celestial_great_fairy.glb",
+      "height": 0.5,
+      "height_m": 0.5,
+      "canonical_height_m": 0.5,
+      "height_status": "confirmed",
+      "forwardAxis": "+Z",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R272",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "bytes": 665316,
+      "sha256": "a34b496aad1e8d2ca327b1ae548045984c039d715193419a5b55876ff537d4d9",
+      "idle_description": "A small guardian gently hovers while four leaf-shaped wings breathe in a1.5second loop.",
+      "regionalAura": {
+        "color": 16774064,
+        "palette": [
+          6872465,
+          16774064,
+          16776169,
+          16774064,
+          16759250,
+          10147327,
+          12821247,
+          11924949
+        ],
+        "emphasis": true
+      }
+    },
+    "angry_horarara_horaran": {
+      "url": "angry_horarara_horaran.glb",
+      "sha256": "8cf189806659653df9336b6b5e58714506755f4a9686c5ce86c1db0a3a86c39c",
+      "bytes": 7267808,
+      "height": 0.4,
+      "height_m": 0.4,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "ghost_flame_emission": [
+            512,
+            512
+          ],
+          "ghost_flame_basecolor": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 25,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 23,
+      "id": "angry_horarara_horaran",
+      "name": "怒ホラララホララン",
+      "expansionRevision": "R272",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "regionalAura": {
+        "color": 15939632,
+        "palette": [
+          3281986,
+          15939632,
+          16740400,
+          15939632,
+          16756817
+        ],
+        "emphasis": true
+      }
+    },
+    "dark_horarara_horaran": {
+      "url": "dark_horarara_horaran.glb",
+      "sha256": "9d9faa186195a7f0a94ec3fdc60a4d1092d326266ed52bf7c7eba28795d1409e",
+      "bytes": 7267888,
+      "height": 0.4,
+      "height_m": 0.4,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "ghost_flame_emission": [
+            512,
+            512
+          ],
+          "ghost_flame_basecolor": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 25,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 23,
+      "id": "dark_horarara_horaran",
+      "name": "闇ホラララホララン",
+      "expansionRevision": "R272",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "regionalAura": {
+        "color": 2560306,
+        "palette": [
+          3281986,
+          2560306,
+          1313568,
+          6828167,
+          3281219
+        ],
+        "emphasis": true
+      }
+    },
+    "celestial_horarara_horaran": {
+      "url": "celestial_horarara_horaran.glb",
+      "sha256": "1d40c7bc610314eca56c5289845d4e92d1e0aad97d62c4dfdfb7b494aacf3cc2",
+      "bytes": 7269700,
+      "height": 0.4,
+      "height_m": 0.4,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "ghost_flame_emission": [
+            512,
+            512
+          ],
+          "ghost_flame_basecolor": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 25,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 23,
+      "id": "celestial_horarara_horaran",
+      "name": "聖天ホラララホララン",
+      "expansionRevision": "R272",
+      "softAlpha": true,
+      "fitVisualBounds": true,
+      "regionalAura": {
+        "color": 16774064,
+        "palette": [
+          3281986,
+          16774064,
+          16776169,
+          16774064,
+          16759250,
+          10147327,
+          12821247,
+          11924949
+        ],
+        "emphasis": true
+      }
+    },
+    "angry_wind_kurukuru": {
+      "id": "angry_wind_kurukuru",
+      "name": "怒風のクルクル",
+      "url": "angry_wind_kurukuru.glb",
+      "height": 0.4,
+      "height_m": 0.4,
+      "canonical_height_m": 0.4,
+      "height_status": "confirmed",
+      "motionRoot": "Combat.MotionRoot",
+      "forwardAxis": "+Z",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "softAlpha": true,
+      "expansionRevision": "R272",
+      "bytes": 378464,
+      "sha256": "a99ad5e954f732493e095bc6f850d717a15474d06324ea973ce9a66b037af193",
+      "fitVisualBounds": true,
+      "regionalAura": {
+        "color": 15939632,
+        "palette": [
+          12707238,
+          15939632,
+          16740400,
+          15939632,
+          16756817
+        ],
+        "emphasis": true
+      }
+    },
+    "dark_wind_kurukuru": {
+      "id": "dark_wind_kurukuru",
+      "name": "闇風のクルクル",
+      "url": "dark_wind_kurukuru.glb",
+      "height": 0.4,
+      "height_m": 0.4,
+      "canonical_height_m": 0.4,
+      "height_status": "confirmed",
+      "motionRoot": "Combat.MotionRoot",
+      "forwardAxis": "+Z",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "softAlpha": true,
+      "expansionRevision": "R272",
+      "bytes": 378544,
+      "sha256": "83b28f719e8adab73ee12e88a504b2628f8020f1cc57ca21fd61be080e2b2108",
+      "fitVisualBounds": true,
+      "regionalAura": {
+        "color": 2560306,
+        "palette": [
+          12707238,
+          2560306,
+          1313568,
+          6828167,
+          3281219
+        ],
+        "emphasis": true
+      }
+    },
+    "celestial_wind_kurukuru": {
+      "id": "celestial_wind_kurukuru",
+      "name": "聖天風のクルクル",
+      "url": "celestial_wind_kurukuru.glb",
+      "height": 0.4,
+      "height_m": 0.4,
+      "canonical_height_m": 0.4,
+      "height_status": "confirmed",
+      "motionRoot": "Combat.MotionRoot",
+      "forwardAxis": "+Z",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "softAlpha": true,
+      "expansionRevision": "R272",
+      "bytes": 380336,
+      "sha256": "19f8a0c6c0d794aeabe65be16c8f27a3bfe4acc93508a5267201d85c4f806538",
+      "fitVisualBounds": true,
+      "regionalAura": {
+        "color": 16774064,
+        "palette": [
+          12707238,
+          16774064,
+          16776169,
+          16774064,
+          16759250,
+          10147327,
+          12821247,
+          11924949
+        ],
+        "emphasis": true
+      }
     }
   },
   "commonMotion": {

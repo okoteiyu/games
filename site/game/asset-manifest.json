@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 204,
-  "totalBytes": 202527799,
+  "fileCount": 231,
+  "totalBytes": 227676610,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=f6fdfedc690db645e2e1787019d9c4e0d5b905716a321d73eb1c826e592548d8",
+      "url": "assets/battle3d/manifest.json?v=92c317f4a0f915a5c228dcff75bd4a545fdbfb42a2f8a72f05e512d7adcdab49",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 49313,
+      "bytes": 59036,
       "priority": 2,
-      "sha256": "f6fdfedc690db645e2e1787019d9c4e0d5b905716a321d73eb1c826e592548d8"
+      "sha256": "92c317f4a0f915a5c228dcff75bd4a545fdbfb42a2f8a72f05e512d7adcdab49"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1635,6 +1635,222 @@
       "priority": 3,
       "bytes": 12138,
       "sha256": "f33a7bdfb34a32dac3bc99f0318d31f86287d0f7a069668a5075bbea1bade8b6"
+    },
+    {
+      "url": "assets/battle3d/angry_great_fairy.glb?v=9e259a4b52d559063b7a13ae3805117db02e51ddc87a7d40321d9b534358516f",
+      "label": "怒大妖精の3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 663444,
+      "sha256": "9e259a4b52d559063b7a13ae3805117db02e51ddc87a7d40321d9b534358516f"
+    },
+    {
+      "url": "assets/collection/angry_great_fairy.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 11126,
+      "sha256": "7fc17f65ac2e08b2345694adf5c53fba92d6de52c753c56884d126d6a5428742"
+    },
+    {
+      "url": "assets/collection/aura-angry_great_fairy.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 11810,
+      "sha256": "2d7be3b4fc519312d8641c4b2c1cc8bec6ec94de1fa1b582d3a19bc0f018ba27"
+    },
+    {
+      "url": "assets/battle3d/dark_great_fairy.glb?v=dde93dc23813af163701d23231403184d8059d4f58bf90adcaf74a8ea484cee4",
+      "label": "闇大妖精の3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 663524,
+      "sha256": "dde93dc23813af163701d23231403184d8059d4f58bf90adcaf74a8ea484cee4"
+    },
+    {
+      "url": "assets/collection/dark_great_fairy.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10768,
+      "sha256": "302ad433e04c96186677a7ebdce48e454d49bc2a992d4433e4c965ae08096319"
+    },
+    {
+      "url": "assets/collection/aura-dark_great_fairy.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10288,
+      "sha256": "6f60ff401c45da135ac6944ee06bda77224ebbb0813d3b103e8c111b5b0ff587"
+    },
+    {
+      "url": "assets/battle3d/celestial_great_fairy.glb?v=a34b496aad1e8d2ca327b1ae548045984c039d715193419a5b55876ff537d4d9",
+      "label": "聖天大妖精の3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 665316,
+      "sha256": "a34b496aad1e8d2ca327b1ae548045984c039d715193419a5b55876ff537d4d9"
+    },
+    {
+      "url": "assets/collection/celestial_great_fairy.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 9468,
+      "sha256": "0ae26e3b3024ae8778af369eda6b97a1b943b80cf15968041147ecfd35228090"
+    },
+    {
+      "url": "assets/collection/aura-celestial_great_fairy.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10258,
+      "sha256": "b16bc941f3ed5ff6eb30850ecb5448cf2dc3d230f33c90ca1ed94ca71d0d398d"
+    },
+    {
+      "url": "assets/battle3d/angry_horarara_horaran.glb?v=8cf189806659653df9336b6b5e58714506755f4a9686c5ce86c1db0a3a86c39c",
+      "label": "怒ホラララホラランの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 7267808,
+      "sha256": "8cf189806659653df9336b6b5e58714506755f4a9686c5ce86c1db0a3a86c39c"
+    },
+    {
+      "url": "assets/collection/angry_horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 16962,
+      "sha256": "7da3dc116522883d737bdd2c8b20d1387b6b463134b4bb81bc54bb1a33015bdc"
+    },
+    {
+      "url": "assets/collection/aura-angry_horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 11980,
+      "sha256": "c41679fb045df7f454788607bd17839b57f92a547fc34ca9081377ed5636d575"
+    },
+    {
+      "url": "assets/battle3d/dark_horarara_horaran.glb?v=9d9faa186195a7f0a94ec3fdc60a4d1092d326266ed52bf7c7eba28795d1409e",
+      "label": "闇ホラララホラランの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 7267888,
+      "sha256": "9d9faa186195a7f0a94ec3fdc60a4d1092d326266ed52bf7c7eba28795d1409e"
+    },
+    {
+      "url": "assets/collection/dark_horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 15600,
+      "sha256": "bf6f95b371b38e7639fa71e586704f091c63ea85a93969b7a84d9455f8ba1ace"
+    },
+    {
+      "url": "assets/collection/aura-dark_horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 9938,
+      "sha256": "3624eecd8cf266751470e5d4f446a1c1c5ca5f134b73019b7ca3199b1ce7ca2b"
+    },
+    {
+      "url": "assets/battle3d/celestial_horarara_horaran.glb?v=1d40c7bc610314eca56c5289845d4e92d1e0aad97d62c4dfdfb7b494aacf3cc2",
+      "label": "聖天ホラララホラランの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 7269700,
+      "sha256": "1d40c7bc610314eca56c5289845d4e92d1e0aad97d62c4dfdfb7b494aacf3cc2"
+    },
+    {
+      "url": "assets/collection/celestial_horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 15126,
+      "sha256": "0561aae04fe5bb8f3c7bd7ba7e392f3bd7e08ad258addc14e704b8a899d61636"
+    },
+    {
+      "url": "assets/collection/aura-celestial_horarara_horaran.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10156,
+      "sha256": "ae3dd046fb5c37e54d5f7dd79ededde2eef97e9e59f81422be965249965c5c2c"
+    },
+    {
+      "url": "assets/battle3d/angry_wind_kurukuru.glb?v=a99ad5e954f732493e095bc6f850d717a15474d06324ea973ce9a66b037af193",
+      "label": "怒風のクルクルの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 378464,
+      "sha256": "a99ad5e954f732493e095bc6f850d717a15474d06324ea973ce9a66b037af193"
+    },
+    {
+      "url": "assets/collection/angry_wind_kurukuru.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10448,
+      "sha256": "62bb25f272072b1bb40c23b944b626fa8acd9aac8bce1a6251fcbfce48a5848d"
+    },
+    {
+      "url": "assets/collection/aura-angry_wind_kurukuru.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 11792,
+      "sha256": "b66981ad26c158c75350f5d0995462f404b4b1b9ee55a6e14dd663ee1b86088f"
+    },
+    {
+      "url": "assets/battle3d/dark_wind_kurukuru.glb?v=83b28f719e8adab73ee12e88a504b2628f8020f1cc57ca21fd61be080e2b2108",
+      "label": "闇風のクルクルの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 378544,
+      "sha256": "83b28f719e8adab73ee12e88a504b2628f8020f1cc57ca21fd61be080e2b2108"
+    },
+    {
+      "url": "assets/collection/dark_wind_kurukuru.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 9950,
+      "sha256": "559710830d89430e6ccde31964dbd1ba996e583ee518ba203cef2f81578d162a"
+    },
+    {
+      "url": "assets/collection/aura-dark_wind_kurukuru.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10272,
+      "sha256": "12827aed15a7556c51a254505ad1c2a7954bf0db8a8caa9f389b9ad4d0b4638a"
+    },
+    {
+      "url": "assets/battle3d/celestial_wind_kurukuru.glb?v=19f8a0c6c0d794aeabe65be16c8f27a3bfe4acc93508a5267201d85c4f806538",
+      "label": "聖天風のクルクルの3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 380336,
+      "sha256": "19f8a0c6c0d794aeabe65be16c8f27a3bfe4acc93508a5267201d85c4f806538"
+    },
+    {
+      "url": "assets/collection/celestial_wind_kurukuru.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 8234,
+      "sha256": "2ca765eb3f759a79121c13d0b30a55fa7fafcb4cbbde23d26277729c67bbc50b"
+    },
+    {
+      "url": "assets/collection/aura-celestial_wind_kurukuru.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 9888,
+      "sha256": "afced74f8f462d3de60bcc3465afaf35f7061f142887c506e7a3b7b76f1e3263"
     }
   ]
 }

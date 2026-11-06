@@ -1,3 +1,4 @@
+import {regionalCampSpeciesId} from './regional-creature-families.js';
 import {CampExpedition} from './camp-engine.js';
 import {CampUI} from './camp-ui.js';
 import {CampNightView} from './camp-night.js';
@@ -164,7 +165,7 @@ export class CampRuntime{
  }
  startFinal(){
   const g=this.game;if(!this.active||this.finalStarted||this.finalIntro||!this.engine)return false;
-  const s=this.engine.snapshot(),actualDestination=getCampDestinationAt(s.nodeId),targetReached=s.finalReason==='destination'&&actualDestination?.id===s.destination,id=targetReached?actualDestination.guardianSpeciesId:'great_fairy',species=CREATURES[id];
+  const s=this.engine.snapshot(),actualDestination=getCampDestinationAt(s.nodeId),targetReached=s.finalReason==='destination'&&actualDestination?.id===s.destination,id=targetReached?actualDestination.guardianSpeciesId:regionalCampSpeciesId('great_fairy',this.nodeContext(s.nodeId).regionId),species=CREATURES[id];
   if(s.phase!=='final')return false;
   if(!species){this.engine.abort('unavailable');g.toast('最終地点のモデルを準備できませんでした。出発した拠点へ戻れます。');this.ui.show(this.engine.snapshot());return;}
   const destination=actualDestination||CAMP_DESTINATIONS[s.destination],arrival=s.finalReason==='destination',place=destination&&destination.id!=='none'?destination.name:'目標地点';
