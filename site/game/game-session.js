@@ -24,6 +24,7 @@ import {TECHNIQUES,techniqueDuration,ADDED_TECHNIQUE_IDS,PLAYER_TECHNIQUE_IDS,pl
 const clone=value=>JSON.parse(JSON.stringify(value));
 const EPSILON=1e-10;
 const STAT_KEYS=['hp','attack','ki','speed'];
+export const PARAMETER_RANK_LIMITS=Object.freeze({min:0,max:35});
 export const CREATURE_CATEGORIES=Object.freeze({normal:Object.freeze({label:'通常',description:'パトロールなどに登場する、特別ではない珍生物。'}),threat:Object.freeze({label:'脅威',description:'通常カテゴリに比べて戦闘力が高い種族。'}),unique:Object.freeze({label:'ユニーク',description:'その個体しか存在せず、ストーリーやイベントに登場する。レベルなどは固定。'})});
 export const CREATURES=Object.freeze({
  okoteiyu:Object.freeze({id:'okoteiyu',techniques:PLAYER_TECHNIQUE_IDS,additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,name:'おこていゆ',height:.45,ranks:Object.freeze({hp:4,attack:6,ki:5,speed:5})}),
@@ -72,7 +73,7 @@ function creatureStatValues(speciesId,level,rankBonus={}){
  const {ranks}=checkedCreature(speciesId);integer(level,'character level',1,106);
  return Object.fromEntries(STAT_KEYS.map(key=>{const rank=ranks[key]+(rankBonus[key]||0);return [key,(rank===0?1:rank*level*6/10)*(key==='hp'?5:1)];}));
 }
-export function parameterValue(rank,level,stat='attack'){integer(rank,'parameter rank',0,24);integer(level,'character level',1,106);if(!STAT_KEYS.includes(stat))throw new RangeError('Unknown parameter.');return normalizeStat(stat,(rank===0?1:rank*level*6/10)*(stat==='hp'?5:1));}
+export function parameterValue(rank,level,stat='attack'){integer(rank,'parameter rank',PARAMETER_RANK_LIMITS.min,PARAMETER_RANK_LIMITS.max);integer(level,'character level',1,106);if(!STAT_KEYS.includes(stat))throw new RangeError('Unknown parameter.');return normalizeStat(stat,(rank===0?1:rank*level*6/10)*(stat==='hp'?5:1));}
 function auraStatValues(stats,auraId='okoteiyu',auraLevel=1){
  if(auraId===null)return Object.fromEntries(STAT_KEYS.map(key=>[key,finite(stats[key],key)]));
  const aura=checkedCreature(auraId);integer(auraLevel,'aura level',1,auraId==='okoteiyu'?1:30);
