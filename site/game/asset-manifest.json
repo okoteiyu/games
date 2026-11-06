@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 195,
-  "totalBytes": 170847418,
+  "fileCount": 204,
+  "totalBytes": 202527799,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=1c88ef0f2ff77ace8ba5bf1a8a42395068ce6a9158819e49f2e0bac8a88b6bdd",
+      "url": "assets/battle3d/manifest.json?v=f6fdfedc690db645e2e1787019d9c4e0d5b905716a321d73eb1c826e592548d8",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 45230,
+      "bytes": 49313,
       "priority": 2,
-      "sha256": "1c88ef0f2ff77ace8ba5bf1a8a42395068ce6a9158819e49f2e0bac8a88b6bdd"
+      "sha256": "f6fdfedc690db645e2e1787019d9c4e0d5b905716a321d73eb1c826e592548d8"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1563,6 +1563,78 @@
       "priority": 3,
       "sha256": "91784df677a64cd47dc935a84309d51d4f82675cf81570fbd3458cb521736146",
       "bytes": 9846
+    },
+    {
+      "url": "assets/battle3d/angry_moai_warrior.glb?v=f99d62f01f83c203aec8dbfe7861832dfbc76fd8a3d80758c8b2391f5213afe3",
+      "label": "怒モアイの戦士の3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 10528664,
+      "sha256": "f99d62f01f83c203aec8dbfe7861832dfbc76fd8a3d80758c8b2391f5213afe3"
+    },
+    {
+      "url": "assets/collection/angry_moai_warrior.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 18736,
+      "sha256": "3dca5d4e314b55db127c77fd568351755664b73e4e9a34ee31cb5292b98045d9"
+    },
+    {
+      "url": "assets/collection/aura-angry_moai_warrior.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 12762,
+      "sha256": "1d60806eecf7b78e97e035b78c7d079aba3a65dd0d935d1936860278d66e1dbf"
+    },
+    {
+      "url": "assets/battle3d/dark_moai_warrior.glb?v=02f3baed4c031d734a2f7f7b8ae313815e31eba6278ffa2566d9695dc9563d36",
+      "label": "闇モアイの戦士の3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 10528744,
+      "sha256": "02f3baed4c031d734a2f7f7b8ae313815e31eba6278ffa2566d9695dc9563d36"
+    },
+    {
+      "url": "assets/collection/dark_moai_warrior.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 18456,
+      "sha256": "b9e50a58d98a9c108c2a65b8b936401e73931bd2da513272dda9423063b9c0b3"
+    },
+    {
+      "url": "assets/collection/aura-dark_moai_warrior.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10872,
+      "sha256": "13e2f8f5f91427d9fbc478fab4db57dea7d330d48030c687e5695733057c36cd"
+    },
+    {
+      "url": "assets/battle3d/celestial_moai_warrior.glb?v=677a71e4cd293e16ee9c6461d03b7c3d9e408dfe1f585348fbd365f34d490c83",
+      "label": "聖天モアイの戦士の3Dモデル",
+      "type": "binary",
+      "priority": 2,
+      "bytes": 10530376,
+      "sha256": "677a71e4cd293e16ee9c6461d03b7c3d9e408dfe1f585348fbd365f34d490c83"
+    },
+    {
+      "url": "assets/collection/celestial_moai_warrior.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 15550,
+      "sha256": "f5bb92a4f66ad7d81c786e3382f1621c64bfd97e5a1f186d1ee8312f0c9e6810"
+    },
+    {
+      "url": "assets/collection/aura-celestial_moai_warrior.webp",
+      "label": "コレクション・記録帳の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 12138,
+      "sha256": "f33a7bdfb34a32dac3bc99f0318d31f86287d0f7a069668a5075bbea1bade8b6"
     }
   ]
 }

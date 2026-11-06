@@ -1,3 +1,4 @@
+import {MOAI_WARRIOR_BASE} from './moai-warrior-family.js';
 import {ADDED_CREATURES} from './creature-expansion.js';
 import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,opponentAttackParameterMultiplier,selectBattleRankBonus,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
@@ -26,7 +27,7 @@ export const CREATURE_CATEGORIES=Object.freeze({normal:Object.freeze({label:'通
 export const CREATURES=Object.freeze({
  okoteiyu:Object.freeze({id:'okoteiyu',techniques:PLAYER_TECHNIQUE_IDS,additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,name:'おこていゆ',height:.45,ranks:Object.freeze({hp:4,attack:6,ki:5,speed:5})}),
  horarara_horaran:Object.freeze({...ENCOUNTER_PROFILES.horarara_horaran,id:'horarara_horaran',additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,techniques:Object.freeze(['normal_attack','energy_ray']),name:'ホラララホララン',category:'normal',height:.4,ranks:Object.freeze({hp:5,attack:5,ki:5,speed:5})}),
- moai_king:Object.freeze({...ENCOUNTER_PROFILES.moai_king,id:'moai_king',additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,techniques:Object.freeze(['normal_attack','energy_ray']),name:'モアイの戦士',category:'normal',height:2.5,ranks:Object.freeze({hp:14,attack:9,ki:9,speed:2})}),
+ moai_king:Object.freeze({...ENCOUNTER_PROFILES.moai_king,campHabitats:MOAI_WARRIOR_BASE.campHabitats,id:'moai_king',additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,techniques:Object.freeze(['normal_attack','energy_ray']),name:'モアイの戦士',category:'normal',height:2.5,ranks:Object.freeze({hp:14,attack:9,ki:9,speed:2})}),
  ...ADDED_CREATURES
 });
 export const PATROL_CALM_COST=1;

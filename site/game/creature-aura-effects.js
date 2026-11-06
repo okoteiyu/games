@@ -7,10 +7,10 @@ const positiveModulo=(n,m)=>((n%m)+m)%m;
 /** Soft acquired-aura presentation. Three instanced batches share one clock;
  * all color and motion is deterministic and has no effect on game state. */
 export class CreatureAuraEffects{
- constructor(height){
-  this.height=height;this.root=new THREE.Group();this.root.name='Battle.CreatureAura';this.root.visible=false;
+ constructor(height,{density=1,strength=1}={}){
+  this.height=height;this.intensity=strength;this.counts=Object.fromEntries(Object.entries(CREATURE_AURA_COUNTS).map(([key,count])=>[key,Math.ceil(count*density)]));this.root=new THREE.Group();this.root.name='Battle.CreatureAura';this.root.visible=false;
   this.uniforms={time:{value:0},height:{value:height},strength:{value:1},dark:{value:0},paletteCount:{value:1},palette:{value:Array.from({length:MAX_PALETTE},()=>new THREE.Color(0xffffff))}};
-  this.mist=this.makeLayer(CREATURE_AURA_COUNTS.mist,0);this.ribbons=this.makeLayer(CREATURE_AURA_COUNTS.ribbons,1);this.sparks=this.makeLayer(CREATURE_AURA_COUNTS.sparks,2);this.root.add(this.mist,this.ribbons,this.sparks);this.style=null;this.active=false;
+  this.mist=this.makeLayer(this.counts.mist,0);this.ribbons=this.makeLayer(this.counts.ribbons,1);this.sparks=this.makeLayer(this.counts.sparks,2);this.root.add(this.mist,this.ribbons,this.sparks);this.style=null;this.active=false;
  }
  makeLayer(count,kind){
   const plane=new THREE.PlaneGeometry(1,1),geometry=new THREE.InstancedBufferGeometry();geometry.index=plane.index;geometry.setAttribute('position',plane.attributes.position);geometry.setAttribute('uv',plane.attributes.uv);geometry.instanceCount=count;
@@ -73,8 +73,8 @@ export class CreatureAuraEffects{
  sample(elapsed,active,style,{superActive=false}={}){
   this.active=Boolean(active);this.root.visible=this.active;if(!this.active)return;
   this.configure(style);this.uniforms.time.value=Math.max(0,Number(elapsed)||0);
-  this.uniforms.strength.value=(style.emphasis?1.12:1)*(superActive?.62:1);
+  this.uniforms.strength.value=this.intensity*(style.emphasis?1.12:1)*(superActive?.62:1);
  }
- getDiagnostics(){return {active:this.active,time:this.uniforms.time.value,strength:this.uniforms.strength.value,dark:this.uniforms.dark.value,palette:this.uniforms.palette.value.slice(0,this.uniforms.paletteCount.value).map(c=>'#'+c.getHexString()),counts:{...CREATURE_AURA_COUNTS},drawCalls:3};}
+ getDiagnostics(){return {active:this.active,time:this.uniforms.time.value,strength:this.uniforms.strength.value,dark:this.uniforms.dark.value,palette:this.uniforms.palette.value.slice(0,this.uniforms.paletteCount.value).map(c=>'#'+c.getHexString()),counts:{...this.counts},drawCalls:3};}
  dispose(){for(const mesh of[this.mist,this.ribbons,this.sparks]){mesh.geometry.dispose();mesh.material.dispose();}this.root.removeFromParent();}
 }

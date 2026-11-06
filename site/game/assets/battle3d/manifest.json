@@ -1522,6 +1522,169 @@
       "softAlpha": false,
       "bytes": 470788,
       "sha256": "00e7a2ea662e5ea2c64d4ee2fb134b8e43c4af87b1e342dcd1b67713f8843c60"
+    },
+    "angry_moai_warrior": {
+      "url": "angry_moai_warrior.glb",
+      "sha256": "f99d62f01f83c203aec8dbfe7861832dfbc76fd8a3d80758c8b2391f5213afe3",
+      "bytes": 10528664,
+      "height": 2.5,
+      "height_m": 2.5,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "stone_normal": [
+            512,
+            512
+          ],
+          "stone_basecolor": [
+            512,
+            512
+          ],
+          "stone_roughness": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 117,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 58,
+      "expansionRevision": "R271",
+      "fitVisualBounds": true,
+      "softAlpha": true,
+      "regionalAura": {
+        "color": 15939632,
+        "palette": [
+          15939632,
+          16740400,
+          15939632,
+          16756817
+        ],
+        "emphasis": true
+      }
+    },
+    "dark_moai_warrior": {
+      "url": "dark_moai_warrior.glb",
+      "sha256": "02f3baed4c031d734a2f7f7b8ae313815e31eba6278ffa2566d9695dc9563d36",
+      "bytes": 10528744,
+      "height": 2.5,
+      "height_m": 2.5,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "stone_normal": [
+            512,
+            512
+          ],
+          "stone_basecolor": [
+            512,
+            512
+          ],
+          "stone_roughness": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 117,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 58,
+      "expansionRevision": "R271",
+      "fitVisualBounds": true,
+      "softAlpha": true,
+      "regionalAura": {
+        "color": 2560306,
+        "palette": [
+          2560306,
+          1313568,
+          6828167,
+          3281219
+        ],
+        "emphasis": true
+      }
+    },
+    "celestial_moai_warrior": {
+      "url": "celestial_moai_warrior.glb",
+      "sha256": "677a71e4cd293e16ee9c6461d03b7c3d9e408dfe1f585348fbd365f34d490c83",
+      "bytes": 10530376,
+      "height": 2.5,
+      "height_m": 2.5,
+      "forwardAxis": "+Z",
+      "facingRoot": "Combat.FacingRoot",
+      "motionRoot": "Combat.MotionRoot",
+      "modelFrame": "Combat.ModelFrame",
+      "clips": {
+        "idle": "idle",
+        "hit_recoil": "hit_recoil",
+        "enemy_attack": "enemy_attack"
+      },
+      "clipDurations": {
+        "idle": 1.5,
+        "hit_recoil": 0.5,
+        "enemy_attack": 0.5
+      },
+      "optimization": {
+        "imageSizes": {
+          "stone_normal": [
+            512,
+            512
+          ],
+          "stone_basecolor": [
+            512,
+            512
+          ],
+          "stone_roughness": [
+            512,
+            512
+          ]
+        },
+        "packedNormalTangentUvColourAccessors": 117,
+        "positionIndicesAndMorphsUnchanged": true
+      },
+      "geometryFingerprintCount": 58,
+      "expansionRevision": "R271",
+      "fitVisualBounds": true,
+      "softAlpha": true,
+      "regionalAura": {
+        "color": 16774064,
+        "palette": [
+          16774064,
+          16776169,
+          16774064,
+          16759250,
+          10147327,
+          12821247,
+          11924949,
+          16775380
+        ],
+        "emphasis": true
+      }
     }
   },
   "commonMotion": {
