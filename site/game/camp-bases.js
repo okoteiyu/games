@@ -1,6 +1,6 @@
 import {CAMP_WORLD,getCampNode,getCampDestinationAt} from './camp-world.js';
 
-export const CAMP_BASE_LIMIT=15;
+export const CAMP_BASE_LIMIT=30;
 export const CAMP_FOUNDATION_BASE=Object.freeze({
  id:'house',nodeId:CAMP_WORLD.startId,name:'おこていゆハウス',foundation:true,
  hutCount:0,rookieCount:0,layoutSeed:0
@@ -14,7 +14,7 @@ const validId=value=>typeof value==='string'&&/^[a-zA-Z0-9_-]{1,96}$/.test(value
 export function normalizeCampBaseProgress(value={}){
  if(!plain(value))throw new TypeError('キャンプ拠点の記録が正しくありません。');
  const source=value.bases??[],network=value.baseNetwork??[];
- if(!Array.isArray(source)||source.length>CAMP_BASE_LIMIT)throw new RangeError('設営できるキャンプ拠点は15箇所までです。');
+ if(!Array.isArray(source)||source.length>CAMP_BASE_LIMIT)throw new RangeError('設営できるキャンプ拠点は'+CAMP_BASE_LIMIT+'箇所までです。');
  if(!Array.isArray(network)||network.length!==source.length)throw new TypeError('拠点ネットワークの記録が正しくありません。');
  const ids=new Set([CAMP_FOUNDATION_BASE.id]),nodes=new Set([CAMP_FOUNDATION_BASE.nodeId]);
  const bases=Array.from(source).map(base=>{
