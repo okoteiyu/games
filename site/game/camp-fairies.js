@@ -44,9 +44,8 @@ export class CampFairyControls{
   }
   this.choices.hidden=this.busy;this.heading.hidden=!this.busy;this.cancel.hidden=this.mode!=='select';this.cancel.disabled=!can;
   if(this.busy)setPaintedText(this.heading,this.mode==='select'?CAMP_FAIRIES[this.selection.kind].name+'にお願い':'妖精が向かっています',{background:'#f4f4e4',fitText:true,immutableImage:true});
-  const message=this.mode==='select'?'探索を一時停止中。地図の番号が付いた地点を選んでください。道具や残り時間によっては、お願いどおりに進めません。':this.mode==='flight'?'この分かれ道で1回だけ、進路をお願いしています。':state?.phase==='night'?'夜営中は、妖精もひと休み。':!Object.values(state?.fairyRequests||{}).some(Boolean)?'今回のお願いは、ここまで。':engine?.pendingFairy?'もう一方の妖精には、その後の分かれ道でお願いできます。':'それぞれ1回。向かっている分かれ道の、その先をお願いできます。';
+  const message=this.mode==='select'?'番号の付いた隣接地点を選んでください。':this.mode==='flight'?'妖精が向かっています。':'';
   if(this.hint.textContent!==message)this.hint.textContent=message;
-  this.container.querySelector(':scope > button').disabled=this.busy;
  }
  destroy(){this.reset();document.removeEventListener('keydown',this.keyDown);this.root.removeEventListener('click',this.click);releasePaintedLabels(this.root);this.root.remove();}
 }

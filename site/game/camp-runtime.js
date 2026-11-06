@@ -37,7 +37,7 @@ export class CampRuntime{
   this.actionArea=document.createElement('section');this.actionArea.id='campActionArea';this.actionArea.className='lower-right camp-actions';this.actionArea.hidden=true;this.actionArea.setAttribute('aria-label','キャンプ中のおこていゆ');
   this.health=document.createElement('section');this.health.className='camp-health';this.health.hidden=true;this.health.setAttribute('data-camp-player-hp','');this.health.setAttribute('aria-label','おこていゆのHP');
   this.health.innerHTML='<header><strong>おこていゆ</strong><span class="camp-health__value"></span></header><div class="camp-health__meter" role="progressbar" aria-label="おこていゆのHP" aria-valuemin="0" aria-valuemax="100"><i></i></div>';this.actionArea.append(this.health);
-  this.statusPanel=document.createElement('section');this.statusPanel.className='camp-progress-panel';this.statusPanel.hidden=true;this.statusPanel.innerHTML='<span class="camp-progress-panel__icon" aria-hidden="true">⌁</span><strong>ふたりの探索を見守る</strong><p>物資を使いながら、未開の地を進んでいます。</p><button type="button">ワールドマップ</button>';this.actionArea.append(this.statusPanel);game.homeElement.after(this.actionArea);this.statusPanel.querySelector('button').addEventListener('click',event=>this.ui.openWorldMap(event.currentTarget));
+  this.statusPanel=document.createElement('section');this.statusPanel.className='camp-progress-panel';this.statusPanel.hidden=true;this.statusPanel.innerHTML='<strong class="camp-progress-panel__status" hidden></strong>';this.progressStatus=this.statusPanel.querySelector('.camp-progress-panel__status');this.actionArea.append(this.statusPanel);game.homeElement.after(this.actionArea);
   this.fairies=new CampFairyControls({container:this.statusPanel,getMap:()=>this.ui.liveMap,readEngine:()=>this.engine,isVisible:()=>Boolean(this.active&&!this.finalStarted&&['camp','camp-night'].includes(game.scene)&&['travel','night'].includes(this.engine?.state.phase)),canRequest:()=>Boolean(this.active&&game.scene==='camp'&&!game.isPaused()&&!document.hidden&&!this.finalIntro&&!this.activeDiscovery&&!this.discoveryQueue.length),onChange:()=>{if(this.engine)this.ui.update(this.engine.snapshot());game.sync();}});
   this.baseControls=document.createElement('div');this.baseControls.className='camp-base-controls';this.baseControls.hidden=true;this.baseControls.innerHTML='<button type="button" data-camp-base-map>地図</button><button type="button" class="camp-base-controls__depart" data-camp-base-depart>探索に出る ↗</button>';game.view.element.append(this.baseControls);this.baseControls.querySelector('[data-camp-base-map]').addEventListener('click',event=>this.openWorldMap(event.currentTarget));this.baseControls.querySelector('[data-camp-base-depart]').addEventListener('click',event=>this.open(event.currentTarget));
   this.baseSummary=document.createElement('section');this.baseSummary.className='lower-right camp-base-summary';this.baseSummary.hidden=true;this.baseSummary.innerHTML='<h3>キャンプ拠点</h3><p>石の住まいで、次の探索に備えます。</p><button type="button">おこていゆハウスへ戻る</button>';game.homeElement.after(this.baseSummary);this.baseSummary.querySelector('button').addEventListener('click',()=>this.visitBase('house'));
@@ -99,9 +99,7 @@ export class CampRuntime{
  }
  mountActionArea(){this.actionArea.append(this.game.battleUI.panel);this.actionArea.hidden=false;}
  setStatus(phase='travel'){
-  const night=phase==='night',ended=done.has(phase);
-  this.statusPanel.querySelector('strong').textContent=ended?'今回の探索を終える':night?'ふたりで、ひと休み':'ふたりの探索を見守る';
-  this.statusPanel.querySelector('p').textContent=ended?'記録を確かめたら、出発した拠点へ戻ろう。':night?'夜は野営して、明日に備えます。':'物資を使いながら、未開の地を進んでいます。';
+  const ended=done.has(phase);this.progressStatus.hidden=!ended;this.progressStatus.textContent=ended?'探索が終わりました':'';
  }
  emit(event){this.entries.push(event);if(this.entries.length>250)this.entries.shift();this.game.onCampEvent?.(event);}
  requestStart({bag,destination='none'}={}){
