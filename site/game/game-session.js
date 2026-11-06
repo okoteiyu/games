@@ -67,7 +67,7 @@ export function creatureStats(speciesId,level){
  return Object.fromEntries(STAT_KEYS.map(key=>[key,parameterValue(ranks[key],level,key)]));
 }
 function creatureStatValues(speciesId,level,rankBonus={}){
- const {ranks}=checkedCreature(speciesId);
+ const {ranks}=checkedCreature(speciesId);integer(level,'character level',1,106);
  return Object.fromEntries(STAT_KEYS.map(key=>{const rank=ranks[key]+(rankBonus[key]||0);return [key,(rank===0?1:rank*level*6/10)*(key==='hp'?5:1)];}));
 }
 export function parameterValue(rank,level,stat='attack'){integer(rank,'parameter rank',0,24);integer(level,'character level',1,106);if(!STAT_KEYS.includes(stat))throw new RangeError('Unknown parameter.');return normalizeStat(stat,(rank===0?1:rank*level*6/10)*(stat==='hp'?5:1));}
