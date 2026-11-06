@@ -2,7 +2,7 @@ import {battleLogNames,formatBattleLogEvent,formatBattleLogTime,BATTLE_LOG_LIMIT
 import {superUnlockMessage} from './battle-result.js';
 import {CAMP_SUPPLIES,isCampDurableTool} from './camp-rules.js';
 const decimals=n=>Math.floor((Number(n)||0)*10)/10;
-const kinds={departure:'出発',arrive:'探索','destination-discovered':'発見',weather:'天候',wildlife:'出来事',survival:'野営',night:'夜',heal:'回復',supply:'物資',guardian:'最終地点',failed:'帰り支度',finish:'帰り支度'};
+const kinds={departure:'出発',arrive:'探索','destination-discovered':'発見',weather:'天候',wildlife:'出来事',survival:'野営',night:'夜',heal:'回復',supply:'物資',guardian:'最終地点',failed:'帰り支度',finish:'帰り支度','fairy-request':'お願い','fairy-resolution':'妖精'};
 /** Continuous expedition log; battle rows retain the established formatting. */
 export class CampLog{
  constructor(container){this.container=container;this.names=new Map();this.root=document.createElement('div');this.root.className='battle-log camp-log';this.root.tabIndex=0;this.root.setAttribute('role','log');this.root.setAttribute('aria-label','キャンプと戦闘の行動ログ');this.root.setAttribute('aria-live','polite');this.root.setAttribute('aria-relevant','additions');this.list=document.createElement('ol');this.list.className='battle-log__entries';this.root.append(this.list);container.replaceChildren(this.root);}
@@ -13,6 +13,8 @@ export class CampLog{
   const day=event.day||1;let text='';
   switch(event.type){
    case 'departure':text='あなたとおこていゆは、未開の地へ出発した。';break;
+   case 'fairy-request':text=(event.kind==='tomato'?'トマト':'ナス')+'の妖精に、次の道をお願いした。';break;
+   case 'fairy-resolution':text=event.followed?(event.kind==='tomato'?'トマトの妖精が向かった道へ進むことにした。':'ナスの妖精が向かった道を避けた。'):'今の物資と進める道を確かめ、別の進み方を選んだ。';break;
    case 'arrive':text=event.backtracking?'来た道を戻り、別の道を探している。':event.newlyDiscovered?'新しい場所にたどり着いた。':'道を確かめながら、先へ進んだ。';break;
    case 'destination-discovered':text=event.name+'に到達しました。次回キャンプから目標に設定可能です。';break;
    case 'weather':text='雨が降ってきた。次の移動は、少しゆっくり。';break;

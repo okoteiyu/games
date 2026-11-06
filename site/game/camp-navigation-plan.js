@@ -45,7 +45,8 @@ function normalize(options){
  const tripReached=new Set(options.tripReached??activePath);for(const id of activePath)tripReached.add(id);tripReached.add(startId);
  if([...tripReached].some(id=>!graph.index.has(id)))throw new TypeError('コンパスの探索記録が正しくありません。');
  const rainNext=options.rainNext===true,maxHours=dayHoursRemaining+Math.min(counts.food,CAMP_MAX_DAYS-day)*dayHours;
- return {world,startId,currentNodeId,goalId,counts,usedToolUses,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,graph};
+ const avoidFirstNodeId=options.avoidFirstNodeId??null;if(avoidFirstNodeId!==null&&!graph.index.has(avoidFirstNodeId))throw new TypeError('避ける道が見つかりません。');
+ return {world,startId,currentNodeId,goalId,counts,usedToolUses,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,graph,avoidFirstNodeId};
 }
 
 function freezeResult(value){Object.freeze(value.path);Object.freeze(value.consumption);Object.freeze(value.diagnostics);return Object.freeze(value);}
@@ -73,7 +74,7 @@ function calculate(o){
  // Guidance optimizes consumption globally; a cheaper detour may temporarily
  // increase hop distance or revisit a reached vertex. Only actual reverse
  // ancestry edges reuse durable tools; entering it from another edge does not.
- for(let i=0;i<nodes.length;i++)if(goalDistances[i]>=0)for(const next of neighbors[i])if(goalDistances[next]>=0&&canTraverseCampNode(nodes[next],available(initial,i,next))){forward[i].push(next);reverse[next].push(i);}
+ for(let i=0;i<nodes.length;i++)if(goalDistances[i]>=0)for(const next of neighbors[i])if(!(i===current&&nodes[next].id===o.avoidFirstNodeId)&&goalDistances[next]>=0&&canTraverseCampNode(nodes[next],available(initial,i,next))){forward[i].push(next);reverse[next].push(i);}
  // A reverse time bound ignores consumption, but never overestimates the best
  // remaining time. It avoids exploring the far side of the entire world.
  const remaining=new Float64Array(nodes.length).fill(Infinity),timeHeap=new MinHeap((a,b)=>a.hours-b.hours);remaining[goal]=0;timeHeap.push({node:goal,hours:0});
@@ -107,7 +108,7 @@ function calculate(o){
 export function planCampNavigation(options={}){
  const o=normalize(options);let cache=plans.get(o.world);if(!cache){cache=new Map();plans.set(o.world,cache);}
  const ruleKey=toolIds.map(id=>id+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+CAMP_SUPPLIES[id].repeatable).join('|');
- const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,...consumables.map(id=>o.counts[id]),...toolIds.map(id=>o.usedToolUses[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
+ const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,o.avoidFirstNodeId??'',...consumables.map(id=>o.counts[id]),...toolIds.map(id=>o.usedToolUses[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
  if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}
  const value=calculate(o);while(cache.size>=CACHE_LIMIT)cache.delete(cache.keys().next().value);cache.set(key,value);return value;
 }
