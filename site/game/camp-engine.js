@@ -28,7 +28,7 @@ export class CampExpedition{
   this.tripReached=new Set([startId]);this.activePath=[startId];this.route=[startId];this.logs=[];this.rainForNextCrossing=false;this.moaiCompassFulfilled=Boolean(this.guidanceItem&&startId===this.guidanceGoalId);this.fairySelection=null;this.pendingFairy=null;this.pendingFairyMove=null;
   const supplies=campRuntimeSupplies(summary.counts);supplies.food--;
   const supplyUnits=Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,'uses']));
-  this.state={worldId:world.id,startId,destination,guidanceItemId:this.guidanceItem?.id??null,guidanceGoalId:this.guidanceGoalId,guidanceFulfilled:this.moaiCompassFulfilled,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null,targetDetourDistance:null,fairyRequests:Object.fromEntries(Object.entries(CAMP_FAIRIES).map(([id,fairy])=>[id,fairy.maxRequests])),fairyMarks:[],blockedEdges:[],blockedEdgeException:false};
+  this.state={worldId:world.id,startId,destination,guidanceItemId:this.guidanceItem?.id??null,guidanceGoalId:this.guidanceGoalId,guidanceFulfilled:this.moaiCompassFulfilled,guidanceAbandoned:false,guidanceAbandonedReason:null,phase:'travel',nodeId:startId,nextNodeId:null,travelProgress:0,crossingHours:0,crossingHoursElapsed:0,day:1,remainingDays:0,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,activityHours:0,supplies,supplyUnits,initialSupplies:{...summary.counts},initialToolUses:{...summary.toolUses},playerLevel,hp:null,maxHp:null,distance:0,finalReason:null,waitingForNight:false,movementMode:null,targetDetourDistance:null,fairyRequests:Object.fromEntries(Object.entries(CAMP_FAIRIES).map(([id,fairy])=>[id,fairy.maxRequests])),fairyMarks:[],blockedEdges:[],blockedEdgeException:false};
  }
  random(){const value=Number(this.rng());if(!Number.isFinite(value))throw new TypeError('キャンプの乱数が正しくありません。');return Math.max(0,Math.min(1-Number.EPSILON,value));}
  pick(items){return items.length?items[Math.floor(this.random()*items.length)]:null;}
@@ -101,8 +101,8 @@ export class CampExpedition{
  }
  isParentNode(node){return this.activePath.length>1&&this.activePath.at(-2)===node?.id;}
  isObjectiveNode(node){
-  const distances=this.goalDistances??this.depths,currentDistance=distances.get(this.state.nodeId),nextDistance=distances.get(node?.id);
-  return this.goalDistances?nextDistance<currentDistance:nextDistance>currentDistance;
+  const goalDistances=this.routeGoalDistances(),distances=goalDistances??this.depths,currentDistance=distances.get(this.state.nodeId),nextDistance=distances.get(node?.id);
+  return goalDistances?nextDistance<currentDistance:nextDistance>currentDistance;
  }
  canEnterNode(node,{ignoreTime=false}={}){return Boolean(node&&(this.isParentNode(node)?this.canRetraceNode(node):canTraverseCampNode(node,this.state.supplies))&&(ignoreTime||this.hasTimeFor(node)));}
  candidateNodes({ignoreTime=false}={}){
@@ -135,7 +135,7 @@ export class CampExpedition{
   return Infinity;
  }
  nearbyUnknownCandidates(){
-  if(this.goalDistances||this.hasActiveGuidance())return [];
+  if(this.routeGoalDistances()||this.hasActiveGuidance())return [];
   const current=this.nodeIndex.get(this.state.nodeId),options=this.routeNeighbors(current.id).map(id=>this.nodeIndex.get(id)).filter(Boolean).map(node=>({node,distance:this.unknownDistanceWithinFour(node)})),nearest=Math.min(...options.map(option=>option.distance));
   return Number.isFinite(nearest)?options.filter(option=>option.distance===nearest).map(option=>option.node):[];
  }
@@ -150,7 +150,9 @@ export class CampExpedition{
   const preferObjective=this.random()<.5;
   return this.pick(preferObjective&&preferred.length?preferred:candidates);
  }
- hasActiveGuidance(){return Boolean(this.guidanceItem&&this.state.supplies[this.guidanceItem.id]&&!this.state.guidanceFulfilled);}
+ routeGoalDistances(){return this.state.guidanceAbandoned?null:this.goalDistances;}
+ hasActiveGuidance(){return Boolean(this.guidanceItem&&this.state.supplies[this.guidanceItem.id]&&!this.state.guidanceFulfilled&&!this.state.guidanceAbandoned);}
+ abandonGuidance(reason='next-move-unavailable'){if(!this.hasActiveGuidance())return false;this.state.guidanceAbandoned=true;this.state.guidanceAbandonedReason=reason;return true;}
  completeGuidanceIfReached(){
   if(!this.hasActiveGuidance()||this.state.nodeId!==this.guidanceGoalId)return false;
   this.state.guidanceFulfilled=true;this.moaiCompassFulfilled=true;return true;
@@ -161,7 +163,7 @@ export class CampExpedition{
   const goalId=this.guidanceGoalId;
   const unavailable={unavailable:true};
   if(!goalId||!this.nodeIndex.has(goalId)||!this.moaiCompassDistances)return unavailable;
-  const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,counts:this.state.supplies,usedToolUses:Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,Math.max(0,(this.state.initialToolUses[id]??0)-(this.state.supplies[id]??0))])),day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing,avoidFirstNodeId,blockedEdges:this.blockedEdgePairs});
+  const plan=planCampNavigation({world:this.world,startId:this.startId,currentNodeId:this.state.nodeId,goalId,requireFullSupplies:false,counts:this.state.supplies,usedToolUses:Object.fromEntries(CAMP_DURABLE_TOOL_IDS.map(id=>[id,Math.max(0,(this.state.initialToolUses[id]??0)-(this.state.supplies[id]??0))])),day:this.state.day,dayHours:this.state.dayHours,dayHoursRemaining:this.state.dayHoursRemaining,tripReached:this.tripReached,activePath:this.activePath,rainNext:this.rainForNextCrossing,avoidFirstNodeId,blockedEdges:this.blockedEdgePairs});
   if(plan.status==='reached'){this.state.guidanceFulfilled=true;this.moaiCompassFulfilled=true;return null;}
   if(plan.status!=='ready')return unavailable;
   const node=this.nodeIndex.get(plan.nextNodeId);
@@ -174,7 +176,7 @@ export class CampExpedition{
   if(this.destination.nodeId===this.state.nodeId&&!this.hasActiveGuidance()){this.finalize('destination');return;}
   const request=this.pendingFairy?.fromNodeId===this.state.nodeId?this.pendingFairy:null;
   if(request){this.pendingFairy=null;request.active=request.kind==='eggplant';}
-  const normal=avoidNodeId=>{const guided=this.guidedMove({avoidFirstNodeId:avoidNodeId});if(guided?.unavailable)return guided;const node=guided?.node??this.chooseNextNode({avoidNodeId});return {node,movementMode:guided?.movementMode??(this.isParentNode(node)?'backtrack':'forward')};};
+  const normal=avoidNodeId=>{const guided=this.guidedMove({avoidFirstNodeId:avoidNodeId});if(guided?.unavailable)this.abandonGuidance();const node=guided?.node??this.chooseNextNode({avoidNodeId});return {node,movementMode:guided?.movementMode??(this.isParentNode(node)?'backtrack':'forward')};};
   let choice=null;
   const legal=this.blockedEdgeKeys.size?this.nodeIndex.get(this.state.nodeId).neighbors.map(id=>this.nodeIndex.get(id)).filter(node=>this.canEnterNode(node)):[],open=legal.filter(node=>!this.edgeBlocked(this.state.nodeId,node.id));
   if(request?.kind==='tomato'){const node=this.nodeIndex.get(request.toNodeId);if(this.canEnterNode(node)&&(!this.edgeBlocked(this.state.nodeId,node.id)||!open.length))choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward',blockedEdgeException:this.edgeBlocked(this.state.nodeId,node.id)};}
@@ -193,7 +195,9 @@ export class CampExpedition{
    choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward',allowRevisit:true};
   }
   const stop=reason=>{this.resolveFairy(request,null);this.finalize(reason);};
-  if(choice.unavailable){stop('compass-route-unavailable');return;}
+  // Ending failed guidance changes route preferences only. The separately
+  // selected goal and its normal arrival/end condition are still intact.
+  if(this.destination.nodeId===this.state.nodeId&&!this.hasActiveGuidance()){stop('destination');return;}
   let next=choice.node,movementMode=choice.movementMode;
   if(!next){
    // If no objective/ordinary move is legal, retreat one real ancestry edge.

@@ -201,12 +201,12 @@ export class CampUI{
   const goal=CAMP_DESTINATIONS[guidance.routeDestinationId],startId=this.readStartId(),key=[guidance.id,goal?.nodeId??'',startId,...supplyList.map(item=>item.id+':'+summary.counts[item.id])].join('|');
   if(key!==this.guidanceKey){
    this.guidanceKey=key;this.guidancePlan={status:goal?.nodeId?'food':'error'};
-   if(goal?.nodeId&&summary.counts.food>0){try{const counts=campRuntimeSupplies(summary.counts);counts.food--;this.guidancePlan=planCampNavigation({world:CAMP_WORLD,startId,currentNodeId:startId,goalId:goal.nodeId,counts,day:1,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,tripReached:[startId],activePath:[startId]});}catch{this.guidancePlan={status:'error'};}}
+   if(goal?.nodeId&&summary.counts.food>0){try{const counts=campRuntimeSupplies(summary.counts);counts.food--;this.guidancePlan=planCampNavigation({world:CAMP_WORLD,startId,currentNodeId:startId,goalId:goal.nodeId,requireFullSupplies:false,counts,day:1,dayHours:summary.activityHoursPerDay,dayHoursRemaining:summary.activityHoursPerDay,tripReached:[startId],activePath:[startId]});}catch{this.guidancePlan={status:'error'};}}
   }
   const status=this.guidancePlan.status,name=guidance.name,place=goal?.name||'案内先';let text;
-  if(status==='ready'||status==='reached')text=name+'は、'+place+'へ向かう探索最適経路を案内します。'+(this.destination==='none'?place+'に着いたら案内を終え、探索を続けます。':this.destination===goal.id?place+'は選んだ目標なので、到着時に最終戦へ進みます。':place+'に着いたら案内を終え、選んだ目標に向かいます。');
-  else if(status==='food')text=name+'は'+place+'へ案内します。携帯食料を入れると、今のバッグで進めるか確認できます。';
-  else if(status==='unreachable')text=name+'の案内先は'+place+'です。今の物資では、近づき続けて到達できる道がありません。このまま出発しても案内を始められないため、バッグを見直してください。';
+  if(status==='ready'||status==='reached')text=name+'は、'+place+'へ向かう探索最適経路を、今の物資で進めるところまで案内します。途中で次の道を進めなくなったら、その回の案内を終え、目標なしのルールで探索を続けます。'+(this.destination==='none'?place+'に着いたら案内を終え、探索を続けます。':this.destination===goal.id?place+'は選んだ目標なので、到着時に最終戦へ進みます。':place+'に着いたら案内を終え、選んだ目標に向かいます。');
+  else if(status==='food')text=name+'は'+place+'へ、今の物資で進めるところまで案内します。出発するには携帯食料を入れてください。';
+  else if(status==='unreachable')text=name+'の案内先は'+place+'です。案内できる道がない場合は、目標なしのルールで探索を始めます。通常どおり出発できます。';
   else text=name+'の案内を確認できませんでした。物資を選び直して確認してください。';
   element.dataset.status=status;setPlanCopy(element,text);
  }

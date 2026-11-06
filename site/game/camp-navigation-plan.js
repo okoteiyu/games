@@ -46,19 +46,21 @@ function normalize(options){
  for(let i=1;i<activePath.length;i++)if(!graph.neighbors[graph.index.get(activePath[i-1])].includes(graph.index.get(activePath[i])))throw new TypeError('コンパスの帰り道がつながっていません。');
  const tripReached=new Set(options.tripReached??activePath);for(const id of activePath)tripReached.add(id);tripReached.add(startId);
  if([...tripReached].some(id=>!graph.index.has(id)))throw new TypeError('コンパスの探索記録が正しくありません。');
- const rainNext=options.rainNext===true,maxHours=dayHoursRemaining+Math.min(counts.food,CAMP_MAX_DAYS-day)*dayHours;
+ const requireFullSupplies=options.requireFullSupplies!==false,rainNext=options.rainNext===true,maxHours=requireFullSupplies?dayHoursRemaining+Math.min(counts.food,CAMP_MAX_DAYS-day)*dayHours:Infinity;
  const avoidFirstNodeId=options.avoidFirstNodeId??null;if(avoidFirstNodeId!==null&&!graph.index.has(avoidFirstNodeId))throw new TypeError('避ける道が見つかりません。');
  const blocked=campBlockedEdges(options.blockedEdges,world.nodes);
- return {world,startId,currentNodeId,goalId,counts,usedToolUses,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,graph,avoidFirstNodeId,blocked};
+ return {world,startId,currentNodeId,goalId,counts,usedToolUses,day,dayHours,dayHoursRemaining,activePath,tripReached,rainNext,maxHours,requireFullSupplies,graph,avoidFirstNodeId,blocked};
 }
 
 function freezeResult(value){Object.freeze(value.path);Object.freeze(value.consumption);Object.freeze(value.diagnostics);return Object.freeze(value);}
-function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,explorationCost:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,...Object.fromEntries(toolIds.map(id=>[id,0]))},diagnostics:{labelsCreated:0,labelsExpanded:0,routeMode:'optimal'}};}
+function result(o,status){return {status,startId:o.startId,currentNodeId:o.currentNodeId,goalId:o.goalId,nextNodeId:null,movementMode:null,path:status==='reached'?[o.currentNodeId]:[],requiredItems:status==='reached'?0:null,explorationCost:status==='reached'?0:null,activityHours:status==='reached'?0:null,consumption:{food:0,...Object.fromEntries(toolIds.map(id=>[id,0]))},diagnostics:{labelsCreated:0,labelsExpanded:0,routeMode:'optimal',requireFullSupplies:o.requireFullSupplies}};}
 
 /** Counts for durable tools are remaining uses, not physical copies. Minimize
  * consumed exploration copies plus food, then time, across the entire graph.
  * Unknown map nodes remain in the graph. Nonconsumed support tools are free
- * in the objective, but still gate passage and modify actual activity time. */
+ * in the objective, but still gate passage and modify actual activity time.
+ * requireFullSupplies:false plans the theoretical route for partial guidance;
+ * the expedition still validates the actual next passage against its supplies. */
 function calculate(o){
  if(o.currentNodeId===o.goalId||o.tripReached.has(o.goalId))return freezeResult(result(o,'reached'));
  const output=result(o,'unreachable'),{nodes,index,neighbors}=o.graph,current=index.get(o.currentNodeId),goal=index.get(o.goalId),factor=o.counts.compass?.6:1,goalDistances=distancesToGoal(o.graph,goal,o.blocked);
@@ -68,8 +70,8 @@ function calculate(o){
  const usedItems=label=>toolIds.reduce((sum,id)=>sum+additionalCopies(id,label[id],o.usedToolUses[id]),0);
  const returnParents=new Map(o.activePath.slice(1).map((id,i)=>[index.get(id),index.get(o.activePath[i])]));
  const isReturn=(from,next)=>returnParents.get(from)===next;
- const available=(label,from,next)=>{const counts={...o.counts,...Object.fromEntries(toolIds.map(id=>[id,o.counts[id]-label[id]]))};if(isReturn(from,next))for(const id of toolIds)counts[id]=Math.max(1,counts[id]);return counts;};
- const fits=label=>label.hours<=o.maxHours+EPS&&toolIds.every(id=>label[id]<=o.counts[id]);
+ const available=(label,from,next)=>{const counts={...o.counts,...Object.fromEntries(toolIds.map(id=>[id,o.counts[id]-label[id]]))};if(!o.requireFullSupplies){counts.flashlight=Math.max(1,counts.flashlight);for(const id of toolIds)counts[id]=Math.max(1,counts[id]);}else if(isReturn(from,next))for(const id of toolIds)counts[id]=Math.max(1,counts[id]);return counts;};
+ const fits=label=>!o.requireFullSupplies||label.hours<=o.maxHours+EPS&&toolIds.every(id=>label[id]<=o.counts[id]);
  const spend=(label,next)=>{if(!canTraverseCampNode(nodes[next],available(label,label.node,next)))return null;const consumed=isReturn(label.node,next)?{}:campTraversalConsumption(nodes[next]),candidate={node:next,hours:label.hours+crossing(nodes[next],label.steps===0),...Object.fromEntries(toolIds.map(id=>[id,label[id]+(consumed[id]??0)])),steps:label.steps+1,parent:label};return fits(candidate)?candidate:null;};
 
  const initial={node:current,hours:0,...Object.fromEntries(toolIds.map(id=>[id,0])),steps:0,parent:null};
@@ -111,7 +113,7 @@ function calculate(o){
 export function planCampNavigation(options={}){
  const o=normalize(options);let cache=plans.get(o.world);if(!cache){cache=new Map();plans.set(o.world,cache);}
  const ruleKey=toolIds.map(id=>id+':'+(CAMP_SUPPLIES[id].maxUses??1)+':'+CAMP_SUPPLIES[id].width+'x'+CAMP_SUPPLIES[id].height+':'+CAMP_SUPPLIES[id].repeatable).join('|');
- const key=[o.world.revision??'',ruleKey,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,o.avoidFirstNodeId??'',o.blocked.key,...consumables.map(id=>o.counts[id]),...toolIds.map(id=>o.usedToolUses[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
+ const key=[o.world.revision??'',ruleKey,o.requireFullSupplies?1:0,o.startId,o.currentNodeId,o.goalId,o.day,o.dayHours,o.dayHoursRemaining,o.rainNext?1:0,o.avoidFirstNodeId??'',o.blocked.key,...consumables.map(id=>o.counts[id]),...toolIds.map(id=>o.usedToolUses[id]),...fixedTools.map(id=>o.counts[id]),o.activePath.join(','),[...o.tripReached].sort().join(',')].join(';');
  if(cache.has(key)){const value=cache.get(key);cache.delete(key);cache.set(key,value);return value;}
  const value=calculate(o);while(cache.size>=CACHE_LIMIT)cache.delete(cache.keys().next().value);cache.set(key,value);return value;
 }
