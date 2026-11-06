@@ -163,10 +163,10 @@ export class CampExpedition{
   if(request?.kind==='tomato'){const node=this.nodeIndex.get(request.toNodeId);if(this.canEnterNode(node))choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward'};}
   else if(request?.kind==='eggplant'){
    const alternative=normal(request.toNodeId);if(alternative.node&&!alternative.unavailable)choice=alternative;
-   else if(!alternative.unavailable){
+   else{
     // Avoiding this edge may require a one-off revisit outside the usual
     // objective direction. Keep return-only tool costs on the real parent.
-    const candidates=this.nodeIndex.get(this.state.nodeId).neighbors.filter(id=>id!==request.toNodeId).map(id=>this.nodeIndex.get(id)).filter(node=>this.canEnterNode(node)),forward=candidates.filter(node=>!this.isParentNode(node)),node=this.pick(forward.length?forward:candidates);
+    const candidates=this.nodeIndex.get(this.state.nodeId).neighbors.filter(id=>id!==request.toNodeId).map(id=>this.nodeIndex.get(id)).filter(node=>this.tripReached.has(node?.id)&&this.canEnterNode(node)),forward=candidates.filter(node=>!this.isParentNode(node)),node=this.pick(forward.length?forward:candidates);
     if(node)choice={node,movementMode:this.isParentNode(node)?'backtrack':'forward'};
    }
   }
