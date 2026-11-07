@@ -119,7 +119,7 @@ export class CampRuntime{
   else{this.hideBase();this.begin();}
   return result;
  }
- begin(){const g=this.game;if(!this.active||!this.engine)return false;g.scene='camp';this.setCampLocation();g.house.leaveHouse();g.homeElement.hidden=true;this.mountActionArea();g.view.clear();this.ui.show(this.engine.snapshot());this.setStatus();this.statusPanel.hidden=false;this.updateHealth();g.onCampStarted?.(this.entries);g.sync();return true;}
+ begin(){const g=this.game;if(!this.active||!this.engine)return false;g.scene='camp';this.setCampLocation();g.house.leaveHouse();g.homeElement.hidden=true;this.mountActionArea();g.view.clear();this.ui.show(this.engine.snapshot(),{resetView:true});this.setStatus();this.statusPanel.hidden=false;this.updateHealth();g.onCampStarted?.(this.entries);g.sync();return true;}
  checkpoint({unlockedDestinations}={}){if(!this.engine)return;this.game.session.updateCampProgress({discovered:this.engine.snapshot().visited,...(unlockedDestinations?{unlockedDestinations}:{})});this.game.onCampCheckpoint?.();}
  onEvent(event){
   if(!this.active)return;this.emit(event);
@@ -217,16 +217,16 @@ export class CampRuntime{
  returnHome(){const g=this.game;if(!this.active||!done.has(this.engine?.snapshot().phase)||g.isPaused()||document.hidden)return false;return this.finishExploration();}
  finishFinalBattle(){if(!this.active||this.game.session.state.battle?.kind!=='camp-final'||!this.game.canReturnHomeAfterBattle())return false;return this.finishExploration();}
  async finishExploration(){
-  const g=this.game,phase=this.engine?.snapshot().phase,finalReady=phase==='final'&&g.session.state.battle?.kind==='camp-final'&&g.canReturnHomeAfterBattle();if(!this.active||!this.engine||!done.has(phase)&&!finalReady||this.finishing||g.isPaused()||document.hidden)return false;this.finishing=true;const serial=this.serial,nodeId=this.engine.snapshot().nodeId,startBaseId=this.startBaseId||'house';
+  const g=this.game,phase=this.engine?.snapshot().phase,finalReady=phase==='final'&&g.session.state.battle?.kind==='camp-final'&&g.canReturnHomeAfterBattle();if(!this.active||!this.engine||!done.has(phase)&&!finalReady||this.finishing||g.isPaused()||document.hidden)return false;this.finishing=true;const serial=this.serial,nodeId=this.engine.snapshot().nodeId,startBaseId=this.startBaseId||'house';let returnBaseId=startBaseId;
   try{
    const finalBattle=g.session.state.battle,canOfferBase=finalBattle?.kind==='camp-final'&&finalBattle.phase==='ended'&&finalBattle.result==='win'&&g.canReturnHomeAfterBattle();
    if(canOfferBase&&canEstablishCampBase(g.session.state.camp,nodeId)){
-    const approved=await this.baseActions.open({title:'ここにキャンプ拠点を設営しますか？',text:'探索を終えた、この場所に拠点を作れます。\n次のキャンプは、この場所から出発できるようになります。'});
+    const approved=await this.baseActions.open({title:'ここにキャンプ拠点を設営しますか？',text:'探索を終えた、この場所に拠点を作れます。\n設営後は、この拠点に滞在します。次のキャンプも、ここから出発できます。'});
     if(approved===null)return false;if(!this.active||serial!==this.serial)return false;
-    if(approved){const result=g.session.establishCampBase({nodeId,startBaseId});if(!result?.ok){g.toast('この場所には拠点を設営できませんでした。地図を確認してください。');return false;}}
+    if(approved){const result=g.session.establishCampBase({nodeId,startBaseId});if(!result?.ok){g.toast('この場所には拠点を設営できませんでした。地図を確認してください。');return false;}returnBaseId=result.base.id;}
    }
-   const afterBattle=this.hadBattle||g.session.state.battle?.kind==='camp-final';if(!g.session.endCamp({afterBattle}))return false;const returnBase=getCampBase(g.session.state.camp,startBaseId)||CAMP_FOUNDATION_BASE;
-   this.deactivate();g.sceneCutin.stop();g.resultCutinComplete=false;g.messageLocked=false;g.battleUI.deactivate();g.scene='house';if(returnBase.foundation)g.session.moveCampBase(returnBase.id);g.setLocation('おこていゆハウス');g.house.arriveFromOutside({afterBattle});g.view.setHouse();g.messages=[];g.resultMessages=[];g.resultMessageActive=false;g.resultMessagesComplete=true;g.clearMessage();g.sync();g.onCampCheckpoint?.();
+   const afterBattle=this.hadBattle||g.session.state.battle?.kind==='camp-final';if(!g.session.endCamp({afterBattle}))return false;const returnBase=getCampBase(g.session.state.camp,returnBaseId)||CAMP_FOUNDATION_BASE;
+   this.deactivate();g.sceneCutin.stop();g.resultCutinComplete=false;g.messageLocked=false;g.battleUI.deactivate();g.scene='house';g.session.moveCampBase(returnBase.id);g.setLocation('おこていゆハウス');g.house.arriveFromOutside({afterBattle});g.view.setHouse();g.messages=[];g.resultMessages=[];g.resultMessageActive=false;g.resultMessagesComplete=true;g.clearMessage();g.sync();g.onCampCheckpoint?.();
    if(!returnBase.foundation)await this.visitBase(returnBase.id);return true;
   }finally{this.finishing=false;}
  }
