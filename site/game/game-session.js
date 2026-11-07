@@ -13,6 +13,7 @@ import {normalizeSuperConfigurationProgress,syncSuperConfigurationUnlocks,superC
 import {currentTimeOfDay} from './world-time.js';
 import {createCampProgress,normalizeCampProgress,validateCampBag,campDepartureCost} from './camp-rules.js';
 import {CAMP_DESTINATIONS} from './camp-world.js';
+import {CAMP_ENCOUNTER_MAX_MEMBERS} from './camp-encounters.js';
 import {getCampBase,establishCampBase as createCampBase,moveCampBase as selectCampBase,withdrawCampBase as removeCampBase} from './camp-bases.js';
 import {isCampDestinationUnlocked} from './camp-destination-access.js';
 import {SUPPORT_ITEMS,DEFENSE_ITEMS,equipmentMultipliers,equippedSupportIds,supportItemLevel,validateSupportSelection,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
@@ -392,7 +393,7 @@ export class GameSession{
   if(!['patrol','training','story','camp','camp-final'].includes(kind))throw new RangeError('Unsupported battle kind.');
   if(this.state.location==='battle')throw new Error('A battle is already open.');if(this.state.pendingAngerEvent)throw new Error('Finish the anger event first.');
   if(playerHp!==undefined&&(typeof playerHp!=='number'||!Number.isFinite(playerHp)||playerHp<=0))throw new RangeError('A carried battle HP value must be positive and finite.');
-  const members=Array.isArray(encounter)?encounter:encounter?.members||[encounter];integer(members.length,'opponent count',1,3);
+  const members=Array.isArray(encounter)?encounter:encounter?.members||[encounter];integer(members.length,'opponent count',1,kind==='camp'?CAMP_ENCOUNTER_MAX_MEMBERS:3);
   const actor=(id,speciesId,level,stats)=>({id,speciesId,name:CREATURES[speciesId].name,category:CREATURES[speciesId].category??null,level,stats:{...stats},damageReduction:creatureDamageReduction(speciesId),maxHp:stats.hp,hp:stats.hp,receivedDamageCount:0,action:null,nextActionAt:0,requestedTechnique:null,attackIndex:0,nextAttackDamageMultiplier:1});
   const enemies=members.map((enemy,index)=>{const speciesId=enemy?.speciesId||enemy?.creatureId;if(!Object.hasOwn(CREATURES,speciesId)||!Object.hasOwn(CREATURE_CATEGORIES,CREATURES[speciesId].category))throw new RangeError('Unsupported prototype opponent.');const level=integer(enemy.level,'opponent level',1,106);return {...actor(index?'enemy-'+(index+1):'enemy',speciesId,level,creatureStats(speciesId,level)),techniqueLevels:Object.fromEntries(CREATURES[speciesId].techniques.map(id=>[id,clampTechniqueLevel(id,level)])),sourceId:enemy.id||null};});
   const rankOpponents=actors=>actors.map(opponent=>({...opponent,ranks:CREATURES[opponent.speciesId].ranks}));
