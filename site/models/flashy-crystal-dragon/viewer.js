@@ -1,0 +1,48 @@
+import * as THREE from '../../game/vendor/three/three.module.js';
+import {GLTFLoader} from '../../game/vendor/three/addons/loaders/GLTFLoader.js';
+const stage=document.querySelector('#stage'),loading=document.querySelector('#loading'),motionButton=document.querySelector('#motion'),rotateButton=document.querySelector('#rotate');
+const defaults={yaw:.61,pitch:.31,zoom:1},orbit={...defaults},smooth={...defaults},points=new Map(),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let renderer,model,mixer,lastTime=0,raf=0,motion=!reducedMotion,rotate=false,bounds,center,fitPoints=[],ready=false,lost=false;
+const scene=new THREE.Scene();scene.background=new THREE.Color('#090f20');scene.fog=new THREE.FogExp2('#090f20',.012);const camera=new THREE.PerspectiveCamera(37,1,.1,150);const target=new THREE.Vector3(),size=new THREE.Vector3();
+function environment(){
+ const room=new THREE.Scene();room.background=new THREE.Color('#202942');const box=new THREE.Mesh(new THREE.BoxGeometry(30,24,30),new THREE.MeshBasicMaterial({color:'#46546f',side:THREE.BackSide}));room.add(box);
+ const panels=[[-8,7,-4,0,Math.PI/2,9,10,'#b7f7ff',4],[9,5,3,0,-Math.PI/2,5,10,'#f5b7ea',3],[0,11,0,Math.PI/2,0,12,6,'#e7f5ff',4],[0,4,-12,0,0,8,8,'#a9aeff',3]];
+ for(const[x,y,z,rx,ry,w,h,color,intensity]of panels){const panel=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(intensity),side:THREE.DoubleSide}));panel.position.set(x,y,z);panel.rotation.set(rx,ry,0);room.add(panel)}
+ const generator=new THREE.PMREMGenerator(renderer);const map=generator.fromScene(room,.02).texture;generator.dispose();room.traverse(o=>{o.geometry?.dispose();o.material?.dispose()});return map;
+}
+function setup(){
+ renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;stage.append(renderer.domElement);renderer.domElement.setAttribute('aria-label','派手なクリスタルドラゴン。ドラッグで回転、ピンチで拡大。');renderer.domElement.setAttribute('role','img');renderer.domElement.tabIndex=0;
+ scene.environment=environment();scene.add(new THREE.HemisphereLight('#c0eaff','#1e1533',1));
+ for(const[color,intensity,x,y,z]of [['#e3f4ff',4.0,2,9,6],['#66c8ff',2.7,-7,4,2],['#ee70cf',3.0,6,5,-5]]){const light=new THREE.DirectionalLight(color,intensity);light.position.set(x,y,z);scene.add(light)}
+ const plinth=new THREE.Mesh(new THREE.CylinderGeometry(5.5,5.5,.15,96),new THREE.MeshStandardMaterial({color:'#101b31',metalness:.68,roughness:.24}));plinth.position.set(0,-.10,-.5);scene.add(plinth);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(5.25,.012,8,128),new THREE.MeshBasicMaterial({color:'#54899e',transparent:true,opacity:.32}));ring.rotation.x=Math.PI/2;ring.position.set(0,-.012,-.5);scene.add(ring);
+ const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:'#070d1b',metalness:.20,roughness:.45}));floor.rotation.x=-Math.PI/2;floor.position.y=-.18;scene.add(floor);
+ // A soft contact shadow grounds the feet without copying a photograph.
+ const c=document.createElement('canvas');c.width=c.height=128;const ctx=c.getContext('2d'),gradient=ctx.createRadialGradient(64,64,12,64,64,64);gradient.addColorStop(0,'rgba(0,0,0,.8)');gradient.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);const shadow=new THREE.Mesh(new THREE.PlaneGeometry(6,9),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.set(0,-.012,-.8);scene.add(shadow);
+ resize();new ResizeObserver(resize).observe(stage);bind(renderer.domElement);renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);stage.classList.remove('is-ready');loading.hidden=false;loading.textContent='表示を復帰しています…'});renderer.domElement.addEventListener('webglcontextrestored',()=>location.reload());
+}
+function resize(){if(!renderer)return;const r=stage.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height));camera.aspect=r.width/Math.max(1,r.height);camera.updateProjectionMatrix();if(ready)draw(lastTime)}
+function fit(yaw,pitch){
+ const dir=new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),up=new THREE.Vector3().crossVectors(dir,right),tan=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));let distance=0;
+ for(const point of fitPoints){const v=point.clone().sub(target);distance=Math.max(distance,v.dot(dir)+Math.abs(v.dot(right))/(tan*camera.aspect),v.dot(dir)+Math.abs(v.dot(up))/tan)}
+ return dir.multiplyScalar(distance*1.12*orbit.zoom).add(target);
+}
+function draw(time){
+ if(!renderer||!ready||lost)return;const dt=Math.min(.05,Math.max(0,(time-lastTime)/1000));lastTime=time;if(motion)mixer.update(dt);if(rotate)orbit.yaw+=dt*.16;
+ smooth.yaw+=(orbit.yaw-smooth.yaw)*.18;smooth.pitch+=(orbit.pitch-smooth.pitch)*.18;camera.position.lerp(fit(smooth.yaw,smooth.pitch),.22);camera.lookAt(target);renderer.render(scene,camera);
+}
+function frame(time){raf=0;draw(time);if(!document.hidden&&!lost)raf=requestAnimationFrame(frame)}
+function start(){if(!raf&&!document.hidden){lastTime=performance.now();raf=requestAnimationFrame(frame)}}
+function setAngle(id){const angles={'three-quarter':[.61,.31],front:[0,.24],side:[Math.PI/2,.23],back:[Math.PI,.28]};[orbit.yaw,orbit.pitch]=angles[id]||angles['three-quarter'];orbit.zoom=1;document.querySelectorAll('[data-angle]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.angle===id)))}
+function manual(){rotate=false;rotateButton.setAttribute('aria-pressed','false');document.querySelectorAll('[data-angle]').forEach(b=>b.setAttribute('aria-pressed','false'))}
+function bind(canvas){
+ canvas.addEventListener('pointerdown',e=>{manual();points.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId)});
+ canvas.addEventListener('pointermove',e=>{if(!points.has(e.pointerId))return;const old=points.get(e.pointerId);if(points.size===1){orbit.yaw-=(e.clientX-old.x)*.006;orbit.pitch=THREE.MathUtils.clamp(orbit.pitch+(e.clientY-old.y)*.004,-.08,1.1)}else{const other=[...points.entries()].find(([id])=>id!==e.pointerId)?.[1];if(other){const a=Math.hypot(old.x-other.x,old.y-other.y),b=Math.hypot(e.clientX-other.x,e.clientY-other.y);if(b>1)orbit.zoom=THREE.MathUtils.clamp(orbit.zoom*a/b,.45,2.4)}}points.set(e.pointerId,{x:e.clientX,y:e.clientY})});
+ for(const name of['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,e=>points.delete(e.pointerId));
+ canvas.addEventListener('wheel',e=>{e.preventDefault();orbit.zoom=THREE.MathUtils.clamp(orbit.zoom*Math.exp(Math.max(-100,Math.min(100,e.deltaY))*.003),.45,2.4)},{passive:false});canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-','Home'].includes(e.key)){e.preventDefault();manual();if(e.key==='Home')setAngle('three-quarter');else if(e.key==='ArrowLeft')orbit.yaw-=.12;else if(e.key==='ArrowRight')orbit.yaw+=.12;else if(e.key==='ArrowUp')orbit.pitch=Math.min(1.1,orbit.pitch+.08);else if(e.key==='ArrowDown')orbit.pitch=Math.max(-.08,orbit.pitch-.08);else orbit.zoom=THREE.MathUtils.clamp(orbit.zoom*(e.key==='-'?1.12:1/1.12),.45,2.4)}});
+}
+document.querySelectorAll('[data-angle]').forEach(b=>b.addEventListener('click',()=>{rotate=false;rotateButton.setAttribute('aria-pressed','false');setAngle(b.dataset.angle)}));motionButton.setAttribute('aria-pressed',String(motion));motionButton.addEventListener('click',()=>{motion=!motion;motionButton.setAttribute('aria-pressed',String(motion))});rotateButton.addEventListener('click',()=>{rotate=!rotate;rotateButton.setAttribute('aria-pressed',String(rotate))});document.querySelector('#reset').addEventListener('click',()=>{setAngle('three-quarter');rotate=false;rotateButton.setAttribute('aria-pressed','false')});document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0}else start()});
+try{
+ setup();const[gltf,hull]=await Promise.all([new GLTFLoader().loadAsync('dragon.glb'),fetch('fit-points.json').then(r=>{if(!r.ok)throw Error('Model framing unavailable');return r.json()})]);model=gltf.scene;scene.add(model);bounds=new THREE.Box3().setFromObject(model);model.position.y-=bounds.min.y;bounds=new THREE.Box3().setFromObject(model);center=bounds.getCenter(new THREE.Vector3());bounds.getSize(size);target.copy(center);fitPoints=hull.positions.map(p=>new THREE.Vector3(...p));mixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)mixer.clipAction(clip).play();ready=true;camera.position.copy(fit(orbit.yaw,orbit.pitch));camera.lookAt(target);stage.classList.add('is-ready');loading.hidden=true;start();
+ window.crystalDragonPreview={get ready(){return ready},getDiagnostics:()=>({ready,lost,animationNames:gltf.animations.map(a=>a.name),durations:gltf.animations.map(a=>a.duration),orbit:{...orbit},motion,rotate,meshCount:(()=>{let n=0;model.traverse(o=>{if(o.isMesh)n++});return n})(),camera:camera.position.toArray(),bounds:[bounds.min.toArray(),bounds.max.toArray()],renderInfo:renderer.info.render}),model,scene,camera,renderer,mixer};
+}catch(error){console.error(error);loading.textContent='3D表示を準備できませんでした。画像でご覧いただけます。';document.querySelectorAll('button').forEach(b=>b.disabled=true)}
