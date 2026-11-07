@@ -360,24 +360,14 @@
     },
     "dragon": {
       "id": "dragon",
-      "name": "ドラゴン",
-      "url": "dragon.glb",
-      "sha256": "98ef70227353df6fed6c00cb21c5e8610f811f69e1e78b0b3e6e0be43d81422c",
-      "bytes": 672480,
+      "url": "dragon.glb?v=64e94046977059a8d38f8f6f6ae91c9c60fedc9d45d16fbe46c458c6e4bfb60b",
+      "sha256": "64e94046977059a8d38f8f6f6ae91c9c60fedc9d45d16fbe46c458c6e4bfb60b",
+      "bytes": 17596,
+      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
+      "height": 1.45,
       "height_m": 1.45,
       "height_status": "provisional_authoring_dimension",
-      "bounds_native_m": [
-        [
-          -0.9569689631462097,
-          -0.44198814034461975,
-          0.0
-        ],
-        [
-          0.9569689631462097,
-          0.5295652747154236,
-          1.4500000476837158
-        ]
-      ],
+      "canonical_height_m": null,
       "forwardAxis": "+Z",
       "upAxis": "+Y",
       "motionRoot": "Combat.MotionRoot",
@@ -390,16 +380,14 @@
       "animations": [
         "Idle"
       ],
-      "native_source": "models/dragon.blend",
-      "thumbnail": "renders/dragon.png",
-      "mesh_count": 14,
       "skins": 0,
-      "width_m": 1.9139379262924194,
-      "depth_m": 0.9715534150600433,
-      "expansionRevision": "R067",
-      "height": 1.45,
-      "canonical_height_m": null,
-      "softAlpha": false
+      "expansionRevision": "R283",
+      "fitVisualBounds": true,
+      "mesh_count": 16,
+      "name": "ドラゴン",
+      "softAlpha": false,
+      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "thumbnail": "assets/collection/dragon.webp"
     },
     "transparent_knight": {
       "id": "transparent_knight",
@@ -2072,6 +2060,133 @@
       "softAlpha": false,
       "bytes": 21994492,
       "sha256": "129c3c84103921a2e49c810ebb2f53c1f2768a32ab5e6eb91ff5330c259aa33a"
+    },
+    "angry_dragon": {
+      "id": "angry_dragon",
+      "url": "angry_dragon.glb?v=1bd251c7ef2d70323957ab89c66cc18524bcdd6772102b5deb1d07616bac6c3c",
+      "sha256": "1bd251c7ef2d70323957ab89c66cc18524bcdd6772102b5deb1d07616bac6c3c",
+      "bytes": 17600,
+      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
+      "height": 1.45,
+      "height_m": 1.45,
+      "height_status": "provisional_authoring_dimension",
+      "canonical_height_m": null,
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "animations": [
+        "Idle"
+      ],
+      "skins": 0,
+      "expansionRevision": "R283",
+      "fitVisualBounds": true,
+      "mesh_count": 16,
+      "name": "怒ドラゴン",
+      "softAlpha": false,
+      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "thumbnail": "assets/collection/angry_dragon.webp",
+      "regionalAura": {
+        "color": 15939632,
+        "palette": [
+          15939632,
+          16740400,
+          15939632,
+          16756817
+        ],
+        "emphasis": true
+      }
+    },
+    "dark_dragon": {
+      "id": "dark_dragon",
+      "url": "dark_dragon.glb?v=427286ea99bf4180d348be5f240509313b756c235bd6bc3292f54d3aa0801c33",
+      "sha256": "427286ea99bf4180d348be5f240509313b756c235bd6bc3292f54d3aa0801c33",
+      "bytes": 17540,
+      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
+      "height": 1.45,
+      "height_m": 1.45,
+      "height_status": "provisional_authoring_dimension",
+      "canonical_height_m": null,
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "animations": [
+        "Idle"
+      ],
+      "skins": 0,
+      "expansionRevision": "R283",
+      "fitVisualBounds": true,
+      "mesh_count": 16,
+      "name": "闇ドラゴン",
+      "softAlpha": false,
+      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "thumbnail": "assets/collection/dark_dragon.webp",
+      "regionalAura": {
+        "color": 2560306,
+        "palette": [
+          2560306,
+          1313568,
+          6828167,
+          3281219
+        ],
+        "emphasis": true
+      }
+    },
+    "celestial_dragon": {
+      "id": "celestial_dragon",
+      "url": "celestial_dragon.glb?v=62e100afc81fe2743111314ddc3199fc18745dff8a94bd8efc27a83083816530",
+      "sha256": "62e100afc81fe2743111314ddc3199fc18745dff8a94bd8efc27a83083816530",
+      "bytes": 17484,
+      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
+      "height": 1.45,
+      "height_m": 1.45,
+      "height_status": "provisional_authoring_dimension",
+      "canonical_height_m": null,
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "animations": [
+        "Idle"
+      ],
+      "skins": 0,
+      "expansionRevision": "R283",
+      "fitVisualBounds": true,
+      "mesh_count": 16,
+      "name": "聖天ドラゴン",
+      "softAlpha": false,
+      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "thumbnail": "assets/collection/celestial_dragon.webp",
+      "regionalAura": {
+        "color": 16774064,
+        "palette": [
+          16774064,
+          16776169,
+          16774064,
+          16759250,
+          10147327,
+          12821247,
+          11924949,
+          16775380
+        ],
+        "emphasis": true
+      }
     }
   },
   "commonMotion": {
