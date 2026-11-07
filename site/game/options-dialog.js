@@ -53,6 +53,7 @@ titles['confirm-patrol-return']='パトロールを中断しますか？';
 titles['confirm-training']='訓練を開始';
 titles['ios-editions']='iOS版のご案内';titles.techniques='技';
 titles['growth-guide']='効率的成長の手引き';
+titles['journal-detail']='珍生物の詳細';
 for(const [kind,label]of Object.entries(COLLECTION_KINDS))titles['collection-'+kind]=label;
 const hasRoute=id=>Object.prototype.hasOwnProperty.call(titles,id);
 
@@ -76,7 +77,7 @@ export class OptionsDialog {
    const selected=event.target.closest('[data-collection-select]');
    if(selected){this.selectedCollection[selected.dataset.kind]=selected.dataset.collectionSelect;this.renderCollectionCategory(selected.dataset.kind);this.body.querySelector('[data-collection-select="'+CSS.escape(selected.dataset.collectionSelect)+'"]')?.focus({preventScroll:true});return;}
    const recorded=event.target.closest('[data-journal-select]');
-   if(recorded){this.selectedJournal=recorded.dataset.journalSelect;this.renderJournal();this.body.querySelector('[data-journal-select="'+CSS.escape(this.selectedJournal)+'"]')?.focus({preventScroll:true});return;}
+   if(recorded){const scrollTop=this.body.scrollTop;this.selectedJournal=recorded.dataset.journalSelect;this.navigate('journal-detail');Object.assign(this.history.at(-1),{journalSelection:this.selectedJournal,scrollTop});return;}
    const equip=event.target.closest('[data-collection-equip]');
    if(equip){
     const snapshot=this.readGame(),kind=equip.dataset.kind,id=equip.dataset.collectionEquip||null;
@@ -126,11 +127,11 @@ export class OptionsDialog {
  }
  open(route='main',opener=this.trigger){if(isModalBlocked())return false;if(!hasRoute(route))throw new RangeError('表示先が正しくありません。');this.opener?.setAttribute('aria-expanded','false');this.opener=opener?.focus?opener:this.trigger;this.history=[];this.render(route);if(!tryOpenModal(this.dialog))return false;this.opener.setAttribute('aria-expanded','true');return true;}
  navigate(id){if(!hasRoute(id))return;this.history.push({id:this.route,focus:id});this.render(id);this.title.focus();}
- goBack(){const last=this.history.pop();if(!last)return;this.render(last.id);this.body.querySelector(last.trainingTier?'[data-training-select="'+last.trainingTier+'"]':'[data-panel="'+last.focus+'"]')?.focus();}
+ goBack(){const last=this.history.pop();if(!last)return;this.render(last.id);if(last.journalSelection){this.body.querySelector('[data-journal-select="'+CSS.escape(last.journalSelection)+'"]')?.focus({preventScroll:true});this.body.scrollTop=last.scrollTop;return;}this.body.querySelector(last.trainingTier?'[data-training-select="'+last.trainingTier+'"]':'[data-panel="'+last.focus+'"]')?.focus();}
  openTrainingConfirmation(tier,opener){if(isModalBlocked()||!Object.hasOwn(TRAINING_COURSES,tier)||!this.canRequestTraining(this.readGame(),tier))return false;this.selectedTrainingTier=tier;const opened=this.open('confirm-training',opener);if(opened)this.body.querySelector('[data-training-cancel]')?.focus();return opened;}
  trainingCourseChoices(){const snapshot=this.readGame(),shortLabels={easy:'易',medium:'中',hard:'難',master:'マスター',infinity:'∞'};return Object.values(TRAINING_COURSES).map(course=>{const possible=Boolean(snapshot?.player&&eligibleTrainingCreatures(snapshot.player,course.id).length),available=this.canRequestTraining(snapshot,course.id);return {id:course.id,label:course.label,shortLabel:shortLabels[course.id],available,reason:available?'':!possible?'現在の条件に合う珍生物がいません。':snapshot?.calmPoints<1?'穏やかポイントが足りません。':'今は訓練を開始できません。'};});}
  refreshGameView(){
-  if(!this.dialog.open||!['maps','trainings','confirm-training','membership','collection','journal','techniques',...Object.keys(COLLECTION_KINDS).map(k=>'collection-'+k)].includes(this.route)){this.liveStateKey=null;return;}
+  if(!this.dialog.open||!['maps','trainings','confirm-training','membership','collection','journal','journal-detail','techniques',...Object.keys(COLLECTION_KINDS).map(k=>'collection-'+k)].includes(this.route)){this.liveStateKey=null;return;}
   const state=this.readGame(),key=JSON.stringify([this.route,state?.location,state?.scene,state?.homeCommands,state?.pendingAngerEvent,state?.player,state?.patrolCount,state?.angerEvents,this.game.querySelector('#rankValue')?.textContent]);
   if(key===this.liveStateKey)return;this.liveStateKey=key;
   const scroll=this.body.scrollTop,active=document.activeElement,data=this.body.contains(active)&&active?.dataset&&Object.keys(active.dataset).length?{...active.dataset}:null;this.render(this.route);this.body.scrollTop=scroll;
@@ -174,6 +175,8 @@ export class OptionsDialog {
    this.body.innerHTML='<section class="patrol-return-confirm"><h3>'+escapeHtml(course?.label||'訓練')+'</h3><p>自動で選ばれた珍生物を招待して、この難易度で訓練を始めますか？</p><p class="option-note">Lv.'+range+' · 穏やかポイントを1消費します。</p>'+(enabled?'':'<p class="option-note" role="status">'+escapeHtml(choice?.reason||'今は訓練を開始できません。')+'</p>')+'<div><button class="option-action" type="button" data-training-cancel>やめる</button><button class="option-action" type="button" data-map="training" data-training-tier="'+escapeHtml(course?.id||'')+'"'+(enabled?'':' disabled')+'>訓練を開始</button></div></section>';
   }else if(id==='journal'){
    this.renderJournal();
+  }else if(id==='journal-detail'){
+   this.renderJournalDetail();
   }else if(id==='catalog'){
    this.body.innerHTML=empty('bag','通販サービスはiOS版で解放されます。','Web版では会員証の活動記録を確認できます。通販などのヒーロー会サービスはiOSのLite版・フル版で解放されます。');
   }else if(id==='membership'){
@@ -227,15 +230,21 @@ export class OptionsDialog {
   this.body.innerHTML='<p class="option-section-intro">これまでの活動を記録しています。Web版では記録の確認ができ、ヒーロー会のサービスはiOS版で解放されます。</p><section class="membership-card"><span class="membership-card__overline">珍生物ヒーロー会 · 活動記録</span><div class="membership-card__name">おこていゆ</div><div class="membership-card__rank"><span>HERO RANK</span><strong>'+escapeHtml(rank)+'</strong></div></section><dl class="option-data">'+rows.map(([label,value])=>'<div><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(value)+'</dd></div>').join('')+'</dl>';
  }
  renderTechniques(){const pickerState=this.superPrefixPicker.snapshot(),snapshot=this.readGame();this.body.innerHTML=techniquePageMarkup(this.collectionPlayer(),{slot:this.activeTechniqueSlot,selected:this.selectedTechnique,canEdit:snapshot?.location==='home'&&!snapshot.pendingAngerEvent&&!snapshot.storyActive,attackMultiplier:snapshot?.battle?.super?.active?snapshot.battle.super.multiplier:1});this.superPrefixPicker.restore(pickerState);}
+ journalEntries(){
+  const journal=this.collectionPlayer().journal||{};return Object.entries(CREATURES).filter(([id,creature])=>id==='okoteiyu'||Object.hasOwn(CREATURE_CATEGORIES,creature.category)&&hasJournalRecord(journal[id])).map(([id,creature])=>({...journal[id],id,name:creature.name,creature,self:id==='okoteiyu'}));
+ }
  renderJournal(){
-  const player=this.collectionPlayer(),journal=player.journal||{},entries=Object.entries(CREATURES).filter(([id,creature])=>id==='okoteiyu'||Object.hasOwn(CREATURE_CATEGORIES,creature.category)&&hasJournalRecord(journal[id])).map(([id,creature])=>({...journal[id],id,name:creature.name,creature,self:id==='okoteiyu'}));
+  this.body.innerHTML='<div class="collection-tiles journal-grid" aria-label="珍生物の一覧">'+this.journalEntries().map(entry=>'<button class="collection-tile" type="button" data-journal-select="'+entry.id+'" aria-label="'+escapeHtml(entry.name+'の詳細を見る')+'">'+this.thumbnail('creature',entry.id,entry.name)+'<span class="collection-tile__name">'+escapeHtml(entry.name)+'</span></button>').join('')+'</div>';
+ }
+ renderJournalDetail(){
+  const player=this.collectionPlayer(),entries=this.journalEntries();
   if(!entries.some(e=>e.id===this.selectedJournal))this.selectedJournal=entries[0].id;const selected=entries.find(e=>e.id===this.selectedJournal);
   const facts=selected.self?[['レベル',player.level],...Object.entries(player.stats||{}).map(([key,value])=>[({hp:'HP',attack:'攻撃力',ki:'気',speed:'速さ'})[key],value])]:[['固有レベル帯','Lv.'+selected.creature.levelBand.min+(selected.creature.levelBand.min===selected.creature.levelBand.max?'のみ':'〜'+selected.creature.levelBand.max)],['出現エリア',selected.creature.campOnly?(selected.creature.campLocationLabel||'未開の地（キャンプ）'):selected.creature.spawnRegions.map(id=>REGION_LABELS[id]).join('・')],['出現時間帯',(selected.creature.spawnTimes||['day','night']).map(id=>TIME_LABELS[id]).join('・')],['遭遇',count(selected.encounters)+'回'],['撃退',count(selected.defeats)+'回']];
   if(!selected.self&&selected.creature.campHabitats!==undefined){
    facts[1]=['出現エリア（パトロール）',selected.creature.spawnRegions.map(id=>REGION_LABELS[id]).join('・')||'なし'];
    facts.splice(2,0,['キャンプ出現場所',campHabitatDescription(selected.creature)]);
   }
-  this.body.innerHTML='<p class="option-section-intro">この記録帳の珍生物の名前は、おこていゆがつけています。</p><div class="collection-browser journal-browser"><div class="collection-tiles" aria-label="珍生物の一覧">'+entries.map(entry=>'<button class="collection-tile" type="button" data-journal-select="'+entry.id+'" aria-pressed="'+String(entry.id===selected.id)+'">'+this.thumbnail('creature',entry.id,entry.name)+'<span class="collection-tile__name">'+escapeHtml(entry.name)+'</span></button>').join('')+'</div><section class="collection-detail" aria-label="選択した珍生物の詳細">'+this.thumbnail('creature',selected.id,selected.name,'collection-detail__photo')+'<div class="collection-detail__copy"><span class="option-tag">'+escapeHtml(selected.self?'自分自身':CREATURE_CATEGORIES[selected.creature.category]?.label||'')+'</span><h3>'+escapeHtml(selected.name)+'</h3><p>'+escapeHtml(CREATURE_NOTES[selected.id]||'')+'</p><p class="option-note">'+escapeHtml((selected.creature.additionalEffectsStatus==='unknown'?'追加効果：不明':additionalEffectsText(selected.creature.additionalEffects)))+'</p><dl class="collection-facts"><div><dt>'+(selected.creature.heightMeasurement==='withers'?'体高（肩まで）':'身長')+'</dt><dd>'+(Number.isFinite(selected.creature.height)?Number((selected.creature.height*100).toFixed(1))+'cm':'未設定')+'</dd></div>'+facts.map(([name,value])=>'<div><dt>'+name+'</dt><dd>'+escapeHtml(value)+'</dd></div>').join('')+'</dl>'+repertoireMarkup(selected.self?availableTechniqueIds(player):selected.creature.techniques,{player:selected.self?player:null,enemyLevel:selected.lastLevel||1})+(selected.self?superDetailsMarkup(player):'')+'</div></section></div>';
+  this.body.innerHTML='<section class="collection-detail journal-detail" aria-label="選択した珍生物の詳細">'+this.thumbnail('creature',selected.id,selected.name,'collection-detail__photo')+'<div class="collection-detail__copy"><span class="option-tag">'+escapeHtml(selected.self?'自分自身':CREATURE_CATEGORIES[selected.creature.category]?.label||'')+'</span><h3>'+escapeHtml(selected.name)+'</h3><p>'+escapeHtml(CREATURE_NOTES[selected.id]||'')+'</p><p class="option-note">'+escapeHtml((selected.creature.additionalEffectsStatus==='unknown'?'追加効果：不明':additionalEffectsText(selected.creature.additionalEffects)))+'</p><dl class="collection-facts"><div><dt>'+(selected.creature.heightMeasurement==='withers'?'体高（肩まで）':'身長')+'</dt><dd>'+(Number.isFinite(selected.creature.height)?Number((selected.creature.height*100).toFixed(1))+'cm':'未設定')+'</dd></div>'+facts.map(([name,value])=>'<div><dt>'+name+'</dt><dd>'+escapeHtml(value)+'</dd></div>').join('')+'</dl>'+repertoireMarkup(selected.self?availableTechniqueIds(player):selected.creature.techniques,{player:selected.self?player:null,enemyLevel:selected.lastLevel||1})+(selected.self?superDetailsMarkup(player):'')+'</div></section>';
  }
  renderIosGuide(){
   const tab=this.editionTab||'ios',tabs='<nav class="edition-tabs" role="tablist" aria-label="配信版のご案内">'+[['ios','iOS版'],['web','Web版の注意事項']].map(([id,label])=>'<button type="button" role="tab" id="edition-tab-'+id+'" aria-controls="editionPanel" aria-selected="'+String(tab===id)+'" data-guide-tab="'+id+'">'+label+'</button>').join('')+'</nav>';
