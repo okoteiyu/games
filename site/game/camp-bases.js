@@ -20,7 +20,7 @@ export function normalizeCampBaseProgress(value={}){
  const bases=Array.from(source).map(base=>{
   if(!plain(base)||!validId(base.id)||ids.has(base.id))throw new TypeError('キャンプ拠点の識別子が正しくありません。');
   const node=getCampNode(base.nodeId);
-  if(!node||nodes.has(node.id)||node.terrain!=='normal'||getCampDestinationAt(node.id))throw new TypeError('キャンプ拠点の場所が正しくありません。');
+  if(!node||nodes.has(node.id)||getCampDestinationAt(node.id))throw new TypeError('キャンプ拠点の場所が正しくありません。');
   if(base.id!=='base-'+node.id)throw new TypeError('キャンプ拠点の識別子と場所が一致しません。');
   if(typeof base.name!=='string'||!base.name.trim()||base.name.length>64||/[\u0000-\u001f\u007f]/.test(base.name))throw new TypeError('キャンプ拠点の名前が正しくありません。');
   if(!Number.isInteger(base.hutCount)||base.hutCount<5||base.hutCount>10||!Number.isInteger(base.rookieCount)||base.rookieCount<3||base.rookieCount>5||!Number.isSafeInteger(base.layoutSeed)||base.layoutSeed<0||base.layoutSeed>0xffffffff)throw new TypeError('キャンプ拠点の配置が正しくありません。');
@@ -59,7 +59,6 @@ export function campBaseEstablishmentIssue(progress,nodeId){
  if(!node)return 'unknown-vertex';
  if(node.id===CAMP_FOUNDATION_BASE.nodeId||state.bases.some(base=>base.nodeId===node.id))return 'base-exists';
  if(getCampDestinationAt(node.id))return 'registered-point';
- if(node.terrain!=='normal')return 'not-normal-terrain';
  if(state.bases.length>=CAMP_BASE_LIMIT)return 'base-limit';
  return null;
 }

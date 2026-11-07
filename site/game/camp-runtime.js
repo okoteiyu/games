@@ -221,7 +221,7 @@ export class CampRuntime{
   try{
    const finalBattle=g.session.state.battle,canOfferBase=finalBattle?.kind==='camp-final'&&finalBattle.phase==='ended'&&finalBattle.result==='win'&&g.canReturnHomeAfterBattle();
    if(canOfferBase&&canEstablishCampBase(g.session.state.camp,nodeId)){
-    const approved=await this.baseActions.open({title:'ここにキャンプ拠点を設営しますか？',text:'探索を終えた、この通常エリアに拠点を作れます。\n次のキャンプは、この場所から出発できるようになります。'});
+    const approved=await this.baseActions.open({title:'ここにキャンプ拠点を設営しますか？',text:'探索を終えた、この場所に拠点を作れます。\n次のキャンプは、この場所から出発できるようになります。'});
     if(approved===null)return false;if(!this.active||serial!==this.serial)return false;
     if(approved){const result=g.session.establishCampBase({nodeId,startBaseId});if(!result?.ok){g.toast('この場所には拠点を設営できませんでした。地図を確認してください。');return false;}}
    }
