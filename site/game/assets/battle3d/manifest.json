@@ -360,33 +360,31 @@
     },
     "dragon": {
       "id": "dragon",
-      "url": "dragon.glb?v=64e94046977059a8d38f8f6f6ae91c9c60fedc9d45d16fbe46c458c6e4bfb60b",
-      "sha256": "64e94046977059a8d38f8f6f6ae91c9c60fedc9d45d16fbe46c458c6e4bfb60b",
-      "bytes": 17596,
-      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
-      "height": 1.45,
-      "height_m": 1.45,
-      "height_status": "provisional_authoring_dimension",
-      "canonical_height_m": null,
+      "url": "dragon.glb?v=a13d4605acdfcf09818fe6120e632cb393118df329619e874e2def2231df3964",
+      "sha256": "a13d4605acdfcf09818fe6120e632cb393118df329619e874e2def2231df3964",
+      "bytes": 48604,
+      "height": 2.5,
+      "height_m": 2.5,
+      "heightMeasurement": "withers",
+      "canonical_height_m": 2.5,
       "forwardAxis": "+Z",
-      "upAxis": "+Y",
       "motionRoot": "Combat.MotionRoot",
       "clips": {
-        "idle": "Idle"
+        "idle": "Idle",
+        "walk": "Walk"
       },
       "clipDurations": {
-        "Idle": 1.5
+        "Idle": 1.5,
+        "Walk": 1.6
       },
-      "animations": [
-        "Idle"
-      ],
-      "skins": 0,
-      "expansionRevision": "R283",
+      "expansionRevision": "R285",
       "fitVisualBounds": true,
-      "mesh_count": 16,
+      "rayOriginNode": "Combat.RayOrigin",
+      "attackOriginNode": "Combat.RayOrigin",
+      "sharedBuffer": "shared_dragon_regions.bin?v=d7f37a55b7ce895fe15b6057bb44034b549cc21b1930f04dd8308083874307c9",
       "name": "ドラゴン",
       "softAlpha": false,
-      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "native_source": "rare_creatures/quadruped_dragon/models/quadruped_dragon.blend",
       "thumbnail": "assets/collection/dragon.webp"
     },
     "transparent_knight": {
@@ -2063,33 +2061,31 @@
     },
     "angry_dragon": {
       "id": "angry_dragon",
-      "url": "angry_dragon.glb?v=1bd251c7ef2d70323957ab89c66cc18524bcdd6772102b5deb1d07616bac6c3c",
-      "sha256": "1bd251c7ef2d70323957ab89c66cc18524bcdd6772102b5deb1d07616bac6c3c",
-      "bytes": 17600,
-      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
-      "height": 1.45,
-      "height_m": 1.45,
-      "height_status": "provisional_authoring_dimension",
-      "canonical_height_m": null,
+      "url": "angry_dragon.glb?v=5f10474564434ac7221435122b43324f355b8f892314f71818a7583a2fa59277",
+      "sha256": "5f10474564434ac7221435122b43324f355b8f892314f71818a7583a2fa59277",
+      "bytes": 48548,
+      "height": 2.5,
+      "height_m": 2.5,
+      "heightMeasurement": "withers",
+      "canonical_height_m": 2.5,
       "forwardAxis": "+Z",
-      "upAxis": "+Y",
       "motionRoot": "Combat.MotionRoot",
       "clips": {
-        "idle": "Idle"
+        "idle": "Idle",
+        "walk": "Walk"
       },
       "clipDurations": {
-        "Idle": 1.5
+        "Idle": 1.5,
+        "Walk": 1.6
       },
-      "animations": [
-        "Idle"
-      ],
-      "skins": 0,
-      "expansionRevision": "R283",
+      "expansionRevision": "R285",
       "fitVisualBounds": true,
-      "mesh_count": 16,
+      "rayOriginNode": "Combat.RayOrigin",
+      "attackOriginNode": "Combat.RayOrigin",
+      "sharedBuffer": "shared_dragon_regions.bin?v=d7f37a55b7ce895fe15b6057bb44034b549cc21b1930f04dd8308083874307c9",
       "name": "怒ドラゴン",
       "softAlpha": false,
-      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "native_source": "rare_creatures/quadruped_dragon/models/quadruped_dragon.blend",
       "thumbnail": "assets/collection/angry_dragon.webp",
       "regionalAura": {
         "color": 15939632,
@@ -2104,33 +2100,31 @@
     },
     "dark_dragon": {
       "id": "dark_dragon",
-      "url": "dark_dragon.glb?v=427286ea99bf4180d348be5f240509313b756c235bd6bc3292f54d3aa0801c33",
-      "sha256": "427286ea99bf4180d348be5f240509313b756c235bd6bc3292f54d3aa0801c33",
-      "bytes": 17540,
-      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
-      "height": 1.45,
-      "height_m": 1.45,
-      "height_status": "provisional_authoring_dimension",
-      "canonical_height_m": null,
+      "url": "dark_dragon.glb?v=79029ff58ae46f6b1f42e52a9c56aabfb1273eb80833208c83b03e9cc66e5e20",
+      "sha256": "79029ff58ae46f6b1f42e52a9c56aabfb1273eb80833208c83b03e9cc66e5e20",
+      "bytes": 48532,
+      "height": 2.5,
+      "height_m": 2.5,
+      "heightMeasurement": "withers",
+      "canonical_height_m": 2.5,
       "forwardAxis": "+Z",
-      "upAxis": "+Y",
       "motionRoot": "Combat.MotionRoot",
       "clips": {
-        "idle": "Idle"
+        "idle": "Idle",
+        "walk": "Walk"
       },
       "clipDurations": {
-        "Idle": 1.5
+        "Idle": 1.5,
+        "Walk": 1.6
       },
-      "animations": [
-        "Idle"
-      ],
-      "skins": 0,
-      "expansionRevision": "R283",
+      "expansionRevision": "R285",
       "fitVisualBounds": true,
-      "mesh_count": 16,
+      "rayOriginNode": "Combat.RayOrigin",
+      "attackOriginNode": "Combat.RayOrigin",
+      "sharedBuffer": "shared_dragon_regions.bin?v=d7f37a55b7ce895fe15b6057bb44034b549cc21b1930f04dd8308083874307c9",
       "name": "闇ドラゴン",
       "softAlpha": false,
-      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "native_source": "rare_creatures/quadruped_dragon/models/quadruped_dragon.blend",
       "thumbnail": "assets/collection/dark_dragon.webp",
       "regionalAura": {
         "color": 2560306,
@@ -2145,33 +2139,31 @@
     },
     "celestial_dragon": {
       "id": "celestial_dragon",
-      "url": "celestial_dragon.glb?v=62e100afc81fe2743111314ddc3199fc18745dff8a94bd8efc27a83083816530",
-      "sha256": "62e100afc81fe2743111314ddc3199fc18745dff8a94bd8efc27a83083816530",
-      "bytes": 17484,
-      "sharedBuffer": "shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
-      "height": 1.45,
-      "height_m": 1.45,
-      "height_status": "provisional_authoring_dimension",
-      "canonical_height_m": null,
+      "url": "celestial_dragon.glb?v=524556d0a2417ea7edab6e50f6f5645ee218590dbcda5bcb996829ea3fc9d098",
+      "sha256": "524556d0a2417ea7edab6e50f6f5645ee218590dbcda5bcb996829ea3fc9d098",
+      "bytes": 48440,
+      "height": 2.5,
+      "height_m": 2.5,
+      "heightMeasurement": "withers",
+      "canonical_height_m": 2.5,
       "forwardAxis": "+Z",
-      "upAxis": "+Y",
       "motionRoot": "Combat.MotionRoot",
       "clips": {
-        "idle": "Idle"
+        "idle": "Idle",
+        "walk": "Walk"
       },
       "clipDurations": {
-        "Idle": 1.5
+        "Idle": 1.5,
+        "Walk": 1.6
       },
-      "animations": [
-        "Idle"
-      ],
-      "skins": 0,
-      "expansionRevision": "R283",
+      "expansionRevision": "R285",
       "fitVisualBounds": true,
-      "mesh_count": 16,
+      "rayOriginNode": "Combat.RayOrigin",
+      "attackOriginNode": "Combat.RayOrigin",
+      "sharedBuffer": "shared_dragon_regions.bin?v=d7f37a55b7ce895fe15b6057bb44034b549cc21b1930f04dd8308083874307c9",
       "name": "聖天ドラゴン",
       "softAlpha": false,
-      "native_source": "rare_creatures/red_dragon_refinement/models/dragon.blend",
+      "native_source": "rare_creatures/quadruped_dragon/models/quadruped_dragon.blend",
       "thumbnail": "assets/collection/celestial_dragon.webp",
       "regionalAura": {
         "color": 16774064,

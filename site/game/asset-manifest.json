@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
   "fileCount": 251,
-  "totalBytes": 272240161,
+  "totalBytes": 280035719,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -77,12 +77,12 @@
       "sha256": "e359bf0c25c5c10808d137eaed42a71e76db39f82b3fd49114f161c1074e410a"
     },
     {
-      "url": "assets/collection/aura-dragon.webp?v=479ef4f64390571832b94cf45cd3c972762fbf8a128b8e55503d605de70de300",
+      "url": "assets/collection/aura-dragon.webp?v=f97607f2b97856603da08cd2a4cb599eaf7ed8f14e373c29d02d0ffe435c17bf",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 8468,
+      "bytes": 7832,
       "priority": 3,
-      "sha256": "479ef4f64390571832b94cf45cd3c972762fbf8a128b8e55503d605de70de300"
+      "sha256": "f97607f2b97856603da08cd2a4cb599eaf7ed8f14e373c29d02d0ffe435c17bf"
     },
     {
       "url": "assets/collection/aura-fae_dragon.webp?v=5d1874a6a02e01326a93f6e262796e35292c19b134ef5ee1994146b8b380cad4",
@@ -181,12 +181,12 @@
       "sha256": "37f34b10f2cf28ac3cd7c7612078e48e90eb9faf81547b2a22241f598f747d9d"
     },
     {
-      "url": "assets/collection/dragon.webp?v=5d9cea437148ad01a0e371eed388b1632e42fcb6dc46adb6821a3c36c15589e0",
+      "url": "assets/collection/dragon.webp?v=0966700e74f7ec171353a2e403e510f4488707130da23201e9dca1ec0893339a",
       "label": "コレクション・記録帳の写真",
       "type": "image",
-      "bytes": 13160,
+      "bytes": 18682,
       "priority": 3,
-      "sha256": "5d9cea437148ad01a0e371eed388b1632e42fcb6dc46adb6821a3c36c15589e0"
+      "sha256": "0966700e74f7ec171353a2e403e510f4488707130da23201e9dca1ec0893339a"
     },
     {
       "url": "assets/collection/fae_dragon.webp?v=ae2177631812c3da71396f68a598a9289a62c5a3f3b7004d742169891b5cd8d4",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=55bea80e1e20804b2df6763eb9c17d0f4b771204a57717836949ab09d444c03a",
+      "url": "assets/battle3d/manifest.json?v=593347ed4cc7415966e2cb1f16d9ce86b7162033cef14c823aeac085ed68e163",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 64659,
+      "bytes": 64683,
       "priority": 2,
-      "sha256": "55bea80e1e20804b2df6763eb9c17d0f4b771204a57717836949ab09d444c03a"
+      "sha256": "593347ed4cc7415966e2cb1f16d9ce86b7162033cef14c823aeac085ed68e163"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -541,12 +541,12 @@
       "sha256": "f47315b95610693192608dfd2a6bf080ecd3eacae991437f783726a292511459"
     },
     {
-      "url": "assets/battle3d/dragon.glb?v=64e94046977059a8d38f8f6f6ae91c9c60fedc9d45d16fbe46c458c6e4bfb60b",
+      "url": "assets/battle3d/dragon.glb?v=a13d4605acdfcf09818fe6120e632cb393118df329619e874e2def2231df3964",
       "label": "ドラゴン",
       "type": "binary",
-      "bytes": 17596,
+      "bytes": 48604,
       "priority": 3,
-      "sha256": "64e94046977059a8d38f8f6f6ae91c9c60fedc9d45d16fbe46c458c6e4bfb60b"
+      "sha256": "a13d4605acdfcf09818fe6120e632cb393118df329619e874e2def2231df3964"
     },
     {
       "url": "assets/battle3d/transparent_knight.glb?v=2c1f35f0fc7b16f8517ea427f76c662445d25cea4995cadd68b5e64439fa1523",
@@ -1909,84 +1909,84 @@
       "sha256": "1e4c1387087ce4a21cda03d8c6dc1d4cbb3387de330608b3c4f16a48a8cb3502"
     },
     {
-      "url": "assets/battle3d/angry_dragon.glb?v=1bd251c7ef2d70323957ab89c66cc18524bcdd6772102b5deb1d07616bac6c3c",
+      "url": "assets/battle3d/angry_dragon.glb?v=5f10474564434ac7221435122b43324f355b8f892314f71818a7583a2fa59277",
       "label": "怒ドラゴン",
       "type": "binary",
       "priority": 3,
-      "sha256": "1bd251c7ef2d70323957ab89c66cc18524bcdd6772102b5deb1d07616bac6c3c",
-      "bytes": 17600
+      "sha256": "5f10474564434ac7221435122b43324f355b8f892314f71818a7583a2fa59277",
+      "bytes": 48548
     },
     {
-      "url": "assets/collection/angry_dragon.webp?v=63de09273c56bb1f1cf2cb077f6e38b518d220d1d2c96be0377149429aecc41a",
+      "url": "assets/collection/angry_dragon.webp?v=24ea46dcb0718aacc5ad8a511ff9d2c9cded36bbc4da7eb0f1a3f43839ea2a28",
       "label": "コレクション・記録帳の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "63de09273c56bb1f1cf2cb077f6e38b518d220d1d2c96be0377149429aecc41a",
-      "bytes": 18610
+      "sha256": "24ea46dcb0718aacc5ad8a511ff9d2c9cded36bbc4da7eb0f1a3f43839ea2a28",
+      "bytes": 20278
     },
     {
-      "url": "assets/collection/aura-angry_dragon.webp?v=671b55a413118181ebfb1d31d22bad65eb1dc2f57092db1f684a83e025012527",
+      "url": "assets/collection/aura-angry_dragon.webp?v=d920d405dbe99b9c62ea02b58572b02f87a5437b17c297a832b2ad17e22e7de0",
       "label": "コレクション・記録帳の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "671b55a413118181ebfb1d31d22bad65eb1dc2f57092db1f684a83e025012527",
-      "bytes": 11448
+      "sha256": "d920d405dbe99b9c62ea02b58572b02f87a5437b17c297a832b2ad17e22e7de0",
+      "bytes": 11014
     },
     {
-      "url": "assets/battle3d/dark_dragon.glb?v=427286ea99bf4180d348be5f240509313b756c235bd6bc3292f54d3aa0801c33",
+      "url": "assets/battle3d/dark_dragon.glb?v=79029ff58ae46f6b1f42e52a9c56aabfb1273eb80833208c83b03e9cc66e5e20",
       "label": "闇ドラゴン",
       "type": "binary",
       "priority": 3,
-      "sha256": "427286ea99bf4180d348be5f240509313b756c235bd6bc3292f54d3aa0801c33",
-      "bytes": 17540
+      "sha256": "79029ff58ae46f6b1f42e52a9c56aabfb1273eb80833208c83b03e9cc66e5e20",
+      "bytes": 48532
     },
     {
-      "url": "assets/collection/dark_dragon.webp?v=082047b4083fc71867a35acf43bfee3927daea2ef34379b202529cbdf255b1d8",
+      "url": "assets/collection/dark_dragon.webp?v=43b4216a78987fd14d8c4beb3e91181f10346065a2f0ca9ccb1c367f859b87f8",
       "label": "コレクション・記録帳の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "082047b4083fc71867a35acf43bfee3927daea2ef34379b202529cbdf255b1d8",
-      "bytes": 16502
+      "sha256": "43b4216a78987fd14d8c4beb3e91181f10346065a2f0ca9ccb1c367f859b87f8",
+      "bytes": 17118
     },
     {
-      "url": "assets/collection/aura-dark_dragon.webp?v=f371912c5203cf6216b6341d02993b8404f27fa71bd1482016397bfa76f6d2e1",
+      "url": "assets/collection/aura-dark_dragon.webp?v=2e584b58376f00ffb3c9a3caafd7862a8bf506b384ff8855d64c5f1bd7dfe5a1",
       "label": "コレクション・記録帳の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "f371912c5203cf6216b6341d02993b8404f27fa71bd1482016397bfa76f6d2e1",
-      "bytes": 10700
+      "sha256": "2e584b58376f00ffb3c9a3caafd7862a8bf506b384ff8855d64c5f1bd7dfe5a1",
+      "bytes": 10166
     },
     {
-      "url": "assets/battle3d/celestial_dragon.glb?v=62e100afc81fe2743111314ddc3199fc18745dff8a94bd8efc27a83083816530",
+      "url": "assets/battle3d/celestial_dragon.glb?v=524556d0a2417ea7edab6e50f6f5645ee218590dbcda5bcb996829ea3fc9d098",
       "label": "聖天ドラゴン",
       "type": "binary",
       "priority": 3,
-      "sha256": "62e100afc81fe2743111314ddc3199fc18745dff8a94bd8efc27a83083816530",
-      "bytes": 17484
+      "sha256": "524556d0a2417ea7edab6e50f6f5645ee218590dbcda5bcb996829ea3fc9d098",
+      "bytes": 48440
     },
     {
-      "url": "assets/collection/celestial_dragon.webp?v=79684aed46c15b851f8eadde1232e727ef8d73257a9b7246bc7e3fd16dab51ba",
+      "url": "assets/collection/celestial_dragon.webp?v=bb3191e77efaa5550570bb628c9431e89c855685fa8309859ccc8a1cb8cd4943",
       "label": "コレクション・記録帳の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "79684aed46c15b851f8eadde1232e727ef8d73257a9b7246bc7e3fd16dab51ba",
-      "bytes": 12408
+      "sha256": "bb3191e77efaa5550570bb628c9431e89c855685fa8309859ccc8a1cb8cd4943",
+      "bytes": 13808
     },
     {
-      "url": "assets/collection/aura-celestial_dragon.webp?v=981e75d8ce90f33738b68213a2ca743de551dd888aa71f0c47cb06cea8a9962e",
+      "url": "assets/collection/aura-celestial_dragon.webp?v=74ad6beefb7022bc25554863b3a13476bc1590785c99bd4edc5837bc9e3b2064",
       "label": "コレクション・記録帳の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "981e75d8ce90f33738b68213a2ca743de551dd888aa71f0c47cb06cea8a9962e",
-      "bytes": 10354
+      "sha256": "74ad6beefb7022bc25554863b3a13476bc1590785c99bd4edc5837bc9e3b2064",
+      "bytes": 10014
     },
     {
-      "url": "assets/battle3d/shared_dragon_regions.bin?v=67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
+      "url": "assets/battle3d/shared_dragon_regions.bin?v=d7f37a55b7ce895fe15b6057bb44034b549cc21b1930f04dd8308083874307c9",
       "label": "ドラゴンの共通モデルデータ",
       "type": "binary",
       "priority": 3,
-      "sha256": "67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
-      "bytes": 1807476
+      "sha256": "d7f37a55b7ce895fe15b6057bb44034b549cc21b1930f04dd8308083874307c9",
+      "bytes": 9471844
     },
     {
       "url": "assets/battle3d/dark_domain_king.glb?v=8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969",

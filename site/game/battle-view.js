@@ -452,7 +452,7 @@ export class BattleView{
   const active=(TECHNIQUES[current?.technique]?.motion||current?.technique)==='energy_ray'&&TECHNIQUES[current?.technique]?.effect!=='okoteiyu_beam';if(!active){if(record.enemyRay)record.enemyRay.group.visible=false;return;}
   const effect=record.enemyRay??=this.makeEnemyRay(record),elapsed=number(current.elapsed,this.time-number(current.startedAt,this.time)),duration=current.duration||.8;
   effect.group.visible=elapsed>=.1&&elapsed<duration;if(!effect.group.visible)return;
-  record.anchor.updateWorldMatrix(true,true);const origin=record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*.78,0));
+  record.anchor.updateWorldMatrix(true,true);const muzzle=record.definition.rayOriginNode?findNode(record.model,record.definition.rayOriginNode):null,origin=muzzle?muzzle.getWorldPosition(new THREE.Vector3()):record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*.78,0));
   const player=this.actors.player;if(!player){effect.group.visible=false;return;}const target=this.supportView?.interceptionPoint(this.snapshot,record.instanceId)||player.anchor.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,player.height*.58,0));
   const direction=target.clone().sub(origin).normalize();origin.addScaledVector(direction,record.height*.1);const length=origin.distanceTo(target)+player.height*.12;
   const from=record.anchor.worldToLocal(origin.clone()),to=record.anchor.worldToLocal(origin.clone().add(direction));effect.group.position.copy(from);effect.group.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),to.sub(from).normalize());
@@ -485,7 +485,7 @@ export class BattleView{
   if(effectKind||record.attackEffects){
    record.attackEffects??=new AttackEffects(record);record.anchor.updateWorldMatrix(true,true);
    const target=role==='player'?this.actors[this.snapshot?.targetId]||this.actors.enemy:this.actors.player;
-   const muzzle=effectKind==='shell'?findNode(record.model,'Vehicle.Muzzle'):effectKind==='okoteiyu_beam'?findNode(record.model,'Ray.Charge'):null,origin=muzzle?muzzle.getWorldPosition(new THREE.Vector3()):record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*(effectKind==='okoteiyu_beam'?.78:.60),0));
+   const muzzle=effectKind==='shell'?findNode(record.model,'Vehicle.Muzzle'):effectKind==='okoteiyu_beam'?findNode(record.model,'Ray.Charge'):effectKind!=='tackle_impact'&&record.definition.attackOriginNode?findNode(record.model,record.definition.attackOriginNode):null,origin=muzzle?muzzle.getWorldPosition(new THREE.Vector3()):record.attackRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,record.height*(effectKind==='okoteiyu_beam'?.78:.60),0));
    if(effectKind==='tackle_impact')origin.add(new THREE.Vector3(0,0,record.forwardExtent??record.height*.55).applyQuaternion(record.facing.getWorldQuaternion(new THREE.Quaternion())));
    const point=(role!=='player'&&this.supportView?.interceptionPoint(this.snapshot,record.instanceId))||target?.anchor.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,target.height*.58,0));
    record.attackEffects.sample(effectKind,current?{...current,elapsed:attackElapsed}:null,origin,point);

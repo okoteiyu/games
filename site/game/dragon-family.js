@@ -3,7 +3,7 @@ const allTerrains=['normal','rough','cliff','gas','cave','poor_visibility'];
 // The original species retains its authored ranks; the fixed R280 roster is
 // adjusted once when the final game catalog is assembled.
 export const DRAGON_BASE={
- id:'dragon',name:'ドラゴン',category:'threat',height:null,
+ id:'dragon',name:'ドラゴン',category:'threat',height:2.5,heightMeasurement:'withers',
  levelBand:{min:30,max:100},spawnRegions:['forest','residential','city'],spawnTimes:['day','night'],
  campHabitats:[{regionId:'wilds',terrainIds:[...allTerrains]}],
  ranks:{hp:10,attack:1,ki:10,speed:5},techniques:['charged_energy_ray'],auraColor:'#ff5545',
