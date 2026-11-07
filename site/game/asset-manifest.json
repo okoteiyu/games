@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 234,
-  "totalBytes": 250779944,
+  "fileCount": 237,
+  "totalBytes": 272809432,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -488,9 +488,9 @@
       "url": "assets/battle3d/manifest.json?v=4c09ca999606e2af82c6583613fed627d0f0b8b6c247e730bd7450531e1fd78c",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 59668,
+      "bytes": 59460,
       "priority": 2,
-      "sha256": "4c09ca999606e2af82c6583613fed627d0f0b8b6c247e730bd7450531e1fd78c"
+      "sha256": "773ca7887bac2e1efcf92da9c8dd0db2d5a45b3d996cab631dafd2df8cdf345f"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1875,6 +1875,30 @@
       "priority": 3,
       "sha256": "fd9ef35b982760660c420aa65ba4075dd6da61acdd32450e78fc6596b1ba64d1",
       "bytes": 11620
+    },
+    {
+      "url": "assets/battle3d/great_beast_lord.glb",
+      "label": "大獣主",
+      "type": "binary",
+      "priority": 2,
+      "sha256": "129c3c84103921a2e49c810ebb2f53c1f2768a32ab5e6eb91ff5330c259aa33a",
+      "bytes": 21994492
+    },
+    {
+      "url": "assets/collection/great_beast_lord.webp",
+      "label": "大獣主の写真",
+      "type": "image",
+      "priority": 3,
+      "sha256": "a4cc08755d28bb7ee6e0ba752989b4660af86ab78e9232e667d175da5706e50a",
+      "bytes": 22822
+    },
+    {
+      "url": "assets/collection/aura-great_beast_lord.webp",
+      "label": "大獣主のオーラをまとったおこていゆ",
+      "type": "image",
+      "priority": 3,
+      "sha256": "b809c4d4ac1967ec601fdbf06dda60cb779f4250459f3be5ad40f066374e51b9",
+      "bytes": 12382
     }
   ]
 }

@@ -1322,30 +1322,6 @@
       "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
       "sharedModelId": "mystery_unique"
     },
-    "mystery_090": {
-      "id": "mystery_090",
-      "name": "???-90",
-      "url": "mystery_unique.glb",
-      "height": 1,
-      "height_m": 1,
-      "canonical_height_m": 1,
-      "height_status": "confirmed",
-      "forwardAxis": "+Z",
-      "motionRoot": "Combat.MotionRoot",
-      "clips": {
-        "idle": "Idle"
-      },
-      "clipDurations": {
-        "Idle": 1.5
-      },
-      "expansionRevision": "R238",
-      "softAlpha": true,
-      "fitVisualBounds": true,
-      "bytes": 191108,
-      "sha256": "6435f4f29874f910d83319f595d627eca350e7a42d70e752137e53e1eefc6cb8",
-      "idle_description": "The question mark gently floats and turns while its dark-purple vapor slowly breathes in a1.5second seamless loop.",
-      "sharedModelId": "mystery_unique"
-    },
     "mystery_095": {
       "id": "mystery_095",
       "name": "???-95",
@@ -2072,6 +2048,27 @@
       "softAlpha": false,
       "sha256": "cc63054bf5739bda848ad9dda055abd4e5aa9b3c98c7fbeefd1465e06d3d6c7f",
       "bytes": 23070228
+    },
+    "great_beast_lord": {
+      "id": "great_beast_lord",
+      "name": "大獣主",
+      "url": "great_beast_lord.glb",
+      "height": 3.0,
+      "height_m": 3.0,
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R279",
+      "fitVisualBounds": true,
+      "softAlpha": false,
+      "bytes": 21994492,
+      "sha256": "129c3c84103921a2e49c810ebb2f53c1f2768a32ab5e6eb91ff5330c259aa33a"
     }
   },
   "commonMotion": {

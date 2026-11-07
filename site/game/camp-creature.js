@@ -1,6 +1,7 @@
+import {CAMP_DANGER_ZONE_LOCATIONS} from './camp-destinations-data.js';
 /** Camp guardians never enter patrol or training pools. Danger-zone
  * guardians are distinct fixed-level individuals sharing one 3D appearance. */
-export const MYSTERY_GUARDIAN_LEVELS=Object.freeze(Array.from({length:18},(_,index)=>15+index*5));
+export const MYSTERY_GUARDIAN_LEVELS=Object.freeze(CAMP_DANGER_ZONE_LOCATIONS.map(({level})=>level));
 const mysteryGuardians=MYSTERY_GUARDIAN_LEVELS.map(level=>{
  const suffix=String(level).padStart(3,'0');
  return Object.freeze({

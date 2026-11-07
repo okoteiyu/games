@@ -1,6 +1,7 @@
 import {REGIONAL_CREATURE_BASES} from './regional-creature-families.js';
 import {MOAI_WARRIOR_BASE} from './moai-warrior-family.js';
 import {ADDED_CREATURES} from './creature-expansion.js';
+import {applyR280RankBalance} from './rank-balance-r280.js';
 import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,opponentAttackParameterMultiplier,opponentKiParameterMultiplier,selectBattleRankBonus,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
@@ -26,7 +27,7 @@ const EPSILON=1e-10;
 const STAT_KEYS=['hp','attack','ki','speed'];
 export const PARAMETER_RANK_LIMITS=Object.freeze({min:0,max:35});
 export const CREATURE_CATEGORIES=Object.freeze({normal:Object.freeze({label:'通常',description:'パトロールなどに登場する、特別ではない珍生物。'}),threat:Object.freeze({label:'脅威',description:'通常カテゴリに比べて戦闘力が高い種族。'}),unique:Object.freeze({label:'ユニーク',description:'その個体しか存在せず、ストーリーやイベントに登場する。レベルなどは固定。'})});
-export const CREATURES=Object.freeze({
+export const CREATURES=applyR280RankBalance({
  okoteiyu:Object.freeze({id:'okoteiyu',techniques:PLAYER_TECHNIQUE_IDS,additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,name:'おこていゆ',height:.45,ranks:Object.freeze({hp:4,attack:6,ki:5,speed:5})}),
  horarara_horaran:Object.freeze({...ENCOUNTER_PROFILES.horarara_horaran,campHabitats:REGIONAL_CREATURE_BASES.horarara_horaran.campHabitats,id:'horarara_horaran',additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,techniques:Object.freeze(['normal_attack','energy_ray']),name:'ホラララホララン',category:'normal',height:.4,ranks:Object.freeze({hp:5,attack:5,ki:5,speed:5})}),
  moai_king:Object.freeze({...ENCOUNTER_PROFILES.moai_king,campHabitats:MOAI_WARRIOR_BASE.campHabitats,id:'moai_king',additionalEffects:NO_ADDITIONAL_EFFECTS,auraAdditionalEffects:NO_ADDITIONAL_EFFECTS,techniques:Object.freeze(['normal_attack','energy_ray']),name:'モアイの戦士',category:'normal',height:2.5,ranks:Object.freeze({hp:14,attack:9,ki:9,speed:2})}),
@@ -58,6 +59,8 @@ export const PROTOTYPE_CHOICES=Object.freeze({
 function finite(value,label){if(typeof value!=='number'||!Number.isFinite(value))throw new TypeError(label+' must be finite.');return value;}
 function integer(value,label,min=0,max=Number.MAX_SAFE_INTEGER){if(!Number.isSafeInteger(value)||value<min||value>max)throw new RangeError(label+' is outside its allowed range.');return value;}
 function checkedCreature(id){if(!Object.hasOwn(CREATURES,id))throw new RangeError('Unknown creature: '+id);return CREATURES[id];}
+const LEGACY_CREATURE_IDS=Object.freeze({mystery_090:'great_beast_lord'});
+function restoredCreatureId(id){return Object.hasOwn(LEGACY_CREATURE_IDS,id)?LEGACY_CREATURE_IDS[id]:id;}
 export function truncateStat(value){finite(value,'stat');if(value<0)throw new RangeError('A stat cannot be negative.');return Math.floor((value+Number.EPSILON*Math.max(1,value)*2)*10)/10;}
 /** Super boosts both offensive parameters, without mutating permanent stats. */
 export function normalizeStat(stat,value){const rounded=truncateStat(value);return stat==='speed'?Math.max(1,rounded):rounded;}
@@ -160,13 +163,17 @@ function restorePlayer(saved){
  syncLevelTechniques(player);
  if(typeof saved.energyRayUnlocked!=='boolean')throw new TypeError('Energy Ray unlock must be boolean.');player.energyRayUnlocked=saved.energyRayUnlocked;player.techniqueSlots=validateTechniqueSlots(saved.techniqueSlots===undefined?defaultTechniqueSlots(player):saved.techniqueSlots,player);player.superConfiguration=saved.superConfiguration??'none';if(!Object.hasOwn(SUPER_CONFIGURATIONS,player.superConfiguration))throw new TypeError('Unknown super configuration.');
  if(!saved.auras||typeof saved.auras!=='object'||Array.isArray(saved.auras))throw new TypeError('Aura collection is required.');
- player.auras={};for(const [id,aura]of Object.entries(saved.auras)){
-  checkedCreature(id);if(!aura||typeof aura!=='object')throw new TypeError('Invalid aura entry.');const copies=integer(aura.copies,'aura copies',1);
+ player.auras={};for(const [savedId,aura]of Object.entries(saved.auras)){
+  const id=restoredCreatureId(savedId);checkedCreature(id);if(!aura||typeof aura!=='object')throw new TypeError('Invalid aura entry.');const copies=integer(aura.copies,'aura copies',1);
   const level=id==='okoteiyu'?1:Math.min(30,1+Math.floor((copies-1)/3)),progress=id==='okoteiyu'||level===30?0:(copies-1)%3;
   if(aura.level!==level||aura.progress!==progress||(id==='okoteiyu'&&copies!==1))throw new RangeError('Aura level does not match its acquired copies.');
-  player.auras[id]={speciesId:id,name:CREATURES[id].name+'のオーラ',copies,level,progress};
+  // The revealed guardian replaces one placeholder, never earns a second reward.
+  // Validate each old/new record first, then merge once into the canonical ID.
+  const total=integer((player.auras[id]?.copies||0)+copies,'aura copies',1),mergedLevel=id==='okoteiyu'?1:Math.min(30,1+Math.floor((total-1)/3)),mergedProgress=id==='okoteiyu'||mergedLevel===30?0:(total-1)%3;
+  player.auras[id]={speciesId:id,name:CREATURES[id].name+'のオーラ',copies:total,level:mergedLevel,progress:mergedProgress};
  }
- if(!Object.hasOwn(player.auras,'okoteiyu')||(saved.equippedAura!==null&&!Object.hasOwn(player.auras,saved.equippedAura)))throw new RangeError('The equipped aura is not owned.');player.equippedAura=saved.equippedAura;
+ const equippedAura=restoredCreatureId(saved.equippedAura);
+ if(!Object.hasOwn(player.auras,'okoteiyu')||(equippedAura!==null&&!Object.hasOwn(player.auras,equippedAura)))throw new RangeError('The equipped aura is not owned.');player.equippedAura=equippedAura;
  if(saved.ownedItems!==undefined){
   const owned=saved.ownedItems;if(!owned||typeof owned!=='object'||!Array.isArray(owned.support)||!Array.isArray(owned.defense)||owned.support.some(id=>!Object.hasOwn(SUPPORT_ITEMS,id))||owned.defense.some(id=>!Object.hasOwn(DEFENSE_ITEMS,id))||new Set(owned.defense).size!==owned.defense.length||new Set(owned.support).size!==owned.support.length)throw new TypeError('Invalid item inventory.');
   player.ownedItems={support:[...owned.support],defense:[...owned.defense]};
@@ -185,13 +192,14 @@ function restorePlayer(saved){
  player.supportLevels=Object.fromEntries(player.ownedItems.support.map(id=>[id,supportLevels!==undefined&&Object.hasOwn(supportLevels,id)?supportLevels[id]:SUPPORT_ITEMS[id].initialLevel]));
  for(const id of ['iron_shield','aura_shield'])if(!player.ownedItems.defense.includes(id))player.ownedItems.defense.push(id);
  if(!saved.journal||typeof saved.journal!=='object'||Array.isArray(saved.journal))throw new TypeError('Journal must be a record.');
- player.journal=initialJournal();for(const [id,entry]of Object.entries(saved.journal)){
-  checkedCreature(id);if(!entry||typeof entry!=='object')throw new TypeError('Invalid journal entry.');
+ player.journal=initialJournal();for(const [savedId,entry]of Object.entries(saved.journal)){
+  const id=restoredCreatureId(savedId);checkedCreature(id);if(!entry||typeof entry!=='object')throw new TypeError('Invalid journal entry.');
   const defeats=integer(entry.defeats,'defeats',0),patrolDefeats=entry.patrolDefeats===undefined?defeats:integer(entry.patrolDefeats,'patrol defeats',0,defeats);
   if(entry.registered!==undefined&&typeof entry.registered!=='boolean')throw new TypeError('Invalid journal registration.');
   const encounters=integer(entry.encounters,'encounters',0),registered=entry.registered===true||encounters>0||INITIAL_JOURNAL_SPECIES.includes(id);
   const lastLevel=entry.lastLevel===null&&registered&&encounters===0?null:integer(entry.lastLevel,'journal level',1,106);
-  player.journal[id]={speciesId:id,name:CREATURES[id].name,registered,encounters,defeats,patrolDefeats,lastLevel};
+  const existing=player.journal[id];
+  player.journal[id]={speciesId:id,name:CREATURES[id].name,registered:registered||Boolean(existing?.registered),encounters:integer((existing?.encounters||0)+encounters,'encounters',0),defeats:integer((existing?.defeats||0)+defeats,'defeats',0),patrolDefeats:integer((existing?.patrolDefeats||0)+patrolDefeats,'patrol defeats',0),lastLevel:savedId===id||!existing?lastLevel:existing.lastLevel};
  }
  Object.assign(player,normalizeSuperConfigurationProgress(saved,player.journal));
  return player;
@@ -514,7 +522,7 @@ export class GameSession{
   if(s.phase==='counter'&&b.time+EPSILON>=s.counterEndsAt){
    const target=this.combatant(s.attackerId);if(!target||target.hp<=0){this.returnSupport('attacker-fatigued');return;}
    if(!s.counterApplied){s.counterApplied=true;
-    const defense={actor:target,allies:b.enemies,actorHeight:CREATURES[target.speciesId].height,attackerHeight:.2};
+    const defense={actor:target,allies:b.enemies,actorHeight:CREATURES[target.speciesId].height,attackerHeight:.2,battleTime:b.time};
     const targetBodyEffects=CREATURES[target.speciesId].additionalEffects,targetAuraEffects=NO_ADDITIONAL_EFFECTS;
     const amount=s.reflectDamage*additionalDamageReceivedMultiplier(targetBodyEffects,defense)*additionalDamageReceivedMultiplier(targetAuraEffects,defense);
     const remaining=Math.max(0,target.hp-amount);target.hp=remaining<EPSILON?0:remaining;if(amount>0)target.receivedDamageCount++;
@@ -541,7 +549,7 @@ export class GameSession{
    const auraEffects=actorId==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
    const opponents=actorId==='player'?b.enemies:[b.player],allies=target.id==='player'?[b.player]:b.enemies;
    const targetBodyEffects=CREATURES[target.speciesId].additionalEffects,targetAuraEffects=target.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS;
-   const actorHeight=CREATURES[actor.speciesId].height,targetHeight=CREATURES[target.speciesId].height,offense={opponents,actorHeight,targetHeight,actor,allies:actorId==='player'?[b.player]:b.enemies,targetSpeciesId:target.speciesId,completedAttacks:b.completedAttacks[actorId]},defense={actor:target,allies,actorHeight:targetHeight,attackerHeight:actorHeight};
+   const actorHeight=CREATURES[actor.speciesId].height,targetHeight=CREATURES[target.speciesId].height,offense={opponents,actorHeight,targetHeight,actor,allies:actorId==='player'?[b.player]:b.enemies,targetSpeciesId:target.speciesId,completedAttacks:b.completedAttacks[actorId]},defense={actor:target,allies,actorHeight:targetHeight,attackerHeight:actorHeight,battleTime:b.time};
    const bodyDamageMultiplier=additionalDamageMultiplier(bodyEffects,offense),auraDamageMultiplier=additionalDamageMultiplier(auraEffects,offense);
    const damageMultiplier=bodyDamageMultiplier*auraDamageMultiplier*additionalDamageReceivedMultiplier(targetBodyEffects,defense)*additionalDamageReceivedMultiplier(targetAuraEffects,defense);
    const nextAttackDamageMultiplier=actor.nextAttackDamageMultiplier;

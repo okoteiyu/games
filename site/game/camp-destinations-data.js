@@ -15,7 +15,6 @@ export const CAMP_DANGER_ZONE_LOCATIONS=Object.freeze([
  Object.freeze({level:75,nodeId:'wild-1751'}),
  Object.freeze({level:80,nodeId:'wild-1779'}),
  Object.freeze({level:85,nodeId:'wild-1969'}),
- Object.freeze({level:90,nodeId:'wild-1991'}),
  Object.freeze({level:95,nodeId:'wild-2142'}),
  Object.freeze({level:100,nodeId:'wild-2129'})
 ]);
@@ -26,4 +25,12 @@ export const CAMP_HOLY_DRAGON_LOCATION=Object.freeze({
  id:'holy_dragon_lair',name:'聖天の棲家',nodeId:'wild-1510',
  guardianSpeciesId:'holy_white_dragon_pegasus',fixedLevel:65,discoverySupplyId:'sacred_scripture',
  description:'神聖な森の下部にある、聖天龍が棲む場所。'
+});
+
+/** The throne replaces the former danger-zone landmark on exactly the same
+ * registered vertex, preserving all geography and actual visit history. */
+export const CAMP_BEAST_LORD_LOCATION=Object.freeze({
+ id:'designated_zone_z_throne',name:'指定区域Z(玉座)',nodeId:'wild-1991',
+ guardianSpeciesId:'great_beast_lord',fixedLevel:80,hideUntilVisited:true,
+ description:'大獣主が待ち構える玉座のある区域。'
 });

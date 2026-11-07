@@ -1,7 +1,7 @@
 import {CAMP_WORLD_POINTS,CAMP_WORLD_CONNECTIONS} from './camp-world-data.js';
 import {CAMP_TERRAIN_IDS,CAMP_NODE_TERRAINS} from './camp-terrain-data.js';
 import {CAMP_REGION_BOUNDS,getCampRegionAt} from './camp-regions.js';
-import {CAMP_DANGER_ZONE_LOCATIONS,CAMP_HOLY_DRAGON_LOCATION} from './camp-destinations-data.js';
+import {CAMP_DANGER_ZONE_LOCATIONS,CAMP_HOLY_DRAGON_LOCATION,CAMP_BEAST_LORD_LOCATION} from './camp-destinations-data.js';
 /** Authored wilderness geometry is stable and never consumes the game's RNG. */
 export const CAMP_TERRAINS=Object.freeze({
  normal:Object.freeze({id:'normal',name:'通常エリア',label:'通常',hours:6,color:'#79ad8a'}),
@@ -23,8 +23,9 @@ function buildWorld(){
  for(let i=0;i<queue.length;i++)for(const nextId of byId.get(queue[i]).neighbors){const next=byId.get(nextId);if(next.depth>=0)continue;next.depth=byId.get(queue[i]).depth+1;queue.push(nextId);}
  Object.assign(byId.get(goalId),{locationId:'moai_village',name:'モアイ郷'});
  Object.assign(byId.get(CAMP_HOLY_DRAGON_LOCATION.nodeId),{locationId:CAMP_HOLY_DRAGON_LOCATION.id,name:CAMP_HOLY_DRAGON_LOCATION.name});
+ Object.assign(byId.get(CAMP_BEAST_LORD_LOCATION.nodeId),{locationId:CAMP_BEAST_LORD_LOCATION.id,name:CAMP_BEAST_LORD_LOCATION.name});
  for(const {level,nodeId}of CAMP_DANGER_ZONE_LOCATIONS){const id='danger_zone_'+String(level).padStart(3,'0');Object.assign(byId.get(nodeId),{locationId:id,name:'危険地帯'+level});}
- return Object.freeze({id:'camp-world-01',schemaVersion:1,revision:'R275',temporary:true,startId,origin:startId,nodes:Object.freeze(nodes.map(node=>Object.freeze({...node,category:node.locationId?'registered':'waypoint',categoryName:node.locationId?'登録地点':'道中地点',neighbors:Object.freeze(node.neighbors)}))),edges:Object.freeze(edges),bounds:CAMP_REGION_BOUNDS,maxDegree:6,patrolAttachment:Object.freeze({x:byId.get(startId).x,y:byId.get(startId).y+330,width:730,height:480,name:'おこていゆハウス周辺',region:'forest'}),moaiVillageId:goalId,moaiVillageBaseHours:80});
+ return Object.freeze({id:'camp-world-01',schemaVersion:1,revision:'R279',temporary:true,startId,origin:startId,nodes:Object.freeze(nodes.map(node=>Object.freeze({...node,category:node.locationId?'registered':'waypoint',categoryName:node.locationId?'登録地点':'道中地点',neighbors:Object.freeze(node.neighbors)}))),edges:Object.freeze(edges),bounds:CAMP_REGION_BOUNDS,maxDegree:6,patrolAttachment:Object.freeze({x:byId.get(startId).x,y:byId.get(startId).y+330,width:730,height:480,name:'おこていゆハウス周辺',region:'forest'}),moaiVillageId:goalId,moaiVillageBaseHours:80});
 }
 export const CAMP_WORLD=buildWorld();
 const nodeIndex=new Map(CAMP_WORLD.nodes.map(node=>[node.id,node]));
@@ -33,6 +34,7 @@ export const CAMP_DESTINATIONS=Object.freeze({
  none:Object.freeze({id:'none',name:'なし',nodeId:null,description:'行けるところまで、未開の地を探索する。'}),
  moai_village:Object.freeze({id:'moai_village',name:'モアイ郷',nodeId:CAMP_WORLD.moaiVillageId,guardianSpeciesId:'fake_moai',baseHours:CAMP_WORLD.moaiVillageBaseHours,description:'モアイたちの気配をたどる、森の奥の集落。'}),
  [CAMP_HOLY_DRAGON_LOCATION.id]:CAMP_HOLY_DRAGON_LOCATION,
+ [CAMP_BEAST_LORD_LOCATION.id]:CAMP_BEAST_LORD_LOCATION,
  ...Object.fromEntries(CAMP_DANGER_ZONE_LOCATIONS.map(({level,nodeId})=>{const suffix=String(level).padStart(3,'0'),id='danger_zone_'+suffix;return [id,Object.freeze({id,name:'危険地帯'+level,nodeId,guardianSpeciesId:'mystery_'+suffix,fixedLevel:level,description:'正体のわからない珍生物の気配が漂う場所。'})];}))
 });
 const destinationIndex=new Map(Object.values(CAMP_DESTINATIONS).filter(destination=>destination.nodeId).map(destination=>[destination.nodeId,destination]));

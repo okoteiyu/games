@@ -1,6 +1,15 @@
 /** Approved visual designs with their confirmed game settings. */
 export const ADOPTED_CREATURE_DEFINITIONS=[
  {
+  id:'great_beast_lord',name:'大獣主',description:'王様気取りの嫌なやつでち。',
+  height:3,category:'unique',campOnly:true,fixedLevel:80,levelBand:{min:80,max:80},spawnRegions:[],spawnTimes:['day','night'],
+  campHabitats:[{destinationId:'designated_zone_z_throne'}],campLocationLabel:'指定区域Z(玉座)',
+  ranks:{hp:32,attack:26,ki:15,speed:25},techniques:['chaos_wave','tackle'],
+  auraColor:'#c83c9b',auraPalette:['#ff3154','#9229e8'],auraEmphasis:true,auraDensity:1.6,auraStrength:1.35,
+  additionalEffects:[{type:'opening_damage_received',duration:10,multiplier:.5,description:'戦闘開始から10秒間、大獣主が受けるダメージを0.5倍にします。'}],
+  auraAdditionalEffects:[{type:'opening_damage_received',duration:10,multiplier:.75,description:'戦闘開始から10秒間、このオーラをまとった珍生物が受けるダメージを0.75倍にします。'}]
+ },
+ {
   id:'holy_white_dragon_pegasus',name:'ホーリーホワイトドラゴンペガサス',description:'聖なる雰囲を感じる強そうな白いドラゴンのペガサス❕',
   height:3.5,category:'unique',campOnly:true,fixedLevel:65,levelBand:{min:65,max:65},spawnRegions:[],spawnTimes:['day','night'],
   campHabitats:[{destinationId:'holy_dragon_lair'}],campLocationLabel:'聖天の棲家',
