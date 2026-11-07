@@ -1501,8 +1501,8 @@
     },
     "angry_moai_warrior": {
       "url": "angry_moai_warrior.glb",
-      "sha256": "f99d62f01f83c203aec8dbfe7861832dfbc76fd8a3d80758c8b2391f5213afe3",
-      "bytes": 10528664,
+      "sha256": "04434f0718c9321a65a3b0cd30ee5fe221e022974bba84f4c71fbb340979d3ca",
+      "bytes": 118924,
       "height": 2.5,
       "height_m": 2.5,
       "forwardAxis": "+Z",
@@ -1550,12 +1550,13 @@
           16756817
         ],
         "emphasis": true
-      }
+      },
+      "sharedBuffer": "shared_moai_regions.bin?v=1e4c1387087ce4a21cda03d8c6dc1d4cbb3387de330608b3c4f16a48a8cb3502"
     },
     "dark_moai_warrior": {
       "url": "dark_moai_warrior.glb",
-      "sha256": "02f3baed4c031d734a2f7f7b8ae313815e31eba6278ffa2566d9695dc9563d36",
-      "bytes": 10528744,
+      "sha256": "0c9f8333c8ccfa5eda81cf6618cf796b717feb56b06f1da49f37db5135bc6743",
+      "bytes": 119004,
       "height": 2.5,
       "height_m": 2.5,
       "forwardAxis": "+Z",
@@ -1603,12 +1604,13 @@
           3281219
         ],
         "emphasis": true
-      }
+      },
+      "sharedBuffer": "shared_moai_regions.bin?v=1e4c1387087ce4a21cda03d8c6dc1d4cbb3387de330608b3c4f16a48a8cb3502"
     },
     "celestial_moai_warrior": {
       "url": "celestial_moai_warrior.glb",
-      "sha256": "677a71e4cd293e16ee9c6461d03b7c3d9e408dfe1f585348fbd365f34d490c83",
-      "bytes": 10530376,
+      "sha256": "05b1ed5b5cc47b2386da47c38d8cb60b8edfb7a93bf5fab37bae682a565eb8c1",
+      "bytes": 120636,
       "height": 2.5,
       "height_m": 2.5,
       "forwardAxis": "+Z",
@@ -1660,7 +1662,8 @@
           16775380
         ],
         "emphasis": true
-      }
+      },
+      "sharedBuffer": "shared_moai_regions.bin?v=1e4c1387087ce4a21cda03d8c6dc1d4cbb3387de330608b3c4f16a48a8cb3502"
     },
     "angry_great_fairy": {
       "id": "angry_great_fairy",
@@ -2095,5 +2098,17 @@
   },
   "existingApprovedSourcesUnchanged": true,
   "prototypeDerivatives": true,
-  "creatureExpansionRevision": "R108"
+  "creatureExpansionRevision": "R108",
+  "sharedBuffers": {
+    "shared_moai_regions.bin": {
+      "url": "shared_moai_regions.bin?v=1e4c1387087ce4a21cda03d8c6dc1d4cbb3387de330608b3c4f16a48a8cb3502",
+      "bytes": 10409832,
+      "sha256": "1e4c1387087ce4a21cda03d8c6dc1d4cbb3387de330608b3c4f16a48a8cb3502",
+      "usedBy": [
+        "angry_moai_warrior",
+        "dark_moai_warrior",
+        "celestial_moai_warrior"
+      ]
+    }
+  }
 }
