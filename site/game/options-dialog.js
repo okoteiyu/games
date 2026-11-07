@@ -7,13 +7,14 @@ import {SuperPrefixPicker} from './super-prefix-picker.js';
 import {techniquePageMarkup,repertoireMarkup,superDetailsMarkup,profileStats} from './technique-ui.js';
 import {STARTUP_NOTICE} from './notice-popup.js';
 import {COLLECTION_KINDS,collectionThumbnail,CREATURE_NOTES} from './collection-data.js';
-import {CREATURES,CREATURE_CATEGORIES,SUPPORT_ITEMS,DEFENSE_ITEMS,hasJournalRecord} from './game-session.js';
+import {CREATURES,CREATURE_CATEGORIES,SUPPORT_ITEMS,DEFENSE_ITEMS,hasJournalRecord,creatureDamageReduction} from './game-session.js';
 import { encodeSave, decodeSave, validatePreviewState } from './save-data.js';
 import {describeSaveProgress} from './save-preview.js';
 import {additionalEffectsText} from './additional-effects.js';
 import {equipmentPreviewMarkup} from './equipment-preview-ui.js';
 import {equippedSupportIds,supportItemLevel,supportSelectionChange,SUPPORT_SLOT_LIMIT,DEFAULT_OWNED_SUPPORT_IDS,DEFAULT_EQUIPPED_SUPPORT_IDS} from './equipment-rules.js';
 import {INITIAL_PLAYER_LEVEL} from './initial-state.js';
+import {auraMaxLevel,AURA_COPIES_PER_LEVEL} from './aura-rules.js';
 import {GROWTH_GUIDE_TABS,growthGuideMarkup,selectGrowthGuideTab} from './growth-guide.js';
 import { isModalBlocked, tryOpenModal, releaseModal } from './modal-layer.js';
 import {isBuildingVisitScene} from './interior-rules.js';
@@ -217,7 +218,7 @@ export class OptionsDialog {
   const grid=entries.map(entry=>'<button type="button" class="collection-tile" data-collection-select="'+escapeHtml(entry.id)+'" data-kind="'+kind+'" data-equipped="'+String(equippedIds.includes(entry.id))+'" aria-label="'+escapeHtml(entry.name+(kind==='support'?'（'+(entry.tagLabel||'サポート')+'・Lv.'+supportItemLevel(player,entry.id)+'）':'')+(equippedIds.includes(entry.id)?'（装備中）':''))+'" aria-pressed="'+String(selected===entry.id)+'">'+this.thumbnail(kind,entry.id,entry.name)+'<span class="collection-tile__name">'+escapeHtml(entry.name)+'</span>'+(kind==='support'?'<span class="collection-tile__meta">'+this.supportTag(entry)+'<span>Lv.'+supportItemLevel(player,entry.id)+'</span></span>':'')+'</button>').join('');
   let detail='<div class="collection-detail collection-detail--empty"><p>まだ'+COLLECTION_KINDS[kind]+'を持っていません。</p></div>';
   if(item){
-   const auraDetail=kind==='aura'?(item.id==='okoteiyu'?'全パラメータが1.2倍になります。レベル1で固定です。':'元の珍生物のパラメータランクとオーラレベルに応じて、能力値が加算されます。'):'',progress=kind==='aura'?'<p class="collection-detail__meta">Lv.'+count(item.level)+' · '+(item.id==='okoteiyu'?'固定':item.level>=30?'最大レベル':'次のレベルまで '+count(item.progress)+'/3')+'</p>':kind==='support'?'<div class="support-item-meta">'+this.supportTag(item)+'<span>Lv.'+supportItemLevel(player,item.id)+' / '+item.maxLevel+(supportItemLevel(player,item.id)>=item.maxLevel?' · 最大レベル':'')+'</span></div>':'';
+   const auraDetail=kind==='aura'?(item.id==='okoteiyu'?'全パラメータが1.2倍になります。レベル1で固定です。':'元の珍生物のパラメータランクとオーラレベルに応じて、能力値が加算されます。'):'',progress=kind==='aura'?'<p class="collection-detail__meta">Lv.'+count(item.level)+' / '+auraMaxLevel(item.id)+' · '+(item.id==='okoteiyu'?'固定':item.level>=auraMaxLevel(item.id)?'最大レベル':'次のレベルまで '+count(item.progress)+'/'+AURA_COPIES_PER_LEVEL)+'</p>':kind==='support'?'<div class="support-item-meta">'+this.supportTag(item)+'<span>Lv.'+supportItemLevel(player,item.id)+' / '+item.maxLevel+(supportItemLevel(player,item.id)>=item.maxLevel?' · 最大レベル':'')+'</span></div>':'';
    const allowed=!supportChange||supportChange.allowed,preview=allowed?equipmentPreviewMarkup(player,kind,item.id):'<p class="option-note support-selection-limit">サポートもちものは、合わせて'+SUPPORT_SLOT_LIMIT+'つまで選べます。ほかのものを外してから選んでください。</p>';
    detail='<section class="collection-detail collection-detail--equipment" aria-label="選択した持ち物の詳細">'+this.thumbnail(kind,item.id,item.name,'collection-detail__photo')+'<button class="option-action collection-equip" type="button" data-collection-equip="'+(kind==='support'?escapeHtml(item.id):isEquipped?'':escapeHtml(item.id))+'" data-kind="'+kind+'"'+(kind==='support'?' data-support-remove="'+String(isEquipped)+'"':'')+(canEquip&&allowed?'':' disabled')+'>'+(isEquipped?'外す':'装備する')+'</button><div class="collection-detail__copy"><h3>'+escapeHtml(item.name)+'</h3>'+progress+(kind==='aura'?'<p class="collection-detail__quantity">累計入手：'+count(item.copies)+'個</p>':'')+'<p>'+escapeHtml(kind==='aura'?auraDetail:item.description)+'</p>'+(kind==='aura'?'<p class="option-note">'+escapeHtml((CREATURES[item.id]?.auraAdditionalEffectsStatus==='unknown'?'追加効果：不明':additionalEffectsText(CREATURES[item.id]?.auraAdditionalEffects)))+'</p>':'')+'</div>'+preview+'</section>';
   }
@@ -244,6 +245,7 @@ export class OptionsDialog {
    facts[1]=['出現エリア（パトロール）',selected.creature.spawnRegions.map(id=>REGION_LABELS[id]).join('・')||'なし'];
    facts.splice(2,0,['キャンプ出現場所',campHabitatDescription(selected.creature)]);
   }
+  facts.push(['軽減値',creatureDamageReduction(selected.id).toLocaleString('ja-JP',{maximumFractionDigits:4})+'倍']);
   this.body.innerHTML='<section class="collection-detail journal-detail" aria-label="選択した珍生物の詳細">'+this.thumbnail('creature',selected.id,selected.name,'collection-detail__photo')+'<div class="collection-detail__copy"><span class="option-tag">'+escapeHtml(selected.self?'自分自身':CREATURE_CATEGORIES[selected.creature.category]?.label||'')+'</span><h3>'+escapeHtml(selected.name)+'</h3><p>'+escapeHtml(CREATURE_NOTES[selected.id]||'')+'</p><p class="option-note">'+escapeHtml((selected.creature.additionalEffectsStatus==='unknown'?'追加効果：不明':additionalEffectsText(selected.creature.additionalEffects)))+'</p><dl class="collection-facts"><div><dt>'+(selected.creature.heightMeasurement==='withers'?'体高（肩まで）':'身長')+'</dt><dd>'+(Number.isFinite(selected.creature.height)?Number((selected.creature.height*100).toFixed(1))+'cm':'未設定')+'</dd></div>'+facts.map(([name,value])=>'<div><dt>'+name+'</dt><dd>'+escapeHtml(value)+'</dd></div>').join('')+'</dl>'+repertoireMarkup(selected.self?availableTechniqueIds(player):selected.creature.techniques,{player:selected.self?player:null,enemyLevel:selected.lastLevel||1})+(selected.self?superDetailsMarkup(player):'')+'</div></section>';
  }
  renderIosGuide(){
