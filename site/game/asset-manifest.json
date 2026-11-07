@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
   "fileCount": 251,
-  "totalBytes": 280035719,
+  "totalBytes": 266757001,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=593347ed4cc7415966e2cb1f16d9ce86b7162033cef14c823aeac085ed68e163",
+      "url": "assets/battle3d/manifest.json?v=e3950438338ef338d35775c264d7bd6b4866fbbafc3cfbd9b75d8f53e79a6e46",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 64683,
+      "bytes": 64749,
       "priority": 2,
-      "sha256": "593347ed4cc7415966e2cb1f16d9ce86b7162033cef14c823aeac085ed68e163"
+      "sha256": "e3950438338ef338d35775c264d7bd6b4866fbbafc3cfbd9b75d8f53e79a6e46"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1877,20 +1877,20 @@
       "bytes": 11620
     },
     {
-      "url": "assets/battle3d/great_beast_lord.glb",
+      "url": "assets/battle3d/great_beast_lord.glb?v=986d3c92189731ba0bd204b9471b00fb7175e11246cde6b12f9a00ac2884dfdd",
       "label": "大獣主",
       "type": "binary",
       "priority": 2,
-      "sha256": "129c3c84103921a2e49c810ebb2f53c1f2768a32ab5e6eb91ff5330c259aa33a",
-      "bytes": 21994492
+      "sha256": "986d3c92189731ba0bd204b9471b00fb7175e11246cde6b12f9a00ac2884dfdd",
+      "bytes": 19400560
     },
     {
-      "url": "assets/collection/great_beast_lord.webp",
+      "url": "assets/collection/great_beast_lord.webp?v=70d3ce3f569e84a24bc8f29f615ec1041c3cc336a8989155ac2ee681f7f04a73",
       "label": "大獣主の写真",
       "type": "image",
       "priority": 3,
-      "sha256": "a4cc08755d28bb7ee6e0ba752989b4660af86ab78e9232e667d175da5706e50a",
-      "bytes": 22822
+      "sha256": "70d3ce3f569e84a24bc8f29f615ec1041c3cc336a8989155ac2ee681f7f04a73",
+      "bytes": 22656
     },
     {
       "url": "assets/collection/aura-great_beast_lord.webp",
@@ -1989,20 +1989,20 @@
       "bytes": 9471844
     },
     {
-      "url": "assets/battle3d/dark_domain_king.glb?v=8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969",
+      "url": "assets/battle3d/dark_domain_king.glb?v=6c7e47954975c1534feaa508bf62b271d56f2887139a8b2d08d73f37e1a0f23f",
       "label": "暗黒域の王",
       "type": "binary",
       "priority": 3,
-      "bytes": 18937900,
-      "sha256": "8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969"
+      "bytes": 8241720,
+      "sha256": "6c7e47954975c1534feaa508bf62b271d56f2887139a8b2d08d73f37e1a0f23f"
     },
     {
-      "url": "assets/collection/dark_domain_king.webp?v=ccc9cb5c75eec1edb39c0e5df87b73cc4b82ba4fabd8e82d0ae3625256b6d585",
+      "url": "assets/collection/dark_domain_king.webp?v=7f5e09b132467a5f3420a00892b5b4a6f1e3e769fd7a03d07684550d5c7ef54d",
       "label": "暗黒域の王の写真",
       "type": "image",
       "priority": 3,
-      "bytes": 16048,
-      "sha256": "ccc9cb5c75eec1edb39c0e5df87b73cc4b82ba4fabd8e82d0ae3625256b6d585"
+      "bytes": 27542,
+      "sha256": "7f5e09b132467a5f3420a00892b5b4a6f1e3e769fd7a03d07684550d5c7ef54d"
     },
     {
       "url": "assets/collection/aura-dark_domain_king.webp?v=66602c1fce3306d21143e426f1131b1bae13a9cd3ed5e769f16725081ec4aa60",

@@ -2041,7 +2041,7 @@
     "great_beast_lord": {
       "id": "great_beast_lord",
       "name": "大獣主",
-      "url": "great_beast_lord.glb",
+      "url": "great_beast_lord.glb?v=986d3c92189731ba0bd204b9471b00fb7175e11246cde6b12f9a00ac2884dfdd",
       "height": 3.0,
       "height_m": 3.0,
       "forwardAxis": "+Z",
@@ -2053,11 +2053,11 @@
       "clipDurations": {
         "Idle": 1.5
       },
-      "expansionRevision": "R279",
+      "expansionRevision": "R289",
       "fitVisualBounds": true,
       "softAlpha": false,
-      "bytes": 21994492,
-      "sha256": "129c3c84103921a2e49c810ebb2f53c1f2768a32ab5e6eb91ff5330c259aa33a"
+      "bytes": 19400560,
+      "sha256": "986d3c92189731ba0bd204b9471b00fb7175e11246cde6b12f9a00ac2884dfdd"
     },
     "angry_dragon": {
       "id": "angry_dragon",
@@ -2183,7 +2183,7 @@
     "dark_domain_king": {
       "id": "dark_domain_king",
       "name": "暗黒域の王",
-      "url": "dark_domain_king.glb?v=8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969",
+      "url": "dark_domain_king.glb?v=6c7e47954975c1534feaa508bf62b271d56f2887139a8b2d08d73f37e1a0f23f",
       "height": 3.0,
       "height_m": 3.0,
       "forwardAxis": "+Z",
@@ -2195,11 +2195,11 @@
       "clipDurations": {
         "Idle": 1.5
       },
-      "expansionRevision": "R284",
+      "expansionRevision": "R289",
       "fitVisualBounds": true,
       "softAlpha": false,
-      "sha256": "8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969",
-      "bytes": 18937900
+      "sha256": "6c7e47954975c1534feaa508bf62b271d56f2887139a8b2d08d73f37e1a0f23f",
+      "bytes": 8241720
     }
   },
   "commonMotion": {
