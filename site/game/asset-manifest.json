@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "scope": "ゲーム本編で使用するハウス、拠点屋外、支援施設、あなたの部屋、倉庫、道中、戦闘、カットイン、キャラクター、妖精、もちもの、キャンプ探索地の背景・地形・キャンプ拠点と共通UI画像。専用確認ページだけの素材は除外。",
-  "fileCount": 248,
-  "totalBytes": 253275318,
+  "fileCount": 251,
+  "totalBytes": 272240161,
   "files": [
     {
       "url": "assets/house3d/house.glb?v=c436b4f219682756d48fb3ad5f5b1924fcfcb6780b05118d731a509b13bf54c9",
@@ -485,12 +485,12 @@
       "sha256": "608b7a193d9db7634ab783d0f60b8920cc012247d01c4575e4d68b8c4d9a325a"
     },
     {
-      "url": "assets/battle3d/manifest.json?v=a52efbcec4e71c80f0a487e9c287de17766506d9e0d029d585079b22548392e0",
+      "url": "assets/battle3d/manifest.json?v=55bea80e1e20804b2df6763eb9c17d0f4b771204a57717836949ab09d444c03a",
       "label": "戦闘モデルの設定",
       "type": "json",
-      "bytes": 64020,
+      "bytes": 64659,
       "priority": 2,
-      "sha256": "a52efbcec4e71c80f0a487e9c287de17766506d9e0d029d585079b22548392e0"
+      "sha256": "55bea80e1e20804b2df6763eb9c17d0f4b771204a57717836949ab09d444c03a"
     },
     {
       "url": "assets/battle3d/okoteiyu.glb?v=86c7e35cf2b4c59d3602fe04527c4525b2524c4daeb1edabdcd5b072212b89b0",
@@ -1987,6 +1987,30 @@
       "priority": 3,
       "sha256": "67d39b8a8bb68cc14087cd54f375e285927f178ee305957a7151b9a6e44c7da9",
       "bytes": 1807476
+    },
+    {
+      "url": "assets/battle3d/dark_domain_king.glb?v=8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969",
+      "label": "暗黒域の王",
+      "type": "binary",
+      "priority": 3,
+      "bytes": 18937900,
+      "sha256": "8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969"
+    },
+    {
+      "url": "assets/collection/dark_domain_king.webp?v=ccc9cb5c75eec1edb39c0e5df87b73cc4b82ba4fabd8e82d0ae3625256b6d585",
+      "label": "暗黒域の王の写真",
+      "type": "image",
+      "priority": 3,
+      "bytes": 16048,
+      "sha256": "ccc9cb5c75eec1edb39c0e5df87b73cc4b82ba4fabd8e82d0ae3625256b6d585"
+    },
+    {
+      "url": "assets/collection/aura-dark_domain_king.webp?v=66602c1fce3306d21143e426f1131b1bae13a9cd3ed5e769f16725081ec4aa60",
+      "label": "暗黒域の王のオーラを装備したおこていゆ",
+      "type": "image",
+      "priority": 3,
+      "bytes": 10256,
+      "sha256": "66602c1fce3306d21143e426f1131b1bae13a9cd3ed5e769f16725081ec4aa60"
     }
   ]
 }

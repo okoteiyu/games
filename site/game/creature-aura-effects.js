@@ -9,7 +9,7 @@ const positiveModulo=(n,m)=>((n%m)+m)%m;
 export class CreatureAuraEffects{
  constructor(height,{density=1,strength=1}={}){
   this.height=height;this.density=density;this.intensity=strength;this.counts=Object.fromEntries(Object.entries(CREATURE_AURA_COUNTS).map(([key,count])=>[key,Math.ceil(count*density)]));this.root=new THREE.Group();this.root.name='Battle.CreatureAura';this.root.visible=false;
-  this.uniforms={time:{value:0},height:{value:height},strength:{value:1},dark:{value:0},paletteCount:{value:1},palette:{value:Array.from({length:MAX_PALETTE},()=>new THREE.Color(0xffffff))}};
+  this.uniforms={time:{value:0},height:{value:height},strength:{value:1},dark:{value:0},monochromeBlack:{value:0},paletteCount:{value:1},palette:{value:Array.from({length:MAX_PALETTE},()=>new THREE.Color(0xffffff))}};
   this.mist=this.makeLayer(this.counts.mist,0);this.ribbons=this.makeLayer(this.counts.ribbons,1);this.sparks=this.makeLayer(this.counts.sparks,2);this.root.add(this.mist,this.ribbons,this.sparks);this.style=null;this.active=false;
  }
  makeLayer(count,kind){
@@ -40,7 +40,7 @@ export class CreatureAuraEffects{
      gl_Position=projectionMatrix*view;vUv=uv;vLife=pow(max(0.,sin(age*3.14159265)),.85);vSeed=aPhase;vHeight=center.y+position.y*length;
     }`,
    fragmentShader:`
-    uniform float time;uniform float height;uniform float strength;uniform float dark;uniform float kind;uniform int paletteCount;uniform vec3 palette[8];
+    uniform float time;uniform float height;uniform float strength;uniform float dark;uniform float monochromeBlack;uniform float kind;uniform int paletteCount;uniform vec3 palette[8];
     varying vec2 vUv;varying float vLife;varying float vSeed;varying float vHeight;
     void main(){
      float spark=step(1.5,kind),ribbon=step(.5,kind)*(1.-spark);
@@ -55,7 +55,10 @@ export class CreatureAuraEffects{
      // Black auras retain a dark smoke body, with a restrained slate rim so
      // their movement stays visible in a dark field without becoming white.
      float channel=max(base.r,max(base.g,base.b));
-     vec3 rim=channel>.0008?base*(max(.18,channel)/channel):vec3(.13,.16,.23);
+     // An explicit all-black palette remains achromatic. Legacy unpaletted
+     // black auras retain their authored slate edge.
+     vec3 blackRim=mix(vec3(.13,.16,.23),vec3(.16),monochromeBlack);
+     vec3 rim=channel>.0008?base*(max(.18,channel)/channel):blackRim;
      vec3 color=mix(bright,rim,dark);
      if(kind<.5){color=mix(base*.75,base,dark);alpha*=mix(.77,1.55,dark);}
      else if(kind<1.5){color=mix(color,mix(base,vec3(1.),.23),exp(-p.x*p.x*18.)*.22*(1.-dark));}
@@ -68,6 +71,7 @@ export class CreatureAuraEffects{
   if(this.style===style)return;this.style=style;
   const colors=(style.palette?.length?style.palette:[style.color]).slice(0,MAX_PALETTE);for(let i=0;i<MAX_PALETTE;i++)this.uniforms.palette.value[i].set(colors[i%colors.length]);
   this.uniforms.paletteCount.value=colors.length;
+  this.uniforms.monochromeBlack.value=style.palette?.length&&colors.every(color=>new THREE.Color(color).getHex()===0)?1:0;
   this.uniforms.dark.value=Math.max(...colors.map(color=>{const c=new THREE.Color(color);return Math.max(c.r,c.g,c.b);} ))<.12?1:0;
  }
  sample(elapsed,active,style,{superActive=false}={}){

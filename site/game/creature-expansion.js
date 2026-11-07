@@ -5,6 +5,7 @@ import {REGIONAL_CREATURE_BASES,REGIONAL_CREATURE_VARIANTS} from './regional-cre
 import {MOAI_WARRIOR_VARIANTS} from './moai-warrior-family.js';
 import {PUNIM_FAMILY_DEFINITIONS} from './punim-family.js';
 import {DRAGON_FAMILY_DEFINITIONS} from './dragon-family.js';
+import {DARK_DOMAIN_KING} from './dark-domain-king.js';
 /** Confirmed species settings. Null heights remain undecided; GLBs carry separate authoring dimensions. */
 const definitions=[...CAMP_CREATURE_DEFINITIONS,...NEW_CREATURE_DEFINITIONS,...ADOPTED_CREATURE_DEFINITIONS,...PUNIM_FAMILY_DEFINITIONS,...MOAI_WARRIOR_VARIANTS,...REGIONAL_CREATURE_VARIANTS,
  {"id":"fake_moai","name":"偽モアイ","description":"モアイに似ているが、何か違う。なぜか違うことがわかるんだ。","category":"threat","height":2.5,"levelBand":{"min":20,"max":100},"spawnRegions":["city","residential","forest"],"spawnTimes":["day","night"],"ranks":{"hp":15,"attack":12,"ki":12,"speed":5},"techniques":["fake_moai_beam","normal_attack"],"auraColor":"#ff7fbe","additionalEffects":[{"type":"living_ally_species_damage_dealt","speciesIds":["moai_king","gold_moai"],"multiplier":0.5,"description":"偽モアイの味方チームに疲れていないモアイの戦士または金モアイがいる間、この偽モアイが与えるダメージが0.5倍になります。重複しません。"}],"auraAdditionalEffects":[{"type":"target_species_exclusion_damage_dealt","excludedSpeciesIds":["moai_king","gold_moai"],"multiplier":1.3,"description":"モアイの戦士・金モアイ以外の相手に与えるダメージが1.3倍になります。"}]},
@@ -235,6 +236,6 @@ const definitions=[...CAMP_CREATURE_DEFINITIONS,...NEW_CREATURE_DEFINITIONS,...A
   "auraColor": "#ffc84f",
   "description": "金色のモアイ！？何だかスーパーおこていゆ状態みたいだね！仲間だね🌀 でも強い😭😭😭"
  },
- ...DRAGON_FAMILY_DEFINITIONS
+ ...DRAGON_FAMILY_DEFINITIONS,DARK_DOMAIN_KING
 ];
 export const ADDED_CREATURES=Object.freeze(Object.fromEntries(definitions.map(creature=>[creature.id,Object.freeze({...creature,...(REGIONAL_CREATURE_BASES[creature.id]?{campHabitats:REGIONAL_CREATURE_BASES[creature.id].campHabitats}:{}),levelBand:Object.freeze(creature.levelBand),spawnRegions:Object.freeze(creature.spawnRegions),spawnTimes:Object.freeze(creature.spawnTimes),ranks:Object.freeze(creature.ranks),techniques:Object.freeze(creature.techniques),additionalEffects:Object.freeze(creature.additionalEffects||[]),auraAdditionalEffects:Object.freeze(creature.auraAdditionalEffects||[])})])));

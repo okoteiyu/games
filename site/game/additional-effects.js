@@ -25,6 +25,14 @@ export function opponentAttackParameterMultiplier(effectLists=[]){
 export function opponentKiParameterMultiplier(effectLists=[]){
  return effectLists.flatMap(effects=>effects||[]).reduce((value,effect)=>effect?.type==='opponent_ki_parameter'?value*factor(effect.multiplier):value,1);
 }
+/** Opening attack stops overlap from battle time zero; they do not add time. */
+export function openingOpponentsAttackStopUntil(effectLists=[]){
+ return effectLists.flatMap(effects=>effects||[]).reduce((until,effect)=>{
+  if(effect?.type!=='opening_opponents_attack_stop')return until;
+  if(typeof effect.duration!=='number')throw new RangeError('攻撃停止の時間が正しくありません。');
+  return Math.max(until,factor(effect.duration));
+ },0);
+}
 /** Pick one opponent per rank effect, once. Always read intrinsic ranks, so two
  * copying opponents cannot recursively raise each other's derived ranks. */
 export function selectBattleRankBonus(effects=NO_ADDITIONAL_EFFECTS,opponents=[],rng=Math.random){

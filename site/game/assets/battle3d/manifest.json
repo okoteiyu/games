@@ -2187,6 +2187,27 @@
         ],
         "emphasis": true
       }
+    },
+    "dark_domain_king": {
+      "id": "dark_domain_king",
+      "name": "暗黒域の王",
+      "url": "dark_domain_king.glb?v=8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969",
+      "height": 3.0,
+      "height_m": 3.0,
+      "forwardAxis": "+Z",
+      "upAxis": "+Y",
+      "motionRoot": "Combat.MotionRoot",
+      "clips": {
+        "idle": "Idle"
+      },
+      "clipDurations": {
+        "Idle": 1.5
+      },
+      "expansionRevision": "R284",
+      "fitVisualBounds": true,
+      "softAlpha": false,
+      "sha256": "8a5c2001722dcad931cb1733e5840e0c920d0aa266cd4b80e10b2b44cad28969",
+      "bytes": 18937900
     }
   },
   "commonMotion": {

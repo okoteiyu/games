@@ -2,7 +2,7 @@ import {REGIONAL_CREATURE_BASES} from './regional-creature-families.js';
 import {MOAI_WARRIOR_BASE} from './moai-warrior-family.js';
 import {ADDED_CREATURES} from './creature-expansion.js';
 import {applyR280RankBalance} from './rank-balance-r280.js';
-import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,opponentAttackParameterMultiplier,opponentKiParameterMultiplier,selectBattleRankBonus,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
+import {NO_ADDITIONAL_EFFECTS,firstAttackParameterMultipliers,opponentAttackParameterMultiplier,opponentKiParameterMultiplier,openingOpponentsAttackStopUntil,selectBattleRankBonus,additionalDamageMultiplier,additionalDamageReceivedMultiplier} from './additional-effects.js';
 import {INITIAL_PLAYER_LEVEL,INITIAL_CALM_POINTS,INITIAL_JOURNAL_SPECIES} from './initial-state.js';
 import {normalizeVisitorName} from './visitor-profile.js';
 import {createStoryProgress,normalizeStoryProgress,hasStoryBattleReward,markStoryBattleReward} from './story-progress.js';
@@ -412,6 +412,24 @@ export class GameSession{
  }
  actorIds(){const b=this.state.battle;return b?['player',...b.enemies.map(enemy=>enemy.id)]:[];}
  combatant(id){const b=this.state.battle;return id==='player'?b?.player:b?.enemies.find(enemy=>enemy.id===id);}
+ attackStopUntil(actorId){
+  const b=this.state.battle;if(!b)return 0;
+  const opponents=actorId==='player'?b.enemies:[b.player];
+  return openingOpponentsAttackStopUntil(opponents.filter(actor=>actor.hp>0).flatMap(actor=>[
+   CREATURES[actor.speciesId].additionalEffects,
+   actor.id==='player'?CREATURES[this.player.equippedAura]?.auraAdditionalEffects:NO_ADDITIONAL_EFFECTS
+  ]));
+ }
+ isAttackStopped(actorId){const b=this.state.battle;return Boolean(b&&b.time<this.attackStopUntil(actorId));}
+ pauseAttackClocks(until){
+  const b=this.state.battle;
+  for(const id of this.actorIds()){
+   const actor=this.combatant(id);if(actor.hp<=0||actor.action?.technique==='super_awaken')continue;
+   const paused=Math.max(0,Math.min(until,this.attackStopUntil(id))-b.time);if(!paused)continue;
+   if(actor.action){actor.action.startedAt+=paused;actor.action.endsAt+=paused;}
+   else if(Number.isFinite(actor.nextActionAt))actor.nextActionAt+=paused;
+  }
+ }
  selectTarget(){
   const b=this.state.battle;if(!b)return null;
   const previous=b.targetId,target=b.enemies.find(enemy=>enemy.id===previous&&enemy.hp>0)||b.enemies.find(enemy=>enemy.hp>0)||null;
@@ -475,6 +493,7 @@ export class GameSession{
  }
  startAction(actorId,technique=null){
   const battle=this.state.battle,actor=this.combatant(actorId);if(!actor||battle.phase!=='active'||actor.hp<=0||actor.action)return false;
+  if(technique!=='super_awaken'&&this.isAttackStopped(actorId))return false;
   if(!technique){if(actorId!=='player'){const pool=CREATURES[actor.speciesId].techniques;technique=pool[actor.attackIndex++%pool.length];}else{const pool=this.player.techniqueSlots.filter(Boolean);technique=actor.requestedTechnique||pool[actor.attackIndex%pool.length];actor.requestedTechnique=null;actor.attackIndex++;}}
   const target=actorId==='player'?this.selectTarget():battle.player;if(!target)return false;
   const duration=technique==='super_awaken'?1.5:techniqueDuration(technique);
@@ -534,6 +553,7 @@ export class GameSession{
  }
  finishAction(actorId){
   const b=this.state.battle,actor=this.combatant(actorId),action=actor?.action;if(!action||b.phase!=='active')return;let selfLowBeforeHealing=false;
+  if(action.technique!=='super_awaken'&&this.isAttackStopped(actorId))return false;
   actor.action=null;this.emit('action-complete',{actor:actorId,technique:action.technique,duration:action.duration,time:b.time});
   if(action.technique!=='super_awaken'){
    const target=actorId==='player'?(this.combatant(action.targetId)?.hp>0?this.combatant(action.targetId):this.selectTarget()):b.player;if(!target)return;
@@ -577,10 +597,10 @@ export class GameSession{
   while(b.phase==='active'&&b.time<targetTime-EPSILON){
    if(++iterations>100000)throw new Error('Battle event budget exceeded.');
    const ids=this.actorIds();let next=targetTime;
-   for(const id of ids){const a=this.combatant(id);if(a.hp>0)next=Math.min(next,a.action?a.action.endsAt:a.nextActionAt);}
+   for(const id of ids){const a=this.combatant(id);if(a.hp>0){const stopUntil=this.attackStopUntil(id);next=Math.min(next,b.time<stopUntil&&a.action?.technique!=='super_awaken'?stopUntil:a.action?a.action.endsAt:a.nextActionAt);}}
    next=Math.min(next,supportNextEventTime(b.support));
    if(b.super.active)next=Math.min(next,b.super.until);
-   b.time=Math.max(b.time,next);
+   this.pauseAttackClocks(next);b.time=Math.max(b.time,next);
    if(b.super.active&&b.time+EPSILON>=b.super.until){const multiplier=b.super.multiplier;if(!b.player.action&&Number.isFinite(b.player.nextActionAt))b.player.nextActionAt=b.time+Math.max(0,b.player.nextActionAt-b.time)*multiplier;b.super.active=false;b.super.multiplier=1;this.emit('super-end',{actor:'player',active:false,time:b.time});}
    for(const id of ids){const a=this.combatant(id);if(b.phase==='active'&&a.hp>0&&a.action&&a.action.endsAt<=b.time+EPSILON)this.finishAction(id);if(pauseOnSuperAwakening&&this.isSuperAwakening())return this.snapshotBattle();}
    if(b.phase!=='active')break;
@@ -657,7 +677,7 @@ export class GameSession{
  }
  snapshotBattle(){
   const b=this.state.battle;if(!b)return null;
-  const snapshotActor=a=>({...a,stats:a.id==='player'&&b.super.active?applySuperStats(b.playerStatBase,b.super.multiplier):{...a.stats},action:a.action?{...a.action,elapsed:Math.max(0,Math.min(a.action.duration,b.time-a.action.startedAt))}:null,superActive:a.id==='player'&&b.super.active,superUsed:a.id==='player'&&b.super.used});
+  const snapshotActor=a=>{const until=this.attackStopUntil(a.id);return {...a,...(until>0?{attackStopped:b.time<until,attackStoppedUntil:until}:{}),stats:a.id==='player'&&b.super.active?applySuperStats(b.playerStatBase,b.super.multiplier):{...a.stats},action:a.action?{...a.action,elapsed:Math.max(0,Math.min(a.action.duration,b.time-a.action.startedAt))}:null,superActive:a.id==='player'&&b.super.active,superUsed:a.id==='player'&&b.super.used};};
   const enemies=b.enemies.map(snapshotActor);
   const {playerStatBase,completedAttacks,...visibleBattle}=b;
   return clone({...visibleBattle,player:{...snapshotActor(b.player),auraId:this.player.equippedAura,equipment:{...this.player.equipment}},enemies,enemy:enemies.find(enemy=>enemy.id===b.targetId)||enemies[0],enemyCount:enemies.length,techniques:{slots:[...this.player.techniqueSlots],superConfiguration:this.player.superConfiguration,superDetails:superStateDetails(this.player),energyRayUnlocked:this.player.energyRayUnlocked,punchLevel:this.player.punchLevel,energyRayLevel:this.player.energyRayLevel}});

@@ -34,3 +34,14 @@ export const CAMP_BEAST_LORD_LOCATION=Object.freeze({
  guardianSpeciesId:'great_beast_lord',fixedLevel:80,hideUntilVisited:true,
  description:'大獣主が待ち構える玉座のある区域。'
 });
+
+/** Append one dedicated leaf rather than reserving an existing waypoint:
+ * every old waypoint can already contain a saved camp base. */
+export const CAMP_DEMON_GATE_POINT=Object.freeze({
+ nodeId:'demon-gate',x:5140,y:-7540,terrain:'cliff',connectedNodeId:'wild-1905'
+});
+export const CAMP_DEMON_GATE_LOCATION=Object.freeze({
+ id:'demon_gate',name:'魔界ゲート',nodeId:CAMP_DEMON_GATE_POINT.nodeId,
+ guardianSpeciesId:'dark_domain_king',fixedLevel:80,hideUntilVisited:true,
+ description:'暗黒域の北側にある、暗黒域の王が待ち構えるゲート。'
+});
